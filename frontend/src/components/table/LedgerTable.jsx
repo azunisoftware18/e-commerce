@@ -2,9 +2,8 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import { TableShell, TableHead, TableBody, TablePagination } from "./core";
-import { data } from "@/lib/DummyData";
 
-export default function LedgerTable() {
+export default function LedgerTable({ data = [] }) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
@@ -13,7 +12,12 @@ export default function LedgerTable() {
   const itemsPerPage = 10;
 
   const columns = [
-    { label: "Date", accessor: "date" },
+    {
+      label: "Date",
+      accessor: "date",
+      render: (value) =>
+        value ? new Date(value).toLocaleDateString("en-IN") : "-",
+    },
     { label: "Order ID", accessor: "orderId" },
     { label: "Customer", accessor: "customer" },
     {
@@ -24,19 +28,23 @@ export default function LedgerTable() {
     {
       label: "Payment Status",
       accessor: "status",
-      render: (value) => (
-        <span
-          className={`px-2 py-1 text-xs rounded-full font-medium ${
-            value === "Paid"
-              ? "bg-green-100 text-green-600"
-              : value === "Pending"
-              ? "bg-yellow-100 text-yellow-600"
-              : "bg-red-100 text-red-600"
-          }`}
-        >
-          {value}
-        </span>
-      ),
+      render: (value) => {
+        const v = value?.toLowerCase();
+
+        return (
+          <span
+            className={`px-2 py-1 text-xs rounded-full font-medium ${
+              v === "paid"
+                ? "bg-green-100 text-green-600"
+                : v === "pending"
+                  ? "bg-yellow-100 text-yellow-600"
+                  : "bg-red-100 text-red-600"
+            }`}
+          >
+            {value}
+          </span>
+        );
+      },
     },
   ];
 
@@ -48,14 +56,14 @@ export default function LedgerTable() {
         item.orderId?.toLowerCase().includes(search.toLowerCase());
 
       const matchesStatus =
-        status === "All" || item.status === status;
+        status === "All" || item.status?.toLowerCase() === status.toLowerCase();
 
       const matchesDate =
-        !date || item.date === date;
+        !date || new Date(item.date).toISOString().slice(0, 10) === date;
 
       return matchesSearch && matchesStatus && matchesDate;
     });
-  }, [search, status, date]);
+  }, [data, search, status, date]);
 
   // ✅ AUTO RESET PAGE (🔥 IMPORTANT)
   useEffect(() => {
@@ -75,7 +83,9 @@ export default function LedgerTable() {
     setStatus("All");
     setDate("");
   };
-
+  if (!data.length) {
+    return <div className="p-6 text-center">No transactions found</div>;
+  }
   return (
     <TableShell
       pagination={

@@ -1,32 +1,39 @@
-import React from 'react'
+'use client';
+
+import React, { useMemo } from 'react'
 import { IndianRupee, ShoppingBag, Package, Users } from 'lucide-react'
 import StatCard from '@/components/common/StatCard'
 import LedgerTable from '@/components/table/LedgerTable'
+import {  useOrders } from '@/lib/queries/useOrders';
 
 export default function Ledger() {
-   const ledgerData = [
-    {
-      date: "12 Feb 2026",
-      orderId: "ORD12345",
-      customer: "Rahul Sharma",
-      amount: "₹25,000",
-      status: "paid",
-    },
-    {
-      date: "13 Feb 2026",
-      orderId: "ORD12346",
-      customer: "Amit Verma",
-      amount: "₹15,000",
-      status: "pending",
-    },
-    {
-      date: "14 Feb 2026",
-      orderId: "ORD12347",
-      customer: "Neha Singh",
-      amount: "₹40,000",
-      status: "failed",
-    },
-  ];
+  const { data: orders = [], isLoading } = useOrders();
+  const ledgerData = useMemo(() => {
+  return orders.map((order) => ({
+    date: order.date || order.createdAt || null,
+    orderId: order.id,
+    customer: order.customer?.name || "N/A",
+    amount: order.total || 0,         // ✅ FIX
+    status: order.payment || "Pending", // ✅ FIX
+  }));
+}, [orders]);
+
+const totalRevenue = orders.reduce(
+  (sum, o) => sum + Number(o.totalAmount || o.total || 0),
+  0
+);
+
+const totalOrders = orders.length;
+
+const totalCustomers = new Set(
+  orders.map((o) => o.customer?.id)
+).size;
+
+const formattedRevenue = new Intl.NumberFormat("en-IN").format(totalRevenue);
+
+if (isLoading) {
+  return <div className="p-6">Loading ledger...</div>;
+}
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6 w-full bg-white min-h-screen">
@@ -42,34 +49,37 @@ export default function Ledger() {
 
       {/* Stats Grid - Mobile/Tablet par 1, Laptop par 2 cards */}
       <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6 w-full max-w-400">
-        <StatCard 
-          title="Total Revenue" 
-          value="₹0.00" 
-          icon={IndianRupee} 
-          trendValue="-100.0%" 
-          isUp={false} 
-        />
-        <StatCard 
-          title="Orders" 
-          value="2" 
-          icon={ShoppingBag} 
-          trendValue="-98.0%" 
-          isUp={false} 
-        />
-        <StatCard 
-          title="Products" 
-          value="2" 
-          icon={Package} 
-          trendValue="-98.0%" 
-          isUp={false} 
-        />
-        <StatCard 
-          title="Customers" 
-          value="2" 
-          icon={Users} 
-          trendValue="-98.0%" 
-          isUp={false} 
-        />
+       <StatCard 
+  title="Total Revenue" 
+  value={`₹${formattedRevenue}`} 
+  icon={IndianRupee} 
+  trendValue="+8.2%" 
+  isUp={true} 
+/>
+
+<StatCard 
+  title="Orders" 
+  value={totalOrders} 
+  icon={ShoppingBag} 
+  trendValue="+5.2%" 
+  isUp={true} 
+/>
+
+<StatCard 
+  title="Products" 
+  value="--"   // (optional: API se la sakte ho)
+  icon={Package} 
+  trendValue="--" 
+  isUp={true} 
+/>
+
+<StatCard 
+  title="Customers" 
+  value={totalCustomers} 
+  icon={Users} 
+  trendValue="+2.1%" 
+  isUp={true} 
+/>
       </section>
 
       {/* Table Section - Tablet aur Mobile dono par scrollable */}
@@ -83,7 +93,7 @@ export default function Ledger() {
   */}
   <div className="overflow-x-auto w-full">
     <div className="inline-block min-w-full align-middle">
-      <LedgerTable data={ledgerData} />
+      <LedgerTable  data={ledgerData} />
     </div>
   </div>
 </section>

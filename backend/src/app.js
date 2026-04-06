@@ -29,6 +29,7 @@ import orderRouter from "./routes/order.routes.js";
 import sendMail from "./routes/sendMail.routes.js";
 import paymentRouter from "./routes/payment.routes.js";
 import subCategoryRoutes from "./routes/subcategory.routes.js";
+import dietPlanRoutes from "./routes/dietPlan.routes.js";
 
 // routes declaration
 app.use("/api/v1/auth", userRouter);
@@ -39,6 +40,7 @@ app.use("/api/v1/product", productRouter);
 app.use("/api/v1/order", orderRouter);
 app.use("/api/v1", sendMail);
 app.use("/api/v1/payment", paymentRouter);
+app.use("/api/v1/diet-plan", dietPlanRoutes);
 
 app.use((err, req, res, next) => {
   console.error("ERROR 💥", err);

@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { AlertTriangle, CheckCircle2, Loader2, MessageSquare, Info, X } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Loader2,
+  MessageSquare,
+  Info,
+  X,
+} from "lucide-react";
 import Button from "../ui/Button";
 import TextAreaField from "../ui/TextAreaField";
 
@@ -62,7 +69,7 @@ export default function ConfirmationDialog({
       />
 
       {/* Main Dialog Card */}
-      <div 
+      <div
         className={`
           relative bg-white w-full max-w-110 rounded-4xl 
           shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-slate-200/60
@@ -71,18 +78,23 @@ export default function ConfirmationDialog({
       >
         {/* Header/Icon Section */}
         <div className="pt-10 pb-6 px-8 flex flex-col items-center text-center">
-          <div className={`
+          <div
+            className={`
             relative mb-6 p-5 rounded-3xl ${config.iconBg} 
             border ${config.accentBorder} shadow-sm
             transition-transform duration-500 hover:rotate-6
-          `}>
-            <IconToShow className={`w-9 h-9 ${config.iconColor}`} strokeWidth={2.5} />
+          `}
+          >
+            <IconToShow
+              className={`w-9 h-9 ${config.iconColor}`}
+              strokeWidth={2.5}
+            />
           </div>
-          
+
           <h3 className="text-[24px] font-bold text-slate-900 tracking-tight leading-tight">
             {title}
           </h3>
-          
+
           <div className="mt-3 px-2">
             <p className="text-slate-500 text-[15px] leading-relaxed">
               {description}
@@ -136,7 +148,7 @@ export default function ConfirmationDialog({
             {showConfirmButton && (
               <Button
                 disabled={loading || (showRemark && !remark.trim())}
-                text="Track Order"
+                text={confirmText}
                 onClick={() => onConfirm(remark)}
                 className={`
                   flex-[1.2] order-1 sm:order-2 px-6 py-4 text-[15px] font-bold text-white 
@@ -157,7 +169,6 @@ export default function ConfirmationDialog({
         </div>
 
         {/* Subtle Bottom Accent */}
-        <div className={`h-1.5 w-full ${config.iconColor.replace('text', 'bg')} opacity-20`} />
       </div>
     </div>
   );

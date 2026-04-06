@@ -145,6 +145,22 @@ model OrderItem {
   @@map("orderitem")
 }
 
+model DietPlan {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  price       Float
+  type        PlanType
+  pdfUrl      String
+  thumbnail   String
+  createdAt   DateTime @default(now())
+}
+
+enum PlanType {
+  FREE
+  PAID
+}
+
 enum Role {
   Admin
   Customer

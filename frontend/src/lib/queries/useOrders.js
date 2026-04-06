@@ -1,26 +1,30 @@
 import { useQuery } from "@tanstack/react-query";
 import api from "../api";
 
-//  Get All Orders
-export const useGetOrders = () => {
+// ==============================
+// ✅ GET ALL ORDERS
+// ==============================
+export const useOrders = () => {
   return useQuery({
     queryKey: ["orders"],
     queryFn: async () => {
       const res = await api.get("/order/get-orders");
-      return res.data.data;
+
+      return res?.data?.data || [];
     },
   });
 };
 
-//  Get Single Order
+// ==============================
+// ✅ GET SINGLE ORDER
+// ==============================
 export const useOrder = (id) => {
   return useQuery({
     queryKey: ["order", id],
     queryFn: async () => {
       const res = await api.get(`/order/get-order/${id}`);
-      return res.data.data;
+      return res?.data?.data || null;
     },
     enabled: !!id,
   });
 };
-

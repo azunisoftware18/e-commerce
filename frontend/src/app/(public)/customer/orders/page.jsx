@@ -16,24 +16,46 @@ import {
 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import AuthGuard from "@/components/common/AuthGuard";
-import { useGetOrders } from "@/lib/queries/useOrders";
-import { useDeleteOrder, useDownloadInvoice, useUpdateOrder } from "@/lib/mutations/useOrders";
+import {
+  useDeleteOrder,
+  useDownloadInvoice,
+  useUpdateOrder,
+} from "@/lib/mutations/useOrders";
+import { useState } from "react";
+import ConfirmationDialog from "@/components/common/ConfirmationDialog";
+import { useOrders } from "@/lib/queries/useOrders";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_IMAGE_URL;
 
 export default function OrdersPage() {
   const router = useRouter();
-  const { data, isLoading, isError } = useGetOrders();
+  const { data, isLoading, isError } = useOrders();
   const orders = data?.orders || data || [];
   const { mutate: updateOrder } = useUpdateOrder();
   const { mutate: downloadInvoice, isLoading: downloading } =
     useDownloadInvoice();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [successOpen, setSuccessOpen] = useState(false);
 
-  const handleCancelOrder = (id) => {
-  updateOrder({
-    id,
-    data: { status: "Cancelled" }, // 🔥 main change
-  });
+  const handleCancelClick = (id) => {
+  setSelectedOrderId(id);
+  setConfirmOpen(true);
+};
+
+const handleConfirmCancel = () => {
+  updateOrder(
+    {
+      id: selectedOrderId,
+      data: { status: "Cancelled" },
+    },
+    {
+      onSuccess: () => {
+        setConfirmOpen(false);
+        setSuccessOpen(true); // success dialog open
+      },
+    }
+  );
 };
 
   if (isLoading) {
@@ -269,7 +291,7 @@ export default function OrdersPage() {
                             </button>
                             {order.status?.toLowerCase() === "pending" && (
                               <button
-                                onClick={() => handleCancelOrder(order.id)}
+                                onClick={() => handleCancelClick(order.id)}
                                 className="px-4 py-2 text-sm font-medium text-red-600 hover:text-red-700 transition-colors rounded-xl border border-red-200 hover:border-red-300 disabled:opacity-50"
                               >
                                 cancel
@@ -298,6 +320,25 @@ export default function OrdersPage() {
           )}
         </main>
       </div>
+      <ConfirmationDialog
+  open={confirmOpen}
+  title="Cancel Order?"
+  description="Are you sure you want to cancel this order?"
+  confirmText="Yes, Cancel Order"
+  cancelText="No"
+  onConfirm={handleConfirmCancel}
+  onCancel={() => setConfirmOpen(false)}
+  variant="danger"
+/>
+<ConfirmationDialog
+  open={successOpen}
+  title="Order Cancelled"
+  description="Your order has been cancelled successfully."
+  confirmText="OK"
+  showCancelButton={false}
+  variant="success"
+  onConfirm={() => setSuccessOpen(false)}
+/>
     </AuthGuard>
   );
 }
