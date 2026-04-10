@@ -105,7 +105,7 @@ export default function CartPage() {
         email: selectedAddress.email || "test@gmail.com",
         address: selectedAddress.address,
         city: selectedAddress.city,
-        zip: selectedAddress.zip || "000000",
+        pinCode: selectedAddress?.pinCode ?? "",
       },
       payment: paymentMethod,
     };

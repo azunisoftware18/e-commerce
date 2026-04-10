@@ -35,7 +35,7 @@ export default function AddressPage() {
   );
   const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState({
-    pincode: "",
+    pinCode: "",
     city: "",
     state: "",
     address: "",
@@ -43,7 +43,9 @@ export default function AddressPage() {
 
   const handleSave = () => {
     if (
-      !formData.pincode ||
+      !formData.firstName ||
+      !formData.email ||
+      !formData.pinCode ||
       !formData.city ||
       !formData.state ||
       !formData.address
@@ -54,29 +56,35 @@ export default function AddressPage() {
 
     dispatch(addAddress({ ...formData, id: Date.now() }));
     toast.success("Address Saved Successfully");
-    setFormData({ pincode: "", city: "", state: "", address: "" });
+    setFormData({
+      firstName: "",
+      lastName: "",
+      email: "",
+      pinCode: "",
+      city: "",
+      state: "",
+      address: "",
+    });
     setShowForm(false);
   };
 
   useEffect(() => {
-  const data = localStorage.getItem("address");
-  if (data) {
-    dispatch(setAddress(JSON.parse(data)));
-  }
+    const data = localStorage.getItem("address");
+    if (data) {
+      dispatch(setAddress(JSON.parse(data)));
+    }
 
-  setIsLoading(false);
-}, []);
+    setIsLoading(false);
+  }, []);
 
-if (isLoading) {
-    return (
-      <Loader fullScreen text="Fetching saved addresses" />
-    );
+  if (isLoading) {
+    return <Loader fullScreen text="Fetching saved addresses" />;
   }
 
   return (
     <AuthGuard>
       <div className="min-h-screen bg-[#F8FAFC] pb-20 font-sans">
-        <header className="bg-white/80 backdrop-blur-md sticky top-0 z-30 border-b border-slate-200/60 px-6 py-4">
+        <header className="bg-[#F8FAFC] backdrop-blur-md sticky top-0 z-30  px-6 py-4">
           <div className="w-full mx-auto flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
@@ -217,13 +225,16 @@ if (isLoading) {
                       </div>
                       <div>
                         <p className="font-black text-slate-800 text-lg leading-tight mb-1">
+                          {addr.firstName} {addr.lastName}
+                        </p>
+                        <p className="font-bold text-slate-800">
                           {addr.address}
                         </p>
                         <p className="text-slate-500 text-sm font-medium">
                           {addr.city}, {addr.state}
                         </p>
                         <p className="text-[#2A4150] font-mono text-sm mt-2 font-bold bg-slate-50 w-fit px-2 py-0.5 rounded">
-                          {addr.pincode}
+                          {addr.pinCode}
                         </p>
                       </div>
                     </div>

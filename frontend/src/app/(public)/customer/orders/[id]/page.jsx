@@ -93,8 +93,8 @@ export default function OrderDetailsPage({ params }) {
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-20 font-sans">
       {/* --- HEADER --- */}
-      <header className="bg-white/80 backdrop-blur-md sticky top-0 z-30 px-6 py-4 border-b border-slate-100">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <header className="bg-[#F8FAFC] backdrop-blur-md sticky top-0 z-30 px-6 py-4 ">
+        <div className="w-full  mx-auto flex items-center justify-between ">
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.back()}
@@ -116,9 +116,7 @@ export default function OrderDetailsPage({ params }) {
               </div>
             </div>
           </div>
-          <button className="hidden sm:flex items-center gap-2 px-5 py-2.5 bg-[#2A4150] text-white rounded-xl text-xs font-bold hover:shadow-xl hover:shadow-blue-900/20 transition-all transform hover:-translate-y-0.5">
-            <Download size={14} /> Invoice
-          </button>
+          
         </div>
       </header>
 
@@ -250,9 +248,7 @@ export default function OrderDetailsPage({ params }) {
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
                       Grand Total
                     </p>
-                    <p className="text-[10px] text-white bg-[#2A4150] px-2 py-0.5 rounded mt-1 inline-block font-bold">
-                      PAID VIA {order.payment?.toUpperCase() || "CARD"}
-                    </p>
+                    
                   </div>
                   <p className="text-4xl font-black text-[#2A4150] tracking-tighter">
                     ₹{(order.total || order.totalAmount || 0).toLocaleString()}
@@ -315,25 +311,7 @@ export default function OrderDetailsPage({ params }) {
               </div>
             </div>
 
-            <button className="w-full flex items-center justify-between p-6 bg-white hover:bg-slate-50 transition-all rounded-4xl border border-slate-200/60 group shadow-sm">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-slate-100 rounded-2xl group-hover:bg-white transition-colors">
-                  <HelpCircle size={18} className="text-[#2A4150]" />
-                </div>
-                <div className="text-left">
-                  <p className="text-xs font-black text-slate-900 uppercase tracking-wide">
-                    Support Center
-                  </p>
-                  <p className="text-[10px] text-slate-400 font-bold">
-                    Raise a ticket or chat
-                  </p>
-                </div>
-              </div>
-              <ChevronRight
-                size={18}
-                className="text-slate-300 group-hover:translate-x-1 transition-transform"
-              />
-            </button>
+           
           </div>
         </div>
       </main>

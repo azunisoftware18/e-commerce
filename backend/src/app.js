@@ -31,6 +31,8 @@ import paymentRouter from "./routes/payment.routes.js";
 import subCategoryRoutes from "./routes/subcategory.routes.js";
 import dietPlanRoutes from "./routes/dietPlan.routes.js";
 import consultationRoutes from "./routes/consultation.routes.js";
+import locationRoutes from "./routes/location.routes.js";
+
 
 // routes declaration
 app.use("/api/v1/auth", userRouter);
@@ -43,6 +45,7 @@ app.use("/api/v1", sendMail);
 app.use("/api/v1/payment", paymentRouter);
 app.use("/api/v1/diet-plan", dietPlanRoutes);
 app.use("/api/v1/consultation", consultationRoutes);
+app.use("/api/v1/location", locationRoutes);
 
 app.use((err, req, res, next) => {
   console.error("ERROR 💥", err);

@@ -1,150 +1,151 @@
-"use client";
+import React from 'react';
+import { Heart, Activity, ShieldCheck, Quote } from 'lucide-react';
 
-import React from "react";
-import { 
-  HeartPulse, 
-  Users, 
-  Award, 
-  Target, 
-  Stethoscope, 
-  ShieldCheck,
-  ArrowRight
-} from "lucide-react";
-import Button from "@/components/ui/Button";
-
-const stats = [
-  { label: "Patients Healed", value: "10k+", icon: HeartPulse },
-  { label: "Expert Doctors", value: "50+", icon: Stethoscope },
-  { label: "Years Experience", value: "12+", icon: Award },
-  { label: "Success Rate", value: "98%", icon: ShieldCheck },
-];
-
-const values = [
-  {
-    title: "Patient First",
-    desc: "Every treatment plan is tailored to the unique needs and comfort of our patients.",
-    color: "bg-blue-50 text-blue-600"
-  },
-  {
-    title: "Expert Care",
-    desc: "Our team consists of board-certified specialists with decades of combined experience.",
-    color: "bg-emerald-50 text-emerald-600"
-  },
-  {
-    title: "Innovation",
-    desc: "We leverage the latest medical technology and research to provide advanced solutions.",
-    color: "bg-purple-50 text-purple-600"
-  }
-];
-
-export default function AboutUs() {
+const AboutUs = () => {
   return (
-    <div className="min-h-screen bg-white">
-      {/* --- Hero Section --- */}
-      <section className="relative pt-20 pb-32 overflow-hidden bg-slate-50">
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100/50 text-[#2A4150] mb-6">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-              </span>
-              <span className="text-[10px] font-bold uppercase tracking-widest">About Our Mission</span>
-            </div>
-            <h1 className="text-5xl md:text-7xl font-black text-[#2A4150] leading-[1.1] tracking-tight mb-8">
-              We are dedicated to <span className="text-blue-600">your well-being.</span>
-            </h1>
-            <p className="text-lg text-slate-500 leading-relaxed mb-10 max-w-xl">
-              Since 2014, we've been at the forefront of medical excellence, 
-              combining compassionate care with cutting-edge technology to help 
-              you live your healthiest life.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <Button text="Meet Our Doctors" className="px-8 py-4 bg-[#2A4150] rounded-2xl" />
-              <button className="flex items-center gap-2 font-bold text-[#2A4150] hover:gap-4 transition-all duration-300 ml-4">
-                Our Services <ArrowRight size={20} />
-              </button>
-            </div>
-          </div>
-        </div>
-        
-        {/* Decorative Background */}
-        <div className="absolute top-0 right-0 w-1/3 h-full bg-[#2A4150]/5 -skew-x-12 translate-x-20 hidden lg:block" />
-      </section>
-
-      {/* --- Stats Grid --- */}
-      <section className="max-w-7xl mx-auto px-6 -mt-16 relative z-20">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {stats.map((stat, idx) => (
-            <div key={idx} className="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 group hover:-translate-y-2 transition-transform">
-              <div className="p-3 w-fit rounded-2xl bg-slate-50 text-[#2A4150] mb-4 group-hover:bg-[#2A4150] group-hover:text-white transition-colors">
-                <stat.icon size={24} />
-              </div>
-              <h3 className="text-3xl font-black text-[#2A4150]">{stat.value}</h3>
-              <p className="text-sm text-slate-400 font-medium uppercase tracking-wider">{stat.label}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* --- Our Story Section --- */}
-      <section className="py-24 max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
-        <div className="relative">
-          <div className="aspect-square bg-slate-100 rounded-[3rem] overflow-hidden relative">
-             {/* Placeholder for a high-quality team image */}
-             <div className="absolute inset-0 bg-linear-to-tr from-[#2A4150]/20 to-transparent" />
-             <div className="flex items-center justify-center h-full text-slate-300">
-                <Users size={80} strokeWidth={1} />
-             </div>
-          </div>
-          {/* Floating Card */}
-          <div className="absolute -bottom-6 -right-6 bg-white p-6 rounded-3xl shadow-2xl border border-slate-50 max-w-60">
-             <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg"><ShieldCheck size={20}/></div>
-                <span className="font-bold text-[#2A4150]">Certified Care</span>
-             </div>
-             <p className="text-xs text-slate-400 leading-relaxed">Recognized by national health boards for excellence in patient safety.</p>
-          </div>
+    <div className="bg-white min-h-screen font-sans text-[#2A4150]">
+      {/* --- Header Section --- */}
+      <section className="relative py-20 px-6 text-center overflow-hidden">
+        {/* Decorative Greenery Background (Abstract simulation of the image header) */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-2xl h-64 opacity-20 pointer-events-none">
+           <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+            <path fill="#4ADE80" d="M44.7,-76.4C58.1,-69.2,69.5,-57.4,77.3,-43.7C85.1,-30,89.3,-15,88.2,-0.6C87.1,13.7,80.7,27.5,72.4,40.3C64.1,53.1,53.9,65,41.2,72.2C28.5,79.4,13.2,82,-1.3,84.2C-15.8,86.4,-31.6,88.2,-45.5,82.5C-59.4,76.8,-71.4,63.6,-78.6,48.9C-85.8,34.2,-88.2,18.1,-87.3,2.5C-86.3,-13.1,-82,-28.1,-73.8,-41.2C-65.6,-54.3,-53.4,-65.4,-39.9,-72.5C-26.4,-79.6,-11.7,-82.7,2.1,-86.3C15.8,-89.9,31.3,-83.6,44.7,-76.4Z" transform="translate(100 100)" />
+          </svg>
         </div>
 
-        <div className="space-y-6">
-          <h2 className="text-4xl font-black text-[#2A4150] tracking-tight">Redefining the standard of care.</h2>
-          <p className="text-slate-500 leading-relaxed">
-            Our journey began with a simple belief: that everyone deserves access to 
-            high-quality, empathetic medical attention. We don't just treat symptoms; 
-            we treat people. 
+        <div className="relative z-10 max-w-4xl mx-auto">
+          <h1 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">
+            Health, Balance & Happiness for All
+          </h1>
+          <p className="text-lg md:text-xl italic text-gray-600 max-w-2xl mx-auto border-l-4 border-[#2A4150] pl-6 py-2">
+            "Our mission is to promote optimal health and vitality through practitioner 
+            formulated botanical and nutritional supplements of the highest quality."
           </p>
-          <div className="grid gap-4 pt-4">
-            {values.map((v, i) => (
-              <div key={i} className="flex gap-4 items-start p-4 rounded-2xl hover:bg-slate-50 transition-colors">
-                <div className={`p-3 rounded-xl shrink-0 ${v.color}`}>
-                  <Target size={20} />
+        </div>
+      </section>
+
+      {/* --- Main Journey Card --- */}
+      <section className="px-4 pb-20">
+        <div className="max-w-5xl mx-auto bg-[#e0e0e0] rounded-[3rem] p-8 md:p-16 shadow-inner">
+          
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-8">Our founder’s journey</h2>
+            <div className="relative inline-block">
+              <div className="w-40 h-40 rounded-full border-4 border-white overflow-hidden shadow-lg mx-auto">
+                <img 
+                  src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=400" 
+                  alt="Founder" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              {/* Decorative wave line simulation */}
+              <div className="absolute top-1/2 -left-20 -right-20 h-px bg-white/50 -z-10 hidden md:block"></div>
+            </div>
+          </div>
+
+          {/* Founder Text */}
+          <div className="grid md:grid-cols-2 gap-8 text-sm leading-relaxed text-[#2A4150]/80">
+            <div className="space-y-4">
+              <p>
+                Several years back, I was diagnosed with pre-diabetes, and my Non-Alcoholic Fatty Liver was on meds for a year with no significant improvement. Research led me to incorporate a new approach to my diet and lifestyle. I thought that taking health supplements would help my digestion but instead, they were causing an upset stomach.
+              </p>
+              <p>
+                The experience was so profound that it changed my perspective about health and nutrition and I also realized this is an opportunity to fill a gap in the market and solve the problem of quality health supplements for the general population.
+              </p>
+            </div>
+            <div className="space-y-4">
+              <p>
+                After years of research, I launched our own line of health supplements that are 100% natural, organic, and made from superior ingredients to ensure maximum results. Our brand began to grow; we started getting repeat orders and positive feedback from our customers.
+              </p>
+              <p>
+                Word of mouth and customer feedback have turned our brand into a respected provider of high-quality products. I'm currently working on reaching more people with the goal of educating people to choose healthier lifestyles.
+              </p>
+            </div>
+          </div>
+
+          {/* Quote Block */}
+          <div className="mt-16 text-center max-w-2xl mx-auto">
+            <Quote className="mx-auto mb-4 opacity-20" size={40} />
+            <h3 className="text-2xl font-bold italic mb-2">
+              "You shouldn't have to make sacrifices when it comes to your health"
+            </h3>
+            <p className="font-semibold uppercase tracking-widest text-xs opacity-60">And that's why I built this brand</p>
+          </div>
+
+          {/* --- Feature Rows --- */}
+          <div className="mt-24 space-y-24">
+            
+            {/* Row 1 */}
+            <div className="flex flex-col md:flex-row items-center gap-12">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-4">
+                  <Heart className="text-red-500" fill="currentColor" size={28} />
+                  <h4 className="text-2xl font-bold">A Brand for People</h4>
                 </div>
-                <div>
-                  <h4 className="font-bold text-[#2A4150] mb-1">{v.title}</h4>
-                  <p className="text-sm text-slate-500 leading-snug">{v.desc}</p>
+                <p className="text-gray-600 leading-relaxed">
+                  We are a brand for those people who are looking for the best out of what they have. 
+                  For those who want to lead a Good Life!
+                </p>
+              </div>
+              <div className="flex-1 flex justify-center">
+                <div className="w-64 h-64 rounded-full bg-white p-2 shadow-xl overflow-hidden">
+                   <img src="https://images.unsplash.com/photo-1516585427167-9f4af9627e6c?auto=format&fit=crop&q=80&w=400" className="w-full h-full object-cover rounded-full" alt="People" />
                 </div>
               </div>
-            ))}
+            </div>
+
+            {/* Row 2 (Reversed) */}
+            <div className="flex flex-col md:flex-row-reverse items-center gap-12">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-4">
+                  <Activity className="text-blue-500" size={28} />
+                  <h4 className="text-2xl font-bold">Promote Healthy Lifestyle</h4>
+                </div>
+                <p className="text-gray-600 leading-relaxed">
+                  We promote living a lifestyle that's not too serious and we like to have a bit of fun. 
+                  After all, life is about giving your best shot.
+                </p>
+              </div>
+              <div className="flex-1 flex justify-center">
+                 <div className="w-64 h-64 flex items-center justify-center">
+                    {/* Simulated "Running" Graphic */}
+                    <img src="https://images.unsplash.com/photo-1538805060514-97d9cc17730c?auto=format&fit=crop&q=80&w=400" className="w-full h-full object-cover rounded-3xl rotate-3 shadow-lg" alt="Lifestyle" />
+                 </div>
+              </div>
+            </div>
+
+            {/* Row 3 */}
+            <div className="flex flex-col md:flex-row items-center gap-12">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-4">
+                  <ShieldCheck className="text-green-600" size={28} />
+                  <h4 className="text-2xl font-bold">Safety Assured Quality</h4>
+                </div>
+                <p className="text-gray-600 leading-relaxed">
+                  Our products are formulated in the USA and manufactured in India, 
+                  making them High Quality, yet affordable for everyone.
+                </p>
+              </div>
+              <div className="flex-1 flex justify-center">
+                <div className="relative">
+                   <img src="https://i.pinimg.com/1200x/5a/1b/dc/5a1bdc4a24ca086d5a13ada1fa35799a.jpg" className="w-64 h-auto rounded-lg shadow-2xl" alt="Herbal Quality" />
+                   <div className="absolute -bottom-4 -right-4 bg-white p-4 rounded-full shadow-lg">
+                      <ShieldCheck className="text-green-600" size={32} />
+                   </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
 
-      {/* --- Footer CTA --- */}
-      <section className="mx-6 mb-12">
-        <div className="max-w-7xl mx-auto bg-[#2A4150] rounded-[3rem] p-12 md:p-20 text-center relative overflow-hidden">
-          <div className="relative z-10">
-            <h2 className="text-3xl md:text-5xl font-black text-white mb-6">Ready to start your health journey?</h2>
-            <p className="text-blue-100/60 mb-10 max-w-lg mx-auto">
-              Book a consultation with our experts today and experience the difference of personalized care.
-            </p>
-            <Button text="Book Appointment" className="bg-white text-[#2A4150]! px-10 py-4 rounded-2xl font-bold text-lg" />
-          </div>
-          {/* Background circles */}
-          <div className="absolute top-0 left-0 w-64 h-64 bg-white/5 rounded-full -ml-32 -mt-32 blur-3xl" />
-          <div className="absolute bottom-0 right-0 w-64 h-64 bg-blue-400/10 rounded-full -mr-32 -mb-32 blur-3xl" />
-        </div>
-      </section>
+      {/* --- Footer / Extra Text --- */}
+      <footer className="py-12 text-center text-sm opacity-50">
+        <p>© 2024 Your Brand Name. All rights reserved.</p>
+      </footer>
     </div>
   );
-}
+};
+
+export default AboutUs;

@@ -36,7 +36,7 @@ export default function CreateAccountForm({ mobile }) {
   ];
 
   return (
-    <div className="w-130 bg-white p-6 rounded-lg shadow">
+    <div className="w-130 bg-white p-6 rounded-lg shadow ">
 
       <h2 className="text-xl font-semibold mb-5">
         Create Account
@@ -94,11 +94,13 @@ export default function CreateAccountForm({ mobile }) {
         </div>
 
         {/* Submit */}
+        <div>
         <Button
           text="Create Profile"
           type="submit"
           className="w-full"
         />
+        </div>
 
       </form>
 

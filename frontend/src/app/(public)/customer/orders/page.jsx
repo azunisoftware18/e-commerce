@@ -119,7 +119,7 @@ const handleConfirmCancel = () => {
     <AuthGuard>
       <div className="min-h-screen bg-[#F8FAFC] pb-20">
         {/* TOP NAVBAR */}
-        <header className="bg-white/80 backdrop-blur-md sticky top-0 z-30 px-6 py-4 w-full border-b border-slate-100">
+        <header className="bg-[#F8FAFC] backdrop-blur-md sticky top-0 z-30 px-6 py-4 w-full ">
           <div className="w-full mx-auto flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button

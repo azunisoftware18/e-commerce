@@ -340,6 +340,30 @@ const resetPassword = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, "Password changed successfully."));
 });
 
+const getMe = asyncHandler(async (req, res) => {
+  const userId = req.user?.id;
+
+  if (!userId) {
+    return ApiError.send(res, 401, "Unauthorized");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    return ApiError.send(res, 404, "User not found");
+  }
+
+  const { password, ...userSafe } = user;
+
+  return res.status(200).json(
+    new ApiResponse(200, "User fetched successfully", {
+      user: userSafe,
+    })
+  );
+});
+
 export {
   signup,
   login,
@@ -348,4 +372,5 @@ export {
   resetPassword,
   updateAdmin,
   getAllUsers,
+  getMe,
 };

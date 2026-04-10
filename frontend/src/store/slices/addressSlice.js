@@ -40,23 +40,35 @@ const addressSlice = createSlice({
   name: "address",
   initialState,
   reducers: {
-    // 🔥 Load from localStorage (client side)
+    // 🔥 Load from localStorage
     setAddress: (state, action) => {
-      state.addresses = action.payload.addresses || [];
-      state.selectedAddressId = action.payload.selectedAddressId || null;
+      const data = action.payload;
+
+      state.addresses = data?.addresses || [];
+      state.selectedAddressId = data?.selectedAddressId || null;
     },
 
-    // ➕ Add Address
+    // ➕ Add Address (FIXED)
     addAddress: (state, action) => {
       const newAddress = {
         id: Date.now(),
-        ...action.payload,
+
+        // 🔥 IMPORTANT FIELDS
+        firstName: action.payload.firstName || "",
+        lastName: action.payload.lastName || "",
+        email: action.payload.email || "",
+
+        // 📍 ADDRESS
+        address: action.payload.address || "",
+        city: action.payload.city || "",
+        state: action.payload.state || "",
+        pinCode: action.payload.pinCode || action.payload.zip || "",
       };
 
       state.addresses.push(newAddress);
 
-      // auto select first
-      if (state.addresses.length === 1) {
+      // ✅ Auto select if none selected
+      if (!state.selectedAddressId) {
         state.selectedAddressId = newAddress.id;
       }
 
@@ -69,7 +81,7 @@ const addressSlice = createSlice({
         (addr) => addr.id !== action.payload
       );
 
-      // agar deleted address selected tha
+      // 🔥 If deleted address was selected
       if (state.selectedAddressId === action.payload) {
         state.selectedAddressId =
           state.addresses.length > 0 ? state.addresses[0].id : null;
@@ -81,7 +93,6 @@ const addressSlice = createSlice({
     // ✅ Select Address
     selectAddress: (state, action) => {
       state.selectedAddressId = action.payload;
-
       saveAddressToStorage(state);
     },
   },

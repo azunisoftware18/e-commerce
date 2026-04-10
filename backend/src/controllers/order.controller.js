@@ -136,7 +136,7 @@ export const createOrder = asyncHandler(async (req, res) => {
       email: shipping.email,
       address: shipping.address,
       city: shipping.city,
-      zip: shipping.zip,
+      pinCode: shipping.pinCode,
     },
   });
 

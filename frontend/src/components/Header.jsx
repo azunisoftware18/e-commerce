@@ -351,7 +351,7 @@ function UserDropdown({ user, isOpen, setOpen, onLogout }) {
     { label: "Your Profile", href: "/customer/profile" },
     { label: "Your Orders", href: "/customer/orders" },
     { label: "Manage Address", href: "/customer/address" },
-    { label: "Contact Us", href: "/contact-us" },
+    // { label: "Contact Us", href: "/contact-us" },
   ];
 
   return (
