@@ -25,47 +25,44 @@ export default function TableHead({
             className="px-4 md:px-6 py-4 border-b border-slate-100 overflow-visible"
           >
             <div className="flex flex-col lg:flex-row gap-4 lg:items-center justify-between">
+              {/* Search */}
+              {showSearch && (
+                <div className="w-full lg:max-w-xs">
+                  <SearchField {...searchProps} className="w-full" />
+                </div>
+              )}
 
-  {/* Search */}
-  {showSearch && (
-    <div className="w-full lg:max-w-xs">
-      <SearchField {...searchProps} className="w-full" />
-    </div>
-  )}
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 overflow-visible relative">
+                {/* Filter */}
+                {showFilter && (
+                  <div className="flex-1 sm:flex-none min-w-35 relative z-50">
+                    <FilterDropdown {...filterProps} className="w-full" />
+                  </div>
+                )}
 
-  <div className="flex flex-wrap items-center gap-2 sm:gap-3 overflow-visible relative">
-
-    {/* Filter */}
-    {showFilter && (
-      <div className="flex-1 sm:flex-none min-w-35 relative z-50">
-        <FilterDropdown {...filterProps} className="w-full" />
-      </div>
-    )}
-
-    {/* Date */}
-    {showDate && (
-      <input
-        type="date"
-        {...dateProps}
-        className="flex-1 sm:flex-none h-10 px-3 rounded-xl border border-gray-200 text-sm text-slate-600 
+                {/* Date */}
+                {showDate && (
+                  <input
+                    type="date"
+                    {...dateProps}
+                    className="flex-1 sm:flex-none h-10 px-3 rounded-xl border border-gray-200 text-sm text-slate-600 
         focus:ring-2 focus:ring-[#2A4150]/10 focus:border-[#2A4150] outline-none transition-all"
-      />
-    )}
+                  />
+                )}
 
-    {/* Reset */}
-    {showReset && (
-      <Button
-        text="Reset Filters"
-        onClick={onReset}
-        variant="outline"
-        className="h-10 px-4 rounded-xl border border-slate-200 bg-white transition-all duration-200
+                {/* Reset */}
+                {showReset && (
+                  <Button
+                    text="Reset Filters"
+                    onClick={onReset}
+                    variant="outline"
+                    className="h-10 px-4 rounded-xl border border-slate-200 bg-white transition-all duration-200
         flex items-center gap-2 hover:border-gray-400 text-slate-600 
         hover:bg-slate-50 hover:text-slate-900! active:bg-slate-100"
-      />
-    )}
-
-  </div>
-</div>
+                  />
+                )}
+              </div>
+            </div>
           </th>
         </tr>
       </thead>

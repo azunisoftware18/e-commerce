@@ -10,6 +10,8 @@ import {
   Layers,
   Notebook,
   X,
+  Salad,
+  ClipboardPlus,
 } from "lucide-react";
 
 export const MENU_ITEMS = [
@@ -19,6 +21,8 @@ export const MENU_ITEMS = [
   { name: "Customers", icon: Users, path: "/dashboard/customers" },
   { name: "Orders", icon: ShoppingCart, path: "/dashboard/orders" },
   { name: "Products", icon: Box, path: "/dashboard/products" },
+  { name: "Diet Plans", icon: Salad , path: "/dashboard/diet-plans" },
+  { name: "Consultations", icon: ClipboardPlus, path: "/dashboard/consultations" },
 ];
 
 export default function Sidebar({ isOpen, toggleSidebar }) {

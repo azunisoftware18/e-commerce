@@ -65,6 +65,86 @@ export const createDietPlan = async (req, res) => {
   }
 };
 
+// Update Diet Plan
+export const updateDietPlan = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description, price, type } = req.body;
+
+    const pdf = req.files?.pdf?.[0];
+    const thumbnail = req.files?.thumbnail?.[0];
+
+    const existingPlan = await prisma.dietPlan.findUnique({
+      where: { id },
+    });
+
+    if (!existingPlan) {
+      return res.status(404).json({
+        success: false,
+        message: "Diet plan not found",
+      });
+    }
+
+    if (!["FREE", "PAID"].includes(type)) {
+      return res.status(400).json({
+        success: false,
+        message: "Type must be FREE or PAID",
+      });
+    }
+
+    let finalPrice = 0;
+
+    if (type === "PAID") {
+      if (!price || isNaN(price) || Number(price) <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Valid price is required for paid plans",
+        });
+      }
+      finalPrice = Number(price);
+    }
+
+    // 🧹 Delete old files if new uploaded
+    if (pdf && existingPlan.pdfUrl) {
+      const oldPdf = path.join("public", existingPlan.pdfUrl);
+      if (fs.existsSync(oldPdf)) fs.unlinkSync(oldPdf);
+    }
+
+    if (thumbnail && existingPlan.thumbnail) {
+      const oldThumb = path.join("public", existingPlan.thumbnail);
+      if (fs.existsSync(oldThumb)) fs.unlinkSync(oldThumb);
+    }
+
+    const updatedPlan = await prisma.dietPlan.update({
+      where: { id },
+      data: {
+        name,
+        description,
+        price: finalPrice,
+        type,
+        pdfUrl: pdf
+          ? `/uploads/pdfs/${pdf.filename}`
+          : existingPlan.pdfUrl,
+        thumbnail: thumbnail
+          ? `/uploads/thumbnails/${thumbnail.filename}`
+          : existingPlan.thumbnail,
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Diet plan updated successfully",
+      data: updatedPlan,
+    });
+  } catch (error) {
+    console.error("UPDATE ERROR:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 //  GET ALL DIET PLANS
 export const getDietPlans = async (req, res) => {
   try {

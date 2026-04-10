@@ -48,7 +48,7 @@ export const useDownloadDietPlan = () => {
   return useMutation({
     mutationFn: async (id) => {
       const res = await api.get(`/diet-plan/download/${id}`, {
-        responseType: "blob", // important
+        responseType: "blob", 
       });
 
       // create download link
@@ -59,6 +59,39 @@ export const useDownloadDietPlan = () => {
       document.body.appendChild(link);
       link.click();
       link.remove();
+    },
+  });
+};
+
+// ==============================
+// ✅ UPDATE DIET PLAN
+// ==============================
+export const useUpdateDietPlan = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, data }) => {
+      const formData = new FormData();
+
+      Object.keys(data).forEach((key) => {
+        if (key === "pdf" || key === "thumbnail") {
+          if (data[key]?.[0]) {
+            formData.append(key, data[key][0]);
+          }
+        } else {
+          formData.append(key, data[key]);
+        }
+      });
+
+      const res = await api.put(`/diet-plan/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      return res.data;
+    },
+
+    onSuccess: () => {
+      queryClient.invalidateQueries(["diet-plans"]);
     },
   });
 };

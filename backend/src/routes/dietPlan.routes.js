@@ -5,6 +5,7 @@ import {
   deleteDietPlan,
   createDietPlan,
   downloadDietPlan,
+  updateDietPlan,
 } from "../controllers/dietPlan.controller.js";
 
 import upload from "../middlewares/multer.js";
@@ -20,6 +21,16 @@ router.post(
     { name: "thumbnail", maxCount: 1 },
   ]),
   createDietPlan
+);
+
+// UPDATE
+router.put(
+  "/:id",
+  upload.fields([
+    { name: "pdf", maxCount: 1 },
+    { name: "thumbnail", maxCount: 1 },
+  ]),
+  updateDietPlan
 );
 
 // GET ALL

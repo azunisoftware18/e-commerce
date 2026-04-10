@@ -17,7 +17,7 @@ const InputField = React.forwardRef(
       showButton = false,
       buttonText = "",
       onButtonClick,
-      ...rest // 👈 IMPORTANT (register ke props yahan aayenge)
+      ...rest 
     },
     ref
   ) => {

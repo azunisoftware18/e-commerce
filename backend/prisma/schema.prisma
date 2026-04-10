@@ -154,6 +154,25 @@ model DietPlan {
   pdfUrl      String
   thumbnail   String
   createdAt   DateTime @default(now())
+  consultations Consultation[]
+}
+
+model Consultation {
+  id           String   @id @default(uuid())
+  firstName    String
+  lastName     String
+  age          Int
+  weight       Float
+  phone        String
+  email        String?
+  healthIssues Json
+  otherIssue   String?
+
+  dietPlanId   String?
+  dietPlan     DietPlan? @relation(fields: [dietPlanId], references: [id])
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 enum PlanType {

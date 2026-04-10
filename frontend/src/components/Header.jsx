@@ -92,10 +92,7 @@ export default function Header() {
 
             {/* Actions */}
             <div className="flex items-center gap-2 md:gap-6">
-              <div className="hidden lg:block">
-                <StoreLocator />
-              </div>
-
+  
               {/* Cart */}
               <Link
                 href="/cart"
@@ -345,15 +342,6 @@ function MobileNavLink({ item, onClose }) {
           ))}
         </div>
       )}
-    </div>
-  );
-}
-
-function StoreLocator() {
-  return (
-    <div className="group hidden cursor-pointer items-center gap-2 text-sm font-medium text-slate-600 transition-colors hover:text-[#2A4150] xl:flex">
-      <MapPin size={20} className="group-hover:animate-bounce" />
-      <span>Store Locator</span>
     </div>
   );
 }
