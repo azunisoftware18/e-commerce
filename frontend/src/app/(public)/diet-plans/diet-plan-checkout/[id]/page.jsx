@@ -128,11 +128,7 @@ export default function CheckoutPage() {
             </div>
 
             {/* Support Note */}
-            <div className="mt-6 px-6 py-4 bg-blue-50/50 rounded-2xl border border-blue-100/50">
-                <p className="text-[11px] text-blue-700 font-medium leading-relaxed">
-                   <b>Note:</b> After successful submission, your diet plan PDF will start downloading automatically. Check your downloads folder.
-                </p>
-            </div>
+            
           </div>
 
         </div>

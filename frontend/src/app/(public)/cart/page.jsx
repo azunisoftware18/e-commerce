@@ -26,6 +26,10 @@ import { useCreateOrder } from "@/lib/mutations/useOrders";
 import { useRouter } from "next/navigation";
 import { openLogin } from "@/store/slices/authSlice";
 import ConfirmationDialog from "@/components/common/ConfirmationDialog";
+import {
+  useCreatePaymentOrder,
+  useVerifyPayment,
+} from "@/lib/mutations/usePayment";
 
 export default function CartPage() {
   const dispatch = useDispatch();
@@ -41,6 +45,8 @@ export default function CartPage() {
   const [isHydrated, setIsHydrated] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [createdOrderId, setCreatedOrderId] = useState(null);
+  const { mutateAsync: createPaymentOrder } = useCreatePaymentOrder();
+  const { mutateAsync: verifyPayment } = useVerifyPayment();
 
   useEffect(() => {
     const cartData = localStorage.getItem("cart");
@@ -60,7 +66,7 @@ export default function CartPage() {
       (acc, item) => acc + item.price * item.quantity,
       0,
     );
-    const ship = sub >= FREE_SHIPPING_MIN || sub === 0 ? 0 : 40;
+    const ship = sub >= FREE_SHIPPING_MIN || sub === 0 ? 0 : 0;
     const disc = sub > DISCOUNT_THRESHOLD ? 100 : 0;
     return {
       subtotal: sub,
@@ -82,7 +88,6 @@ export default function CartPage() {
   }
 
   const handlePlaceOrder = () => {
-    // 🔐 CHECK LOGIN FIRST
     if (!isAuthenticated) {
       dispatch(openLogin());
       return;
@@ -102,31 +107,84 @@ export default function CartPage() {
       shipping: {
         firstName: selectedAddress.firstName || "User",
         lastName: selectedAddress.lastName || "",
-        email: selectedAddress.email || "test@gmail.com",
+        email: selectedAddress.email || "test@example.com", // ✅ FIX
         address: selectedAddress.address,
+        state: selectedAddress.state,
         city: selectedAddress.city,
         pinCode: selectedAddress?.pinCode ?? "",
       },
-      payment: paymentMethod,
     };
 
-    createOrder(payload, {
-      onSuccess: (res) => {
-        const orderId = res?.data?.data?.id;
+    // ===============================
+    // 💰 COD FLOW
+    // ===============================
+    if (paymentMethod === "COD") {
+      createOrder(payload, {
+        onSuccess: (res) => {
+          const orderId = res?.data?.data?.id;
 
-        console.log("ORDER RESPONSE:", res);
+          setCreatedOrderId(orderId);
+          setShowSuccessDialog(true);
 
-        setCreatedOrderId(orderId);
-        setShowSuccessDialog(true);
+          dispatch(setCart([]));
+          localStorage.removeItem("cart");
+        },
+        onError: () => alert("Order failed"),
+      });
 
-        dispatch(setCart([]));
-        localStorage.removeItem("cart");
-      },
-      onError: (err) => {
-        console.log(err);
-        alert("Order failed");
-      },
-    });
+      return; // 👈 stop here
+    }
+
+    // ===============================
+    // 💳 ONLINE (RAZORPAY FLOW)
+    // ===============================
+    if (paymentMethod === "ONLINE") {
+      createOrder(payload, {
+        onSuccess: async (res) => {
+          try {
+            const orderId = res?.data?.data?.id;
+
+            // ✅ create razorpay order (React Query)
+            const paymentData = await createPaymentOrder({ orderId });
+
+            if (!paymentData?.success) {
+              alert(paymentData?.message || "Payment failed");
+              return;
+            }
+
+            const razorpayOrder = paymentData.data;
+
+            const options = {
+              key: process.env.NEXT_PUBLIC_RAZORPAY_KEY,
+              amount: razorpayOrder.amount,
+              currency: "INR",
+              order_id: razorpayOrder.id,
+
+              handler: async function (response) {
+                // ✅ verify payment (React Query)
+                await verifyPayment(response);
+
+                setCreatedOrderId(orderId);
+                setShowSuccessDialog(true);
+
+                dispatch(setCart([]));
+                localStorage.removeItem("cart");
+              },
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.open();
+          } catch (error) {
+            console.log(error);
+
+            console.error(error);
+            alert("Payment failed");
+          }
+        },
+
+        onError: () => alert("Order failed"),
+      });
+    }
   };
 
   return (
@@ -210,10 +268,14 @@ export default function CartPage() {
                   {selectedAddress ? (
                     <div className="text-sm">
                       <p className="font-bold text-slate-800">
+                        {selectedAddress.firstName} {selectedAddress.lastName}
+                      </p>
+                      <p className="text-slate-600">
                         {selectedAddress.address}
                       </p>
                       <p className="text-slate-500">
-                        {selectedAddress.city}, {selectedAddress.state}
+                        {selectedAddress.city}, {selectedAddress.state} -{" "}
+                        {selectedAddress.pinCode}
                       </p>
                     </div>
                   ) : (
@@ -236,7 +298,7 @@ export default function CartPage() {
                             : "border-slate-100 text-slate-400 hover:border-slate-200"
                         }`}
                       >
-                        {method === "COD" ? "Cash" : "UPI/Card"}
+                        {method === "COD" ? "Cash" : "Online"}
                       </button>
                     ))}
                   </div>
@@ -401,8 +463,8 @@ const SelectionCard = ({ title, icon, isError, children, link }) => (
 );
 
 const EmptyCartView = () => (
-  <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 text-center animate-in zoom-in duration-300">
-    <div className="bg-slate-100 p-10 rounded-full mb-8 relative">
+  <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 text-center animate-in zoom-in duration-300 ">
+    <div className="bg-slate-100 p-10 rounded-full mb-8 ">
       <ShoppingBag className="w-16 h-16 text-slate-300" />
       <div className="absolute top-0 right-0 w-6 h-6 bg-[#2A4150] rounded-full border-4 border-white" />
     </div>

@@ -135,6 +135,7 @@ export const createOrder = asyncHandler(async (req, res) => {
       lastName: shipping.lastName,
       email: shipping.email,
       address: shipping.address,
+      state: shipping.state,
       city: shipping.city,
       pinCode: shipping.pinCode,
     },
@@ -150,6 +151,7 @@ export const createOrder = asyncHandler(async (req, res) => {
         total,
         createdby,
         payment: "Pending",
+        paymentMode: req.body.paymentMethod || "COD",
         shippingId: newShipping.id,
         duedate: dueDate,
         items: {

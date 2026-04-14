@@ -1,9 +1,13 @@
-import express from "express";
-import { paymentSuccess } from "../controllers/payment.controller.js";
+import { Router } from "express";
+import {
+    createPaymentOrder,
+  verifyPayment,
+} from "../controllers/payment.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 
-const router = express.Router();
+const router = Router();
 
-// POST /api/v1/payment/success - Requires authentication
-router.post("/success", authMiddleware, paymentSuccess);
+router.post("/create", authMiddleware, createPaymentOrder);
+router.post("/verify", authMiddleware, verifyPayment);
+
 export default router;

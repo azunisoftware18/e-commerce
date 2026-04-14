@@ -46,10 +46,7 @@ export default function ProductCard({
           </span>
 
           <div className="flex items-center justify-center gap-1 text-[14px] font-semibold text-slate-700 mt-1">
-            <Star size={14} className="text-[#FFC107] fill-[#FFC107]" />
-            <span>{rating}</span>
-            <BadgeCheck size={16} className="text-[#2A4150] ml-1" />
-            <span className="text-[#2A4150]">{reviews} Reviews</span>
+            
           </div>
 
           <div className="text-2xl font-bold text-slate-900 mt-auto">

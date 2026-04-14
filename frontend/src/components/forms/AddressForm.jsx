@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import InputField from "@/components/ui/InputField";
 import TextAreaField from "@/components/ui/TextAreaField";
 import SelectField from "@/components/ui/SelectField";
@@ -23,7 +23,7 @@ export default function AddressForm({
     address: true,
   },
 }) {
-  const [selectedState, setSelectedState] = useState("");
+  const [selectedState, setSelectedState] = useState(value?.state || "");
 
   const { data: states = [] } = useStates();
   const { data: cities = [] } = useCities(selectedState);
@@ -45,6 +45,12 @@ export default function AddressForm({
       onChange: (e) => handleChange(name, e.target.value),
     };
   };
+
+  useEffect(() => {
+  if (value?.state) {
+    setSelectedState(value.state);
+  }
+}, [value?.state]);
 
   return (
     <div className={`grid grid-cols-2 gap-x-5 gap-y-4  ${className}`}>

@@ -38,15 +38,14 @@ export default function Consultation() {
 
           <div className="bg-white/5 p-1 rounded-xl backdrop-blur-sm text-[#2A4150]">
             <ConsultationForm
-              onSubmitForm={handleSubmit}   // 🔥 pass handler
-              isSubmitting={isPending}     // 🔥 loader
+              onSubmitForm={handleSubmit}   
+              isSubmitting={isPending}    
               showSubmitButton={true}
             />
           </div>
         </div>
       </section>
 
-      {/* Right side same rahega */}
       <section className="relative w-full md:w-1/2 h-64 md:h-auto overflow-hidden">
         <img 
           src="https://i.pinimg.com/1200x/1c/e6/48/1ce6488e1797d67b3904e71ddbd682f6.jpg" 
@@ -58,12 +57,11 @@ export default function Consultation() {
         <div className="absolute inset-0 bg-[#2A4150]/20 mix-blend-multiply"></div>
         <div className="absolute inset-0 bg-linear-to-r from-[#2A4150] via-transparent to-transparent opacity-60 md:opacity-100"></div>
 
-        {/* Floating Aesthetic Card (Desktop Only) */}
-        <div className="hidden lg:block absolute bottom-12 right-12 bg-white/10 backdrop-blur-md p-6 border border-white/20 rounded-sm max-w-xs">
+        {/* <div className="hidden lg:block absolute bottom-12 right-12 bg-white/10 backdrop-blur-md p-6 border border-white/20 rounded-sm max-w-xs">
           <p className="text-white text-sm italic">
             "The best way to predict the future is to create it."
           </p>
-        </div>
+        </div> */}
       </section>
     </main>
   );

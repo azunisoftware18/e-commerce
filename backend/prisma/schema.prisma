@@ -108,6 +108,11 @@ model Order {
   shipping        ShippingAddress @relation(fields: [shippingId], references: [id], map: "Order_shippingId_fkey")
   items           OrderItem[]
   paymentMode     String          @default("COD") @map("payment_mode")
+
+  // Razorpay fields
+  razorpayOrderId   String?
+  razorpayPaymentId String?
+
   transactionId   String? @map("transaction_id")
   merchantOrderId String? @map("merchant_order_id")
   bankReferenceId String? @map("bank_reference_id")
@@ -124,6 +129,7 @@ model ShippingAddress {
   lastName  String
   email     String
   address   String
+  state     String @default("Unknown")
   city      String
   pinCode   String @map("zip")
   orders    Order[]
