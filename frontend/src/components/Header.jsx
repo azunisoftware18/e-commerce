@@ -20,6 +20,7 @@ import LoginModal from "./modals/LoginModal";
 import Button from "./ui/Button";
 import { closeLogin, logout, openLogin } from "@/store/slices/authSlice";
 import { useCategories } from "@/lib/queries/useCategories";
+import { useProducts } from "@/lib/queries/useProducts";
 
 export default function Header() {
   const router = useRouter();
@@ -28,7 +29,7 @@ export default function Header() {
   const { data: categories = [] } = useCategories();
   const [openMenu, setOpenMenu] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
+  const [search, setSearch] = useState("");
   const { user, isAuthenticated, openLoginModal } = useSelector(
     (state) => state.auth,
   );
@@ -37,6 +38,22 @@ export default function Header() {
     (total, item) => total + item.quantity,
     0,
   );
+
+  const { data: products = [] } = useProducts();
+
+const searchResults = products
+  .filter((p) =>
+    [
+      p.name,
+      p.category?.name,
+      p.subCategory?.name,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase()
+      .includes(search.toLowerCase())
+  )
+  .slice(0, 5); // max 5 results
 
   // Close menus on click outside or scroll
   useEffect(() => {
@@ -87,12 +104,27 @@ export default function Header() {
 
             {/* Desktop Search */}
             <div className="hidden max-w-xl flex-1 mx-8 md:block">
-              <SearchField showButton />
+              <SearchField
+  value={search}
+  onChange={(e) => setSearch(e.target.value)}
+  onSearch={() => {
+    if (!search) return;
+    router.push(`/category?search=${search}`);
+  }}
+  results={searchResults}   // 🔥 ADD THIS
+  showResults
+  onResultClick={(item) => {
+    router.push(`/category/${item.category?.name
+      ?.toLowerCase()
+      .replace(/\s+/g, "-")}?search=${item.name}`);
+  }}
+  placeholder="Search products, categories..."
+  
+/>
             </div>
 
             {/* Actions */}
             <div className="flex items-center gap-2 md:gap-6">
-  
               {/* Cart */}
               <Link
                 href="/cart"
@@ -232,7 +264,7 @@ function NavLink({ item }) {
       href = "/";
     } else if (item === "TALK TO OUR EXPERTS") {
       href = "/consultation";
-      } else if (item === "FREE DIET PLANS") {
+    } else if (item === "FREE DIET PLANS") {
       href = "/diet-plans";
     } else {
       href = `/${item.toLowerCase().replace(/\s+/g, "-")}`;
