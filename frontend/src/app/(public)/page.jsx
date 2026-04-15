@@ -1,46 +1,54 @@
+"use client";
+
 import HeroSlider from "@/components/common/HeroSlider";
 import ProductSection from "@/components/common/ProductSection";
-import { products } from "@/lib/DummyData";
+import { useCategories } from "@/lib/queries/useCategories";
+import { useProducts } from "@/lib/queries/useProducts";
 
 export default function Home() {
+  const { data: products = [], isLoading } = useProducts();
+  const { data: categories = [] } = useCategories();
+  const BASE_URL =
+    process.env.NEXT_PUBLIC_API_BASE_IMAGE_URL || "http://localhost:8000";
+
+  const sliderImages = categories.map((cat) => ({
+    src: cat.image
+      ? `${BASE_URL}${cat.image}`
+      : "https://via.placeholder.com/1200x400",
+    title: cat.name,
+    description: cat.description,
+    link: `/category/${cat.name.toLowerCase().replace(/\s+/g, "-")}`,
+  }));
+
   return (
-    <>
-    <div className="space-y-6 ">
-      <HeroSlider
-        images={[
-          {
-            src:"https://images.unsplash.com/photo-1699158660219-bdc29c7a841e?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-            link: "/cart"
-          },
-          {
-            src:"https://images.unsplash.com/photo-1705155726520-e8338338e6cb?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-            
+    <main className="min-h-screen">
+      <HeroSlider images={sliderImages} />
+      <div className="space-y-10 py-10">
+        <ProductSection
+          title="Best Sellers"
+          description="Explore best-selling safe, natural products"
+          products={products}
+          isBestSeller
+        />
 
-          },
-          {
-            src:"https://images.unsplash.com/photo-1699158660257-60f53e7ed1f3?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        {categories.map((cat) => {
+          const categoryProducts = products.filter(
+            (p) => p.category?.name?.toLowerCase() === cat.name?.toLowerCase(),
+          );
 
-          },
-        ]}
-      />
-</div>
-<div>
-      {/* Best Sellers */}
-      <ProductSection
-        title="Best Sellers"
-        description="Explore best-selling safe, natural products"
-        products={products}
-        category="skincare"
-      />
+          if (categoryProducts.length === 0) return null;
 
-      {/* Only Sunscreen */}
-      <ProductSection
-        title="Sunscreen Products"
-        description="Protect your skin from UV rays"
-        products={products}
-        subCategory="sunscreen"
-      />
-    </div>
-    </>
+          return (
+            <ProductSection
+              key={cat.id}
+              title={`${cat.name} PRODUCTS`}
+              description={cat.description || `Explore ${cat.name}`}
+              products={categoryProducts}
+              category={cat.name} 
+            />
+          );
+        })}
+      </div>
+    </main>
   );
 }

@@ -4,7 +4,11 @@ import { useState } from "react";
 import { Star } from "lucide-react";
 
 export default function AddToCartCard({
+  id,
+  name,
   price,
+  image,
+  description,
   reviews = 0,
   rating = 0,
   initialQty = 1,
@@ -20,7 +24,6 @@ export default function AddToCartCard({
 
   return (
     <div className="border border-slate-200 rounded-lg p-4 bg-white w-full max-w-sm">
-
       {/* Price */}
       <h2 className="text-2xl font-semibold text-slate-800">₹{price}</h2>
       <p className="text-xs text-slate-500">Inclusive of all Taxes</p>
@@ -32,9 +35,7 @@ export default function AddToCartCard({
             <Star size={14} fill="currentColor" />
             <span className="ml-1 text-slate-700">{rating}</span>
           </div>
-          <span className="text-blue-600 font-medium">
-            {reviews} Reviews
-          </span>
+          <span className="text-blue-600 font-medium">{reviews} Reviews</span>
         </div>
       )}
 
@@ -63,7 +64,16 @@ export default function AddToCartCard({
 
       {/* Add to Cart */}
       <button
-        onClick={() => onAddToCart?.(qty)}
+        onClick={() =>
+          onAddToCart?.({
+            id,
+            name,
+            price,
+            image,
+            description,
+            quantity: qty,
+          })
+        }
         className="mt-4 w-full bg-[#2A4150] hover:bg-[#1f313c] text-white py-2 rounded-md flex items-center justify-center gap-2 text-sm font-medium"
       >
         🛒 ADD TO CART

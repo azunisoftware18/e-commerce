@@ -5,10 +5,11 @@ export default function Button({
   icon,
   iconPosition = "left",
   onClick,
-  type = "button", // Default type 'button' rakhna best practice hai
+  type = "button", 
   variant = "primary",
   size = "md",
   className = "",
+  ...rest
 }) {
 
   const baseStyle =
@@ -33,6 +34,7 @@ export default function Button({
       type={type}
       onClick={onClick}
       className={`${baseStyle} ${variants[variant]} ${sizes[size]} ${className}`}
+      {...rest}
     >
       {icon && iconPosition === "left" && icon}
 

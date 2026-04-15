@@ -4,25 +4,51 @@ import { useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Button from "../ui/Button";
 import ProductCard from "./ProductCard";
+import Link from "next/link";
 
 export default function ProductSection({
   title,
   description,
   products = [],
   category,
-  subCategory,
+  isBestSeller,
 }) {
-
   const scrollRef = useRef();
 
-  // Filter logic
- const filteredProducts = products.filter((p) => {
-  if (subCategory) return p.subCategory === subCategory;
-  if (category) return p.category === category;
-  return true;
-});
+  const filteredProducts = products.filter((p) => {
+    if (isBestSeller) return true; // sab products allow
 
-if (!filteredProducts.length) return null;
+    if (category)
+      return p.category?.name?.toLowerCase() === category.toLowerCase();
+
+    return true;
+  });
+
+  let finalProducts = filteredProducts;
+
+  if (isBestSeller) {
+    const grouped = {};
+
+    filteredProducts.forEach((p) => {
+      const cat = p.category?.name || "other";
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push(p);
+    });
+
+    finalProducts = [];
+    let added = true;
+
+    while (added) {
+      added = false;
+
+      for (const cat in grouped) {
+        if (grouped[cat].length) {
+          finalProducts.push(grouped[cat].shift());
+          added = true;
+        }
+      }
+    }
+  }
 
   // Scroll functions
   const scrollLeft = () => {
@@ -35,29 +61,32 @@ if (!filteredProducts.length) return null;
 
   return (
     <section className="w-full px-4 md:px-8 lg:px-12 py-10">
-
       {/* Header */}
       <div className="flex justify-between items-start mb-6">
         <div>
-          <h2 className="text-2xl font-semibold text-slate-800">
-            {title}
-          </h2>
-          <p className="text-sm text-slate-500 mt-1 max-w-2xl">
-            {description}
-          </p>
+          <h2 className="text-2xl font-semibold text-slate-800">{title}</h2>
+          <p className="text-sm text-slate-500 mt-1 max-w-2xl">{description}</p>
         </div>
 
-        <Button
-          text="VIEW ALL"
-          variant="primary"
-          size="sm"
-          className="px-4 py-2"
-        />
+        {!isBestSeller && (
+          <Link
+            href={`/category/${title
+              .toLowerCase()
+              .replace(/\s+/g, "-")
+              .replace("-products", "")}`}
+          >
+            <Button
+              text="VIEW ALL"
+              variant="primary"
+              size="sm"
+              className="px-4 py-2"
+            />
+          </Link>
+        )}
       </div>
 
       {/* Slider Container */}
-      <div className="relative">
-
+      <div className=" relative">
         {/* Left Arrow */}
         <button
           onClick={scrollLeft}
@@ -79,18 +108,28 @@ if (!filteredProducts.length) return null;
           ref={scrollRef}
           className="flex gap-4 sm:gap-5 md:gap-6 overflow-x-auto scroll-smooth scrollbar-hide px-2 md:px-0 snap-x snap-mandatory"
         >
-          {filteredProducts.map((product) => (
+          {finalProducts.map((product) => (
             <div
               key={product.id}
               className=" sm:min-w-[48%] md:min-w-70 lg:min-w-75 snap-start first:ml-1 last:mr-1"
             >
-              <ProductCard {...product} />
+              <ProductCard
+                id={product.id}
+                image={
+                  product.images?.[0]?.url
+                    ? `${process.env.NEXT_PUBLIC_API_BASE_IMAGE_URL}${product.images[0].url}`
+                    : "/placeholder.png"
+                }
+                title={product.name} // 🔥 THIS IS THE FIX
+                description={product.description}
+                price={product.price}
+                rating={4.5}
+                reviews={10}
+              />
             </div>
           ))}
         </div>
-
       </div>
-
     </section>
   );
 }
