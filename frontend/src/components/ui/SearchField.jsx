@@ -27,7 +27,10 @@ export default function SearchField({
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (containerRef.current && !containerRef.current.contains(event.target)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target)
+      ) {
         setShowDropdown(false);
       }
     };
@@ -128,14 +131,17 @@ export default function SearchField({
                     </div>
                     <span className="text-sm font-medium text-slate-700 group-hover:text-[#1F3342]">
                       <div>
-  <div className="font-medium">{item.name}</div>
-  <div className="text-xs text-slate-400">
-    {item.category?.name} • {item.subCategory?.name}
-  </div>
-</div>
+                        <div className="font-medium">{item.name}</div>
+                        <div className="text-xs text-slate-400">
+                          {item.category?.name} • {item.subCategory?.name}
+                        </div>
+                      </div>
                     </span>
                   </div>
-                  <ChevronRight size={14} className="text-slate-300 group-hover:text-[#1F3342]" />
+                  <ChevronRight
+                    size={14}
+                    className="text-slate-300 group-hover:text-[#1F3342]"
+                  />
                 </div>
               ))}
             </div>

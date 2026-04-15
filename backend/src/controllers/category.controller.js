@@ -39,7 +39,9 @@ const createCategory = asyncHandler(async (req, res) => {
     return ApiError.send(res, 409, "SKU already exists.");
   }
 
-  const image = req.file ? `/uploads/${req.file.filename}` : null;
+  const image = req.file
+  ? `/uploads/thumbnails/${req.file.filename}`
+  : null;
 
   const category = await prisma.category.create({
     data: {
@@ -115,7 +117,7 @@ const updateCategory = asyncHandler(async (req, res) => {
       deleteOldImage(fullPath);
     }
 
-    newImageFilename = `/uploads/${req.file.filename}`;
+    newImageFilename = `/uploads/thumbnails/${req.file.filename}`;
   }
 
   const updatedCategory = await prisma.category.update({
@@ -165,8 +167,8 @@ const deleteCategory = asyncHandler(async (req, res) => {
 
     // ✅ DELETE IMAGE
     if (existingCategory.image) {
-      const fileName = existingCategory.image.replace("/uploads/", "");
-      const fullPath = path.join(UPLOAD_DIR, fileName);
+      const fileName = existingCategory.image.replace("/uploads/thumbnails/", "");
+const fullPath = path.join(UPLOAD_DIR, "thumbnails", fileName);
       deleteOldImage(fullPath);
     }
 

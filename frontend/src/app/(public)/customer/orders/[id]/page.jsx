@@ -271,11 +271,28 @@ export default function OrderDetailsPage({ params }) {
                   </h2>
                 </div>
                 <p className="text-sm font-bold leading-relaxed mb-1">
-                  {order.customer?.name || "Customer"}
-                </p>
-                <p className="text-sm font-medium text-white/80 leading-relaxed italic">
-                  "{order.shipping?.address || "No address provided"}"
-                </p>
+  {order.shipping?.firstName} {order.shipping?.lastName}
+</p>
+
+<p className="text-sm font-medium text-white/80 leading-relaxed">
+  {order.shipping?.address}
+</p>
+
+<p className="text-sm font-medium text-white/80 leading-relaxed">
+  {order.shipping?.city}, {order.shipping?.state}, {order.shipping?.pinCode}
+</p>
+
+<p className="text-sm font-medium text-white/80 leading-relaxed">
+  {order.shipping?.pincode}
+</p>
+<p className="text-sm font-medium text-white/80 leading-relaxed ">
+   {order.shipping?.email}
+</p>
+
+<p className="text-sm font-medium text-white/80 leading-relaxed">
+  {order.customer?.phone}
+</p>
+
               </div>
               {/* Decorative Circle */}
               <div className="absolute -bottom-12 -right-12 w-40 h-40 bg-white/5 rounded-full blur-3xl group-hover:bg-white/10 transition-colors" />

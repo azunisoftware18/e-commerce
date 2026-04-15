@@ -145,16 +145,7 @@ export default function ConsultationsTable({ data = [], isLoading }) {
         <TableBody
           data={paginatedData}
           columns={columns}
-          actions={[
-            {
-              label: "Call",
-              onClick: (row) => console.log("Call", row),
-            },
-            {
-              label: "View",
-              onClick: (row) => console.log("View", row),
-            },
-          ]}
+          actions={[]}
         />
       ) : (
         <TableEmpty message="No consultations found" />

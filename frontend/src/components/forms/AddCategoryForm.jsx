@@ -123,7 +123,7 @@ export default function AddCategoryForm({
           />
 
           <InputField
-            label="SKU / Prefix"
+            label="Prefix"
             placeholder="ELEC-"
             icon={Tag}
             {...register("sku")}

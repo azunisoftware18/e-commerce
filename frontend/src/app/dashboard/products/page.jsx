@@ -28,6 +28,7 @@ export default function Products() {
       price: item.price,
       stock: item.stock,
       status: item.status,
+      images: item.images, 
     }));
   }, [products]);
 

@@ -140,7 +140,7 @@ const handleUpdate = (data) => {
   ...sub,
   image: sub.image
     ? `http://localhost:8000${sub.image}`
-    : "https://via.placeholder.com/40",
+    : "https://via.placeholder.com/40?text=Sub",
 })),
   }));
 

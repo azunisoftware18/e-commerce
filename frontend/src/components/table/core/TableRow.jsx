@@ -32,20 +32,22 @@ export default function TableRow({
       ))}
 
       {/* Action Menu Column */}
-      <td className="px-4 py-3 md:px-6 md:py-4 text-right md:table-cell bg-slate-50/30 md:bg-transparent">
-        <div className="flex justify-between items-center md:justify-end">
-           <span className="md:hidden text-xs font-semibold uppercase text-slate-400">Actions</span>
-           {safeActions.length > 0 && (
-            <ActionMenu
-              align="right"
-              actions={safeActions.map((action) => ({
-                ...action,
-                onClick: () => action.onClick && action.onClick(row),
-              }))}
-            />
-          )}
-        </div>
-      </td>
+      {safeActions.length > 0 && (
+  <td className="px-4 py-3 md:px-6 md:py-4 text-right md:table-cell bg-slate-50/30 md:bg-transparent">
+    <div className="flex justify-between items-center md:justify-end">
+      <span className="md:hidden text-xs font-semibold uppercase text-slate-400">
+        Actions
+      </span>
+      <ActionMenu
+        align="right"
+        actions={safeActions.map((action) => ({
+          ...action,
+          onClick: () => action.onClick && action.onClick(row),
+        }))}
+      />
+    </div>
+  </td>
+)}
     </tr>
   );
 }

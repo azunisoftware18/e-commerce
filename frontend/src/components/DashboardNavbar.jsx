@@ -9,7 +9,7 @@ import {
   Settings,
   UserCircle,
 } from "lucide-react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { logout } from "@/store/slices/authSlice";
 import { useLogout } from "@/lib/mutations/useAuth";
@@ -20,6 +20,7 @@ export default function DashboardNavbar({ toggleSidebar }) {
   const dispatch = useDispatch();
   const router = useRouter();
   const { mutate: logoutApi } = useLogout();
+  const user = useSelector((state) => state.auth.user);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -70,9 +71,9 @@ export default function DashboardNavbar({ toggleSidebar }) {
           className="flex items-center gap-3 group focus:outline-none"
         >
           <div className="flex-col items-end hidden sm:flex text-right">
-            <span className="text-sm font-bold text-[#2A4150]">Alex Admin</span>
+            <span className="text-sm font-bold text-[#2A4150]"> {user?.name || "Admin"}</span>
             <span className="text-[10px] text-slate-500 uppercase tracking-wider">
-              Superuser
+               {user?.role || "User"}
             </span>
           </div>
 
@@ -97,15 +98,21 @@ export default function DashboardNavbar({ toggleSidebar }) {
               <p className="text-[10px] text-slate-500">Superuser</p>
             </div>
 
-            <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-[#2A4150] transition-colors">
-              <UserCircle size={16} />
-              My Profile
-            </button>
+            <button
+  onClick={() => {
+    setIsDropdownOpen(false); // dropdown close
+    router.push("/dashboard/admin-profile"); // redirect
+  }}
+  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-[#2A4150] transition-colors"
+>
+  <UserCircle size={16} />
+  My Profile
+</button>
 
-            <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-[#2A4150] transition-colors">
+            {/* <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-[#2A4150] transition-colors">
               <Settings size={16} />
               Settings
-            </button>
+            </button> */}
 
             <div className="h-px bg-slate-100 my-1" />
 

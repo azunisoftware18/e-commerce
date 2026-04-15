@@ -117,6 +117,10 @@ export default function DietPlanTable({
       {/* HEAD */}
       <TableHead
         columns={columns}
+        actions={[
+          {label: "Edit"},
+          {label: "Delete"}
+        ]}
         searchProps={{
           value: search,
           onChange: (e) => setSearch(e.target.value),

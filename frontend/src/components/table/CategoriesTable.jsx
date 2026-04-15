@@ -12,7 +12,7 @@ export default function CategoriesTable({
 }) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [expandedRows, setExpandedRows] = useState({}); 
+  const [expandedRows, setExpandedRows] = useState({});
   const itemsPerPage = 10;
 
   const toggleRow = (id) => {
@@ -27,20 +27,31 @@ export default function CategoriesTable({
       render: (value, row) => (
         <div className="flex items-center  gap-2">
           {row.subCategories?.length > 0 ? (
-            <button 
-              onClick={(e) => { e.stopPropagation(); toggleRow(row.id); }} 
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleRow(row.id);
+              }}
               className="p-1 hover:bg-slate-200 rounded"
             >
-              {expandedRows[row.id] ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+              {expandedRows[row.id] ? (
+                <ChevronDown size={16} />
+              ) : (
+                <ChevronRight size={16} />
+              )}
             </button>
           ) : (
-            <div className="w-6" /> 
+            <div className="w-6" />
           )}
-          
-          {row.image && (
-            <img src={row.image} alt="" className="w-8 h-8 rounded object-cover border" />
-          )}
-          <span className={`${row.isSub ? "text-slate-800 pl-4" : "font-bold text-slate-800"}`}>
+
+          <img
+  src={row.image || "https://via.placeholder.com/40?text=No"}
+  alt="category"
+  className="w-8 h-8 rounded object-cover border"
+/>
+          <span
+            className={`${row.isSub ? "text-slate-800 pl-4" : "font-bold text-slate-800"}`}
+          >
             {row.isSub && <span className="mr-2 text-slate-300"></span>}
             {value}
           </span>
@@ -54,25 +65,24 @@ export default function CategoriesTable({
       render: (value) => <span className="line-clamp-1">{value || "---"}</span>,
     },
     {
-        label: "Sub",
-        accessor: "subCount",
-        render: (_, row) => !row.isSub && (
-            <span className="bg-slate-100 px-2 py-0.5 rounded text-xs">
-                {row.subCategories?.length || 0}
-            </span>
-        )
-    }
+      label: "Sub",
+      accessor: "subCount",
+      render: (_, row) =>
+        !row.isSub && (
+          <span className="bg-slate-100 px-2 py-0.5 rounded text-xs">
+            {row.subCategories?.length || 0}
+          </span>
+        ),
+    },
   ];
 
   // 2. Search Filter
   const filteredData = useMemo(() => {
     return data.filter((item) =>
-      item.name?.toLowerCase().includes(search.toLowerCase())
+      item.name?.toLowerCase().includes(search.toLowerCase()),
     );
   }, [search, data]);
 
-  // 3. Flattening Logic (Yahan magic hota hai)
-  // Hum parent ke turant baad uski sub-categories ko array mein insert kar rahe hain
   const displayData = useMemo(() => {
     const start = (page - 1) * itemsPerPage;
     const paginatedParents = filteredData.slice(start, start + itemsPerPage);
@@ -82,13 +92,12 @@ export default function CategoriesTable({
       // Parent add karo
       flattened.push({ ...parent, isSub: false });
 
-      // Agar expanded hai, toh sub-categories add karo
       if (expandedRows[parent.id] && parent.subCategories) {
         parent.subCategories.forEach((sub) => {
-          flattened.push({ 
-            ...sub, 
-            isSub: true, 
-            parentId: parent.id // reference ke liye
+          flattened.push({
+            ...sub,
+            isSub: true,
+            parentId: parent.id, // reference ke liye
           });
         });
       }
@@ -110,11 +119,12 @@ export default function CategoriesTable({
     >
       <TableHead
         columns={columns}
+        actions={[{ label: "Edit" }, { label: "Delete" }]}
         showSearch={true}
         searchProps={{
-            value: search,
-            onChange: (e) => setSearch(e.target.value),
-            placeholder: "Search categories..."
+          value: search,
+          onChange: (e) => setSearch(e.target.value),
+          placeholder: "Search categories...",
         }}
         showFilter={false}
         showDate={false}
@@ -127,11 +137,13 @@ export default function CategoriesTable({
         actions={[
           {
             label: "Edit",
-            onClick: (row) => row.isSub ? onEdit(row, "subcategory") : onEdit(row),
+            onClick: (row) =>
+              row.isSub ? onEdit(row, "subcategory") : onEdit(row),
           },
           {
             label: "Delete",
-            onClick: (row) => row.isSub ? onDeleteSubCategory(row.id) : onDelete(row.id),
+            onClick: (row) =>
+              row.isSub ? onDeleteSubCategory(row.id) : onDelete(row.id),
           },
         ]}
       />

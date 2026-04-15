@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Smartphone } from "lucide-react";
+import { Eye, EyeOff, Smartphone } from "lucide-react";
 import InputField from "@/components/ui/InputField";
 import Button from "@/components/ui/Button";
 import Link from "next/link";
@@ -15,7 +15,7 @@ export default function Login({ title, onSuccess, isModal = false }) {
   const { mutate, isLoading } = useLogin();
   const dispatch = useDispatch();
   const router = useRouter();
-
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [form, setForm] = useState({ email: "", password: "" });
 
@@ -94,13 +94,24 @@ export default function Login({ title, onSuccess, isModal = false }) {
             <label className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.15em] ml-1">
               Password
             </label>
-            <InputField
-              type="password"
-              placeholder="••••••••"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              className="rounded-2xl border-slate-200 focus:border-[#2A4150] h-12"
-            />
+            <div className="relative">
+  <InputField
+    type={showPassword ? "text" : "password"}
+    placeholder="••••••••"
+    value={form.password}
+    onChange={(e) => setForm({ ...form, password: e.target.value })}
+    className="rounded-2xl border-slate-200 focus:border-[#2A4150] h-12 pr-10"
+  />
+
+  {/* 👁 Toggle Button */}
+  <button
+    type="button"
+    onClick={() => setShowPassword(!showPassword)}
+    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#2A4150]"
+  >
+    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+  </button>
+</div>
           </div>
 
           <Button

@@ -25,15 +25,46 @@ export default function ProductsTable({
     return data.map((item) => ({
       id: item.id,
       product: item.name,
+      image: item.images?.[0]?.url,
       category: item.category?.name || "N/A",
       price: item.price,
       stock: item.stock,
       status: item.stock === 0 ? "Out of Stock" : item.status,
+      description: item.description,
     }));
   }, [data]);
 
   const columns = [
-    { label: "Product", accessor: "product" },
+    {
+      label: "Product",
+      accessor: "product",
+      render: (value, row) => (
+        <div className="flex items-center gap-3">
+          {/* 🖼️ Image */}
+          <img
+            src={
+              row.image
+                ? `http://localhost:8000${row.image}`
+                : "/placeholder.png"
+            }
+            alt={value}
+            className="w-10 h-10 rounded-md object-cover border"
+          />
+
+          {/* 📝 Name */}
+          <span className="font-medium text-slate-800">{value}</span>
+        </div>
+      ),
+    },
+    {
+      label: "Description",
+      accessor: "description",
+      render: (value) => (
+        <span className="text-slate-500 text-sm line-clamp-1 max-w-50">
+          {value || "—"}
+        </span>
+      ),
+    },
     { label: "Category", accessor: "category" },
     {
       label: "Price",
@@ -110,6 +141,7 @@ export default function ProductsTable({
     >
       <TableHead
         columns={columns}
+        actions={[ { lable: "Edit" }, { lable: "Delete" }]}
         onReset={handleReset}
         searchProps={{
           value: search,
@@ -132,10 +164,7 @@ export default function ProductsTable({
         data={paginatedData}
         columns={columns}
         actions={[
-          {
-            label: "View",
-            onClick: (row) => onView?.(row),
-          },
+         
           {
             label: "Edit",
             onClick: (row) => onEdit?.(row),

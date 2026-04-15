@@ -80,6 +80,11 @@ export default function CustomerTable({ data = [], onEdit, onDelete }) {
     >
       <TableHead
         columns={columns}
+        actions={[
+          
+          {label: "Edit"},
+          {label: "Delete"},
+        ]}
         onReset={handleReset}
         searchProps={{
           value: search,
@@ -105,10 +110,7 @@ export default function CustomerTable({ data = [], onEdit, onDelete }) {
         data={paginatedData}
         columns={columns}
         actions={[
-          {
-            label: "View",
-            onClick: (row) => router.push(`/dashboard/customers/${row.id}`),
-          },
+          
           {
             label: "Edit",
             onClick: (row) => onEdit?.(row),

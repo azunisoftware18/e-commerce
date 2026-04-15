@@ -28,3 +28,16 @@ export const useOrder = (id) => {
     enabled: !!id,
   });
 };
+
+// ==============================
+// ✅ GET ORDER STATUS OPTIONS
+// ==============================
+export const useOrderStatusOptions = () => {
+  return useQuery({
+    queryKey: ["order-status"],
+    queryFn: async () => {
+      const res = await api.get("/order/status-options");
+      return res?.data?.data || [];
+    },
+  });
+};

@@ -41,19 +41,15 @@ export default function Header() {
 
   const { data: products = [] } = useProducts();
 
-const searchResults = products
-  .filter((p) =>
-    [
-      p.name,
-      p.category?.name,
-      p.subCategory?.name,
-    ]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase()
-      .includes(search.toLowerCase())
-  )
-  .slice(0, 5); // max 5 results
+  const searchResults = products
+    .filter((p) =>
+      [p.name, p.category?.name, p.subCategory?.name]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(search.toLowerCase()),
+    )
+    .slice(0, 5); // max 5 results
 
   // Close menus on click outside or scroll
   useEffect(() => {
@@ -105,22 +101,19 @@ const searchResults = products
             {/* Desktop Search */}
             <div className="hidden max-w-xl flex-1 mx-8 md:block">
               <SearchField
-  value={search}
-  onChange={(e) => setSearch(e.target.value)}
-  onSearch={() => {
-    if (!search) return;
-    router.push(`/category?search=${search}`);
-  }}
-  results={searchResults}   // 🔥 ADD THIS
-  showResults
-  onResultClick={(item) => {
-    router.push(`/category/${item.category?.name
-      ?.toLowerCase()
-      .replace(/\s+/g, "-")}?search=${item.name}`);
-  }}
-  placeholder="Search products, categories..."
-  
-/>
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                results={searchResults} // 🔥 ADD THIS
+                showResults
+                onResultClick={(item) => {
+                  router.push(
+                    `/category/${item.category?.name
+                      ?.toLowerCase()
+                      .replace(/\s+/g, "-")}?search=${item.name}`,
+                  );
+                }}
+                placeholder="Search products, categories..."
+              />
             </div>
 
             {/* Actions */}
@@ -166,7 +159,20 @@ const searchResults = products
 
         {/* Mobile Search */}
         <div className="px-4 pb-3 md:hidden">
-          <SearchField showButton={false} />
+          <SearchField
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            results={searchResults} // 🔥 ADD THIS
+            showResults
+            onResultClick={(item) => {
+              router.push(
+                `/category/${item.category?.name
+                  ?.toLowerCase()
+                  .replace(/\s+/g, "-")}?search=${item.name}`,
+              );
+            }}
+            placeholder="Search products, categories..."
+          />
         </div>
 
         {/* Desktop Navigation */}
@@ -281,17 +287,26 @@ function NavLink({ item }) {
     >
       <Link
         href={href}
+        onClick={(e) => {
+          if (!isString) {
+            e.preventDefault(); // ❌ stop category navigation
+          }
+        }}
         className="group flex items-center py-2 text-[11px] font-bold tracking-widest text-slate-600 hover:text-[#2A4150] md:text-[12px]"
       >
         {name}
+
         {hasSubCategories && (
           <ChevronDown
             size={14}
             className={`ml-1 transition-transform ${hover ? "rotate-180" : ""}`}
           />
         )}
+
         <span
-          className={`absolute -bottom-1 left-0 h-0.5 bg-[#2A4150] transition-all ${hover ? "w-full" : "w-0"}`}
+          className={`absolute -bottom-1 left-0 h-0.5 bg-[#2A4150] transition-all ${
+            hover ? "w-full" : "w-0"
+          }`}
         />
       </Link>
 
@@ -343,7 +358,13 @@ function MobileNavLink({ item, onClose }) {
       <div className="flex items-center justify-between px-4">
         <Link
           href={href}
-          onClick={onClose}
+          onClick={(e) => {
+            if (!isString) {
+              e.preventDefault(); // ❌ category click band
+            } else {
+              onClose(); // ✅ normal links work
+            }
+          }}
           className="flex-1 py-4 text-sm font-bold text-slate-700 uppercase tracking-tight"
         >
           {name}

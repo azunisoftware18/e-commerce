@@ -5,7 +5,12 @@ import { createSlice } from "@reduxjs/toolkit";
 // ==============================
 const loadAddressFromStorage = () => {
   try {
+    if (typeof window === "undefined") {
+      return { addresses: [], selectedAddressId: null };
+    }
+
     const data = localStorage.getItem("address");
+
     return data
       ? JSON.parse(data)
       : { addresses: [], selectedAddressId: null };
@@ -19,6 +24,8 @@ const loadAddressFromStorage = () => {
 // ==============================
 const saveAddressToStorage = (state) => {
   try {
+    if (typeof window === "undefined") return;
+
     localStorage.setItem("address", JSON.stringify(state));
   } catch (error) {
     console.log("Storage error");
@@ -26,12 +33,9 @@ const saveAddressToStorage = (state) => {
 };
 
 // ==============================
-// ✅ Initial State (SSR SAFE)
+// ✅ Initial State
 // ==============================
-const initialState = {
-  addresses: [],
-  selectedAddressId: null,
-};
+const initialState = loadAddressFromStorage();
 
 // ==============================
 // ✅ Slice
@@ -40,7 +44,7 @@ const addressSlice = createSlice({
   name: "address",
   initialState,
   reducers: {
-    // 🔥 Load from localStorage
+    // 🔥 Load manually (optional)
     setAddress: (state, action) => {
       const data = action.payload;
 
@@ -48,17 +52,15 @@ const addressSlice = createSlice({
       state.selectedAddressId = data?.selectedAddressId || null;
     },
 
-    // ➕ Add Address (FIXED)
+    // ➕ ADD ADDRESS
     addAddress: (state, action) => {
       const newAddress = {
         id: Date.now(),
 
-        // 🔥 IMPORTANT FIELDS
         firstName: action.payload.firstName || "",
         lastName: action.payload.lastName || "",
         email: action.payload.email || "",
 
-        // 📍 ADDRESS
         address: action.payload.address || "",
         city: action.payload.city || "",
         state: action.payload.state || "",
@@ -67,7 +69,7 @@ const addressSlice = createSlice({
 
       state.addresses.push(newAddress);
 
-      // ✅ Auto select if none selected
+      // auto select first address
       if (!state.selectedAddressId) {
         state.selectedAddressId = newAddress.id;
       }
@@ -75,13 +77,29 @@ const addressSlice = createSlice({
       saveAddressToStorage(state);
     },
 
-    // ❌ Remove Address
+    // ✏️ UPDATE ADDRESS (🔥 IMPORTANT)
+    updateAddress: (state, action) => {
+      const updatedAddress = action.payload;
+
+      state.addresses = state.addresses.map((addr) =>
+        addr.id === updatedAddress.id
+          ? {
+              ...addr,
+              ...updatedAddress,
+            }
+          : addr
+      );
+
+      saveAddressToStorage(state);
+    },
+
+    // ❌ DELETE ADDRESS
     removeAddress: (state, action) => {
       state.addresses = state.addresses.filter(
         (addr) => addr.id !== action.payload
       );
 
-      // 🔥 If deleted address was selected
+      // if deleted selected address
       if (state.selectedAddressId === action.payload) {
         state.selectedAddressId =
           state.addresses.length > 0 ? state.addresses[0].id : null;
@@ -90,7 +108,7 @@ const addressSlice = createSlice({
       saveAddressToStorage(state);
     },
 
-    // ✅ Select Address
+    // ✅ SELECT ADDRESS
     selectAddress: (state, action) => {
       state.selectedAddressId = action.payload;
       saveAddressToStorage(state);
@@ -99,16 +117,14 @@ const addressSlice = createSlice({
 });
 
 // ==============================
-// ✅ Export Actions
+// ✅ EXPORTS
 // ==============================
 export const {
   setAddress,
   addAddress,
+  updateAddress, // 🔥 important
   removeAddress,
   selectAddress,
 } = addressSlice.actions;
 
-// ==============================
-// ✅ Export Reducer
-// ==============================
 export default addressSlice.reducer;

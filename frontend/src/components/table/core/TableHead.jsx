@@ -5,6 +5,7 @@ import Button from "@/components/ui/Button";
 
 export default function TableHead({
   columns,
+  actions = [],
   onReset,
   searchProps = {},
   filterProps = {},
@@ -78,9 +79,11 @@ export default function TableHead({
               {col.label}
             </th>
           ))}
-          <th className="px-6 py-4 border-b border-slate-100 text-right">
-            Actions
-          </th>
+          {actions?.length > 0 && (
+            <th className="px-6 py-4 border-b border-slate-100 text-right">
+              Actions
+            </th>
+          )}
         </tr>
       </thead>
     </>

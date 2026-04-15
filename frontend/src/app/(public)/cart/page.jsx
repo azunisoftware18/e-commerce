@@ -236,10 +236,10 @@ export default function CartPage() {
                   </div>
                 </div>
                 <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                  <div
+                  {/* <div
                     className={`h-full transition-all duration-1000 ease-out ${shipping === 0 ? "bg-emerald-500" : "bg-[#2A4150]"}`}
                     style={{ width: `${progress}%` }}
-                  />
+                  /> */}
                 </div>
               </section>
 

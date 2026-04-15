@@ -5,16 +5,24 @@ import { IndianRupee, ShoppingBag, Package, Users } from 'lucide-react'
 import StatCard from '@/components/common/StatCard'
 import LedgerTable from '@/components/table/LedgerTable'
 import {  useOrders } from '@/lib/queries/useOrders';
+import { useProducts } from '@/lib/queries/useProducts';
 
 export default function Ledger() {
   const { data: orders = [], isLoading } = useOrders();
+  const { data: products = [] } = useProducts();
   const ledgerData = useMemo(() => {
   return orders.map((order) => ({
-    date: order.date || order.createdAt || null,
+    date: order.createdAt
+      ? new Date(order.createdAt).toLocaleDateString()
+      : "-",
+
     orderId: order.id,
+
     customer: order.customer?.name || "N/A",
-    amount: order.total || 0,         // ✅ FIX
-    status: order.payment || "Pending", // ✅ FIX
+
+    amount: order.totalAmount || 0, // ✅ FIXED
+
+    status: order.paymentStatus || order.status || "Pending", // ✅ FIXED
   }));
 }, [orders]);
 
@@ -67,7 +75,7 @@ if (isLoading) {
 
 <StatCard 
   title="Products" 
-  value="--"   // (optional: API se la sakte ho)
+  value={products.length}
   icon={Package} 
   trendValue="--" 
   isUp={true} 

@@ -26,8 +26,9 @@ export const createSubCategory = asyncHandler(async (req, res) => {
     return ApiError.send(res, 404, "Parent category not found");
   }
 
-  // ✅ SAME IMAGE LOGIC
-  const image = req.file ? `/uploads/${req.file.filename}` : null;
+  const image = req.file
+  ? `/uploads/thumbnails/${req.file.filename}`
+  : null;
 
   const subCategory = await prisma.subCategory.create({
     data: {
@@ -66,12 +67,16 @@ export const updateSubCategory = asyncHandler(async (req, res) => {
   // ✅ SAME IMAGE REPLACE LOGIC
   if (req.file) {
     if (existingSubCategory.image) {
-      const fileName = existingSubCategory.image.replace("/uploads/", "");
-      const fullPath = path.join(UPLOAD_DIR, fileName);
+      const fileName = existingSubCategory.image.replace(
+  "/uploads/thumbnails/",
+  ""
+);
+
+const fullPath = path.join(UPLOAD_DIR, "thumbnails", fileName);
       deleteOldImage(fullPath);
     }
 
-    newImageFilename = `/uploads/${req.file.filename}`;
+    newImageFilename = `/uploads/thumbnails/${req.file.filename}`;
   }
 
   const updatedSubCategory = await prisma.subCategory.update({
@@ -154,8 +159,12 @@ export const deleteSubCategory = asyncHandler(async (req, res) => {
   // ✅ IMAGE DELETE
   if (subCategory.image) {
     try {
-      const fileName = subCategory.image.replace("/uploads/", "");
-      const fullPath = path.join(UPLOAD_DIR, fileName);
+      const fileName = subCategory.image.replace(
+  "/uploads/thumbnails/",
+  ""
+);
+
+const fullPath = path.join(UPLOAD_DIR, "thumbnails", fileName);
       deleteOldImage(fullPath);
     } catch (err) {
       console.log("Image delete error:", err.message);

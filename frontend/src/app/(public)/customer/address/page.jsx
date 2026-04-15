@@ -22,6 +22,7 @@ import {
   removeAddress,
   selectAddress,
   setAddress,
+  updateAddress,
 } from "@/store/slices/addressSlice";
 import AuthGuard from "@/components/common/AuthGuard";
 import Loader from "@/components/common/Loader";
@@ -34,7 +35,11 @@ export default function AddressPage() {
     (state) => state.address,
   );
   const [isLoading, setIsLoading] = useState(true);
+  const [editId, setEditId] = useState(null);
   const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
     pinCode: "",
     city: "",
     state: "",
@@ -42,31 +47,42 @@ export default function AddressPage() {
   });
 
   const handleSave = () => {
-    if (
-      !formData.firstName ||
-      !formData.email ||
-      !formData.pinCode ||
-      !formData.city ||
-      !formData.state ||
-      !formData.address
-    ) {
-      toast.error("Please fill all fields");
-      return;
-    }
+  if (
+    !formData.firstName ||
+    !formData.email ||
+    !formData.pinCode ||
+    !formData.city ||
+    !formData.state ||
+    !formData.address
+  ) {
+    toast.error("Please fill all fields");
+    return;
+  }
 
+  if (editId) {
+    // ✅ UPDATE
+    dispatch(updateAddress({ ...formData, id: editId }));
+    toast.success("Address Updated");
+  } else {
+    // ✅ CREATE
     dispatch(addAddress({ ...formData, id: Date.now() }));
-    toast.success("Address Saved Successfully");
-    setFormData({
-      firstName: "",
-      lastName: "",
-      email: "",
-      pinCode: "",
-      city: "",
-      state: "",
-      address: "",
-    });
-    setShowForm(false);
-  };
+    toast.success("Address Saved");
+  }
+
+  // reset
+  setFormData({
+    firstName: "",
+    lastName: "",
+    email: "",
+    pinCode: "",
+    city: "",
+    state: "",
+    address: "",
+  });
+
+  setEditId(null);
+  setShowForm(false);
+};
 
   useEffect(() => {
     const data = localStorage.getItem("address");
@@ -129,8 +145,8 @@ export default function AddressPage() {
               <div className="flex justify-between items-center mb-8">
                 <div>
                   <h2 className="text-xl font-black text-slate-800">
-                    New Address
-                  </h2>
+  {editId ? "Edit Address" : "New Address"}
+</h2>
                   <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">
                     Fill in the delivery details
                   </p>
@@ -149,7 +165,7 @@ export default function AddressPage() {
 
               <div className="flex flex-col sm:flex-row gap-3 mt-10">
                 <Button
-                  text="Save This Location"
+                  text={editId ? "Update Address" : "Save This Location"}
                   onClick={handleSave}
                   className="flex-2 py-4 rounded-2xl bg-[#2A4150] shadow-lg shadow-blue-900/20 font-black uppercase tracking-widest text-xs"
                 />
@@ -248,19 +264,35 @@ export default function AddressPage() {
                           : "Select for Delivery"}
                       </span>
 
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          dispatch(removeAddress(addr.id));
-                          toast.success("Address Deleted");
-                        }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all duration-300"
-                      >
-                        <Trash2 size={14} />
-                        <span className="text-[10px] font-black uppercase tracking-widest">
-                          Delete
-                        </span>
-                      </button>
+                      <div className="flex items-center gap-2">
+  {/* EDIT */}
+  <button
+    onClick={(e) => {
+      e.stopPropagation();
+      setFormData(addr);
+      setEditId(addr.id);
+      setShowForm(true);
+    }}
+    className="px-3 py-1.5 text-blue-500 hover:bg-blue-50 rounded-xl text-xs font-bold"
+  >
+    Edit
+  </button>
+
+  {/* DELETE */}
+  <button
+    onClick={(e) => {
+      e.stopPropagation();
+      dispatch(removeAddress(addr.id));
+      toast.success("Address Deleted");
+    }}
+    className="flex items-center gap-1.5 px-3 py-1.5 text-red-500 hover:bg-red-50 rounded-xl"
+  >
+    <Trash2 size={14} />
+    <span className="text-[10px] font-black uppercase tracking-widest">
+      Delete
+    </span>
+  </button>
+</div>
                     </div>
                   </div>
                 </div>

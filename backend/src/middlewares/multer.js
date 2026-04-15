@@ -19,9 +19,12 @@ const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     if (file.fieldname === "pdf") {
       cb(null, pdfDir);
-    } else if (file.fieldname === "thumbnail") {
-      cb(null, thumbDir);
-    }
+    } else if (
+  file.fieldname === "thumbnail" ||
+  file.fieldname === "image"   // ✅ ADD THIS LINE
+) {
+  cb(null, thumbDir);
+}
   },
   filename: function (req, file, cb) {
     const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
@@ -39,12 +42,15 @@ const fileFilter = (req, file, cb) => {
     return cb(new Error("Only PDF allowed"));
   }
 
-  if (file.fieldname === "thumbnail") {
-    if (file.mimetype.startsWith("image/")) {
-      return cb(null, true);
-    }
-    return cb(new Error("Only image allowed"));
+  if (
+  file.fieldname === "thumbnail" ||
+  file.fieldname === "image"   // ✅ ADD THIS
+) {
+  if (file.mimetype.startsWith("image/")) {
+    return cb(null, true);
   }
+  return cb(new Error("Only image allowed"));
+}
 
   cb(new Error("Invalid field"));
 };

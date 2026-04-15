@@ -99,6 +99,7 @@ export default function LedgerTable({ data = [] }) {
       <TableHead
         columns={columns}
         onReset={handleReset}
+         actions={[]} 
         searchProps={{
           value: search,
           placeholder: "Search orders...",
@@ -123,16 +124,7 @@ export default function LedgerTable({ data = [] }) {
       <TableBody
         data={paginatedData}
         columns={columns}
-        actions={[
-          {
-            label: "View",
-            onClick: (row) => console.log("View", row),
-          },
-          {
-            label: "Delete",
-            onClick: (row) => console.log("Delete", row),
-          },
-        ]}
+        actions={[]}
       />
     </TableShell>
   );

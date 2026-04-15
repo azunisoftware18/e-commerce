@@ -54,9 +54,9 @@ export default function HeroSlider({
                 }`}
               >
                 {/* Small Tagline/Badge */}
-                <span className="text-white/80 text-xs md:text-sm font-medium tracking-[0.3em] uppercase mb-4 block">
+                {/* <span className="text-white/80 text-xs md:text-sm font-medium tracking-[0.3em] uppercase mb-4 block">
                   New Arrival 2026
-                </span>
+                </span> */}
 
                 {/* Main Title with Letter Spacing */}
                 <h2 className="text-white text-4xl md:text-7xl font-black mb-4 uppercase leading-tight tracking-tighter max-w-3xl">

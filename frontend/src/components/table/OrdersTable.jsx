@@ -7,14 +7,56 @@ import {
   TableBody,
   TablePagination,
 } from "./core";
+import { useUpdateOrder } from "@/lib/mutations/useOrders";
+import toast from "react-hot-toast";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_IMAGE_URL;
 export default function OrdersTable({ data = [] }) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
-
+  const { mutate: updateOrder } = useUpdateOrder();
   const itemsPerPage = 10;
+ const handleStatusChange = (id, status) => {
+  updateOrder(
+    {
+      id,
+      data: { status },
+    },
+    {
+      onSuccess: () => {
+        toast.success("Order status updated successfully ");
+      },
+      onError: () => {
+        toast.error("Failed to update status ❌");
+      },
+    }
+  );
+};
+const STATUS_OPTIONS = [
+  "Pending",
+  "Processing",
+  "Shipped",
+  "Delivered",
+  "Cancelled",
+];
+
+const getStatusStyle = (status) => {
+  switch (status?.toLowerCase()) {
+    case "pending":
+      return "bg-yellow-100 text-yellow-700 border-yellow-200";
+    case "processing":
+      return "bg-blue-100 text-blue-700 border-blue-200";
+    case "shipped":
+      return "bg-purple-100 text-purple-700 border-purple-200";
+    case "delivered":
+      return "bg-green-100 text-green-700 border-green-200";
+    case "cancelled":
+      return "bg-red-100 text-red-700 border-red-200";
+    default:
+      return "bg-slate-100 text-slate-600 border-slate-200";
+  }
+};
 
   const columns = [
   {
@@ -41,34 +83,70 @@ export default function OrdersTable({ data = [] }) {
     render: (c) => c?.name || "-",
   },
   {
-    label: "Address",
-    accessor: "shipping",
-    render: (s) => `${s?.city || ""}, ${s?.zip || ""}`,
-  },
+  label: "Shipping Address",
+  accessor: "shipping",
+  render: (s) => (
+    <div className="text-xs text-slate-600 max-w-50 line-clamp-2">
+      {[
+        s?.firstName,
+        s?.lastName,
+        s?.address,
+        s?.city,
+        s?.state,
+        s?.pinCode,
+      ]
+        .filter(Boolean)
+        .join(", ")}
+    </div>
+  ),
+},
   {
     label: "Total",
     accessor: "total",
     render: (v) => `₹${v}`,
   },
   {
-    label: "Status",
-    accessor: "status",
-    render: (value) => (
-      <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-        value === "Delivered"
-          ? "bg-green-100 text-green-600"
-          : value === "Pending"
-          ? "bg-yellow-100 text-yellow-600"
-          : "bg-red-100 text-red-600"
-      }`}>
-        {value}
-      </span>
-    ),
-  },
+  label: "Status",
+  accessor: "status",
+  render: (value, row) => (
+    <select
+      value={value}
+      onChange={(e) => handleStatusChange(row.id, e.target.value)}
+      className={`text-sm rounded-md px-2 py-1 border focus:outline-none ${getStatusStyle(value)}`}
+    >
+      {STATUS_OPTIONS.map((s) => (
+        <option key={s} value={s}>
+          {s}
+        </option>
+      ))}
+    </select>
+  ),
+},
   {
     label: "Payment",
     accessor: "payment",
   },
+  {
+  label: "Payment ID",
+  accessor: "razorpayPaymentId",
+  render: (v) => v || "-"
+},
+{
+  label: "Order Ref",
+  accessor: "razorpayOrderId",
+  render: (v) => v || "-"
+},
+{
+  label: "Payment Mode",
+  accessor: "paymentMode",
+  render: (v) => (
+    <span className="text-xs font-medium text-slate-600">
+      {v || "-"}
+    </span>
+  )
+},
+
+
 ];
 
   const filteredData = useMemo(() => {
@@ -119,6 +197,7 @@ export default function OrdersTable({ data = [] }) {
       {/* 🔍 Head */}
       <TableHead
         columns={columns}
+        actions={[]}
         onReset={handleReset}
         searchProps={{
           value: search,
@@ -143,18 +222,7 @@ export default function OrdersTable({ data = [] }) {
         data={paginatedData}
         columns={columns}
         actions={[
-          {
-            label: "View",
-            onClick: (row) => console.log("View", row),
-          },
-          {
-            label: "Invoice",
-            onClick: (row) => console.log("Invoice", row),
-          },
-          {
-            label: "Cancel",
-            onClick: (row) => console.log("Cancel", row),
-          },
+          
         ]}
       />
     </TableShell>
