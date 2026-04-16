@@ -49,9 +49,8 @@ export default function Header() {
         .toLowerCase()
         .includes(search.toLowerCase()),
     )
-    .slice(0, 5); // max 5 results
+    .slice(0, 5); 
 
-  // Close menus on click outside or scroll
   useEffect(() => {
     const close = () => {
       setOpenMenu(false);
@@ -94,8 +93,8 @@ export default function Header() {
               href="/"
               className="shrink-0 text-xl font-black tracking-tighter md:text-3xl"
             >
-              <span className="text-[#2A4150]">Azz</span>
-              <span className="text-[#9ca0a3]">unique</span>
+              <span className="text-[#2A4150]">G</span>
+              <span className="text-[#9ca0a3]">LAM</span>
             </Link>
 
             {/* Desktop Search */}
