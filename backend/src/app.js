@@ -8,11 +8,12 @@ const data = "10mb";
 app.use(
   cors({
     origin: [
+      process.env.CLIENT_URL,
       "http://localhost:3000",
-      "https://d9vxjqxn-3000.inc1.devtunnels.ms", 
+      "https://d9vxjqxn-3000.inc1.devtunnels.ms",
     ],
     credentials: true,
-  })
+  }),
 );
 app.options("*", cors());
 app.use(express.json({ limit: data }));
@@ -32,7 +33,6 @@ import subCategoryRoutes from "./routes/subcategory.routes.js";
 import dietPlanRoutes from "./routes/dietPlan.routes.js";
 import consultationRoutes from "./routes/consultation.routes.js";
 import locationRoutes from "./routes/location.routes.js";
-
 
 // routes declaration
 app.use("/api/v1/auth", userRouter);
