@@ -36,15 +36,31 @@ CREATE TABLE `category` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
+CREATE TABLE `SubCategory` (
+    `id` VARCHAR(191) NOT NULL,
+    `name` VARCHAR(191) NOT NULL,
+    `sku` VARCHAR(191) NOT NULL,
+    `description` VARCHAR(191) NULL,
+    `image` VARCHAR(191) NULL,
+    `categoryId` VARCHAR(191) NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    UNIQUE INDEX `SubCategory_sku_key`(`sku`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
 CREATE TABLE `product` (
     `id` VARCHAR(191) NOT NULL,
     `name` VARCHAR(191) NOT NULL,
-    `description` LONGTEXT,
+    `description` LONGTEXT NOT NULL DEFAULT '',
     `categoryid` VARCHAR(191) NOT NULL,
     `price` DECIMAL(65, 30) NOT NULL,
     `stock` INTEGER NOT NULL,
     `status` ENUM('Active', 'Out_of_Stock', 'Discontinued') NOT NULL,
     `createdby` VARCHAR(191) NOT NULL,
+    `subCategoryId` VARCHAR(191) NULL,
 
     INDEX `Product_categoryid_fkey`(`categoryid`),
     INDEX `Product_createdby_fkey`(`createdby`),
@@ -73,6 +89,8 @@ CREATE TABLE `order` (
     `createdby` VARCHAR(191) NOT NULL,
     `shippingId` VARCHAR(191) NOT NULL,
     `payment_mode` VARCHAR(191) NOT NULL DEFAULT 'COD',
+    `razorpayOrderId` VARCHAR(191) NULL,
+    `razorpayPaymentId` VARCHAR(191) NULL,
     `transaction_id` VARCHAR(191) NULL,
     `merchant_order_id` VARCHAR(191) NULL,
     `bank_reference_id` VARCHAR(191) NULL,
@@ -90,6 +108,7 @@ CREATE TABLE `shippingaddress` (
     `lastName` VARCHAR(191) NOT NULL,
     `email` VARCHAR(191) NOT NULL,
     `address` VARCHAR(191) NOT NULL,
+    `state` VARCHAR(191) NOT NULL DEFAULT 'Unknown',
     `city` VARCHAR(191) NOT NULL,
     `zip` VARCHAR(191) NOT NULL,
 
@@ -109,14 +128,52 @@ CREATE TABLE `orderitem` (
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+-- CreateTable
+CREATE TABLE `DietPlan` (
+    `id` VARCHAR(191) NOT NULL,
+    `name` VARCHAR(191) NOT NULL,
+    `description` VARCHAR(191) NOT NULL,
+    `price` DOUBLE NOT NULL,
+    `type` ENUM('FREE', 'PAID') NOT NULL,
+    `pdfUrl` VARCHAR(191) NOT NULL,
+    `thumbnail` VARCHAR(191) NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Consultation` (
+    `id` VARCHAR(191) NOT NULL,
+    `firstName` VARCHAR(191) NOT NULL,
+    `lastName` VARCHAR(191) NOT NULL,
+    `age` INTEGER NOT NULL,
+    `weight` DOUBLE NOT NULL,
+    `phone` VARCHAR(191) NOT NULL,
+    `email` VARCHAR(191) NULL,
+    `healthIssues` JSON NOT NULL,
+    `otherIssue` VARCHAR(191) NULL,
+    `dietPlanId` VARCHAR(191) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
 -- AddForeignKey
 ALTER TABLE `category` ADD CONSTRAINT `Category_createdby_fkey` FOREIGN KEY (`createdby`) REFERENCES `user`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `product` ADD CONSTRAINT `Product_categoryid_fkey` FOREIGN KEY (`categoryid`) REFERENCES `category`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `SubCategory` ADD CONSTRAINT `SubCategory_categoryId_fkey` FOREIGN KEY (`categoryId`) REFERENCES `category`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `product` ADD CONSTRAINT `Product_categoryid_fkey,` FOREIGN KEY (`categoryid`) REFERENCES `category`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `product` ADD CONSTRAINT `Product_createdby_fkey` FOREIGN KEY (`createdby`) REFERENCES `user`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `product` ADD CONSTRAINT `product_subCategoryId_fkey` FOREIGN KEY (`subCategoryId`) REFERENCES `SubCategory`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `productimage` ADD CONSTRAINT `ProductImage_productId_fkey` FOREIGN KEY (`productId`) REFERENCES `product`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
@@ -135,3 +192,6 @@ ALTER TABLE `orderitem` ADD CONSTRAINT `OrderItem_orderid_fkey` FOREIGN KEY (`or
 
 -- AddForeignKey
 ALTER TABLE `orderitem` ADD CONSTRAINT `OrderItem_productid_fkey` FOREIGN KEY (`productid`) REFERENCES `product`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Consultation` ADD CONSTRAINT `Consultation_dietPlanId_fkey` FOREIGN KEY (`dietPlanId`) REFERENCES `DietPlan`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
