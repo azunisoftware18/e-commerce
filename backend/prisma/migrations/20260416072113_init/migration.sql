@@ -54,7 +54,7 @@ CREATE TABLE `SubCategory` (
 CREATE TABLE `product` (
     `id` VARCHAR(191) NOT NULL,
     `name` VARCHAR(191) NOT NULL,
-    `description` LONGTEXT NOT NULL DEFAULT '',
+    `description` LONGTEXT NOT NULL,
     `categoryid` VARCHAR(191) NOT NULL,
     `price` DECIMAL(65, 30) NOT NULL,
     `stock` INTEGER NOT NULL,
