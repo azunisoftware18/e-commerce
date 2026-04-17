@@ -13,7 +13,7 @@ const createProduct = asyncHandler(async (req, res) => {
   const { id: createdby, role } = req.user;
 
   const imagePaths =
-    req.files?.map((file) => `/uploads/${file.filename}`) || [];
+  req.files?.map((file) => `/uploads/images/${file.filename}`) || [];
 
   if (role !== "Admin") {
     return ApiError.send(res, 403, "Only admins can create a product.");

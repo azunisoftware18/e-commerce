@@ -9,7 +9,7 @@ export default function Consultation() {
 
   const handleSubmit = (data) => {
     mutate(data, {
-      onSuccess: (res) => {toast.success("Consultation created successfully");
+      onSuccess: (res) => {toast.success("Consultation request submitted");
       },
       onError: (err) => {
         console.log("ERROR:", err);

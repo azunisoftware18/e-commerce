@@ -39,7 +39,7 @@ export default function Categories() {
         },
         {
           onSuccess: () => {
-            toast.success("SubCategory created successfully 🔥");
+            toast.success("SubCategory created successfully ");
             setOpen(false);
           },
           onError: (error) => {
