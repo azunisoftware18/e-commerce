@@ -11,8 +11,10 @@ import {
   MapPin,
   Calendar,
   CheckCircle,
+  EyeOff,
+  Eye,
 } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function AddCustomerForm({
   defaultValues,
@@ -34,28 +36,30 @@ export default function AddCustomerForm({
     },
   });
 
- const handleFormSubmit = (data) => {
-  if (!data.password) {
-    delete data.password; // 👈 empty password remove
-  }
+  const [showPassword, setShowPassword] = useState(false);
 
-  onSubmit?.(data);
-  onSuccess?.();
-  reset();
-};
+  const handleFormSubmit = (data) => {
+    if (!data.password) {
+      delete data.password; // 👈 empty password remove
+    }
 
-useEffect(() => {
-  if (defaultValues) {
-    reset({
-      name: defaultValues.name,
-      email: defaultValues.email,
-      phone: defaultValues.phone,
-      location: defaultValues.location,
-      status: defaultValues.status,
-      joinDate: defaultValues.joinDate?.split("T")[0],
-    });
-  }
-}, [defaultValues, reset]);
+    onSubmit?.(data);
+    onSuccess?.();
+    reset();
+  };
+
+  useEffect(() => {
+    if (defaultValues) {
+      reset({
+        name: defaultValues.name,
+        email: defaultValues.email,
+        phone: defaultValues.phone,
+        location: defaultValues.location,
+        status: defaultValues.status,
+        joinDate: defaultValues.joinDate?.split("T")[0],
+      });
+    }
+  }, [defaultValues, reset]);
 
   return (
     <div className="w-full">
@@ -97,25 +101,35 @@ useEffect(() => {
             {...register("phone", { required: "Phone is required" })}
           />
 
-          <InputField
-            label="Account Password"
-            type="password"
-            placeholder="********"
-            icon={Lock}
-            isRequired
-            error={errors.password?.message}
-            {...register("password", {
-              
-              minLength: {
-                value: 8,
-                message: "Minimum 8 characters required",
-              },
-              pattern: {
-                value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/,
-                message: "Must include uppercase, lowercase, number & symbol",
-              },
-            })}
-          />
+          <div className="relative">
+            <InputField
+              label="Account Password"
+              type={showPassword ? "text" : "password"}
+              placeholder="********"
+              icon={Lock}
+              isRequired
+              error={errors.password?.message}
+              className="pr-10" // 👈 space for icon
+              {...register("password", {
+                minLength: {
+                  value: 8,
+                  message: "Minimum 8 characters required",
+                },
+                pattern: {
+                  value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/,
+                  message: "Must include uppercase, lowercase, number & symbol",
+                },
+              })}
+            />
+
+            {/* 👁️ Eye Icon */}
+            <div
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-9.5 cursor-pointer text-slate-400 hover:text-slate-600"
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </div>
+          </div>
         </div>
 
         <InputField

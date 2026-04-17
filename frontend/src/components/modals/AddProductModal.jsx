@@ -31,6 +31,7 @@ export default function AddProductModal({ open, onClose, onSubmit, editData }) {
         {/* Scrollable Form Body */}
         <div className="overflow-y-auto p-8 custom-scrollbar">
           <AddProductForm
+          key={editData?.id || "add"}
             title="" // Title modal header mein hai
             submitText="Publish Product"
             onSuccess={onClose}

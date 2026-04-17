@@ -5,7 +5,7 @@ import InputField from "../ui/InputField";
 import TextAreaField from "../ui/TextAreaField";
 import Button from "../ui/Button";
 import { Upload, Package, Layers, Info } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useCategories } from "@/lib/queries/useCategories";
 import { useCategoryWithSubCategories } from "@/lib/queries/useSubCategories";
 
@@ -27,7 +27,7 @@ export default function AddProductForm({
   } = useForm();
   const selectedCategory = watch("categoryid");
   const { data: categories = [], isLoading } = useCategories();
-
+  const [previewImages, setPreviewImages] = useState([]);
   const { data: categoryData } = useCategoryWithSubCategories(selectedCategory);
 
   const subCategories = categoryData?.subCategories || [];
@@ -42,24 +42,29 @@ export default function AddProductForm({
 
   useEffect(() => {
     if (editData) {
-      setValue("name", editData.name);
-      setValue("description", editData.description);
-      setValue("price", editData.price);
-      setValue("stock", editData.stock);
-      setValue("status", editData.status);
-      setValue("categoryid", editData.categoryid);
+      reset({
+        name: editData.name,
+        description: editData.description,
+        price: editData.price,
+        stock: editData.stock,
+        status: editData.status,
+        categoryid: editData.categoryid,
+        subCategoryId: editData.subCategoryId,
+      });
     }
-  }, [editData]);
+  }, [editData, reset]);
 
   useEffect(() => {
-  setValue("subCategoryId", "");
-}, [selectedCategory]);
+    if (!editData) {
+      setValue("subCategoryId", "");
+    }
+  }, [selectedCategory]);
 
-useEffect(() => {
-  if (editData) {
-    setValue("subCategoryId", editData.subCategoryId);
-  }
-}, [editData]);
+  useEffect(() => {
+    if (editData) {
+      setValue("subCategoryId", editData.subCategoryId);
+    }
+  }, [editData]);
 
   return (
     <div className="w-full">
@@ -165,31 +170,31 @@ useEffect(() => {
             </div>
           </div>
           <div className="space-y-1">
-  <label className="text-sm font-semibold text-slate-700">
-    SubCategory *
-  </label>
+            <label className="text-sm font-semibold text-slate-700">
+              SubCategory *
+            </label>
 
-  <select
-    {...register("subCategoryId", {
-      required: "SubCategory is required",
-    })}
-    className="w-full h-11.25 bg-slate-50 border border-slate-200 rounded-xl px-4 text-sm"
-  >
-    <option value="">Select SubCategory</option>
+            <select
+              {...register("subCategoryId", {
+                required: "SubCategory is required",
+              })}
+              className="w-full h-11.25 bg-slate-50 border border-slate-200 rounded-xl px-4 text-sm"
+            >
+              <option value="">Select SubCategory</option>
 
-    {subCategories.map((sub) => (
-      <option key={sub.id} value={sub.id}>
-        {sub.name}
-      </option>
-    ))}
-  </select>
+              {subCategories.map((sub) => (
+                <option key={sub.id} value={sub.id}>
+                  {sub.name}
+                </option>
+              ))}
+            </select>
 
-  {errors.subCategoryId && (
-    <p className="text-red-500 text-[11px] mt-1">
-      {errors.subCategoryId.message}
-    </p>
-  )}
-</div>
+            {errors.subCategoryId && (
+              <p className="text-red-500 text-[11px] mt-1">
+                {errors.subCategoryId.message}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Section 4: Image Upload */}
@@ -197,28 +202,75 @@ useEffect(() => {
           <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
             <Upload size={18} /> Product Images
           </label>
-          <div className="relative border-2 border-dashed border-slate-200 hover:border-blue-400 transition-colors rounded-2xl p-8 bg-slate-50/50 group">
+          {/* Upload Box with Preview */}
+          <div className="relative border-2 border-dashed border-slate-200 hover:border-blue-400 transition-colors rounded-2xl p-6 bg-slate-50/50 group">
             <input
               type="file"
               multiple
               accept="image/*"
               onChange={(e) => {
                 const files = Array.from(e.target.files);
+
                 setValue("images", files, { shouldValidate: true });
+
+                const preview = files.map((file) => URL.createObjectURL(file));
+                setPreviewImages(preview);
               }}
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             />
-            <div className="text-center pointer-events-none">
-              <div className="mx-auto w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm mb-3 text-slate-400 group-hover:text-blue-500 transition-colors">
-                <Upload size={24} />
+
+            {/* ✅ AGAR IMAGE SELECT HAI */}
+            {previewImages.length > 0 ? (
+              // ✅ NEW IMAGES
+              <div className="flex flex-wrap gap-3">
+                {previewImages.map((src, i) => (
+                  <div key={i} className="relative">
+                    <img
+                      src={src}
+                      alt="preview"
+                      className="w-20 h-20 object-cover rounded-lg border"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = previewImages.filter(
+                          (_, index) => index !== i,
+                        );
+                        setPreviewImages(updated);
+                      }}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
               </div>
-              <p className="text-sm text-slate-600 font-medium">
-                Click to upload or drag multiple images
-              </p>
-              <p className="text-xs text-slate-400 mt-1">
-                PNG, JPG, GIF (Max 5MB per file)
-              </p>
-            </div>
+            ) : editData?.images?.length > 0 ? (
+              // ✅ OLD IMAGES (EDIT MODE)
+              <div className="flex flex-wrap gap-3">
+                {editData.images.map((img, i) => (
+                  <img
+                    key={i}
+                    src={`http://api.herbsnglam.com${img.url}`}
+                    className="w-20 h-20 object-cover rounded-lg border"
+                  />
+                ))}
+              </div>
+            ) : (
+              // ✅ DEFAULT UPLOAD UI
+              <div className="text-center pointer-events-none">
+                <div className="mx-auto w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm mb-3 text-slate-400 group-hover:text-blue-500 transition-colors">
+                  <Upload size={24} />
+                </div>
+                <p className="text-sm text-slate-600 font-medium">
+                  Click to upload or drag multiple images
+                </p>
+                <p className="text-xs text-slate-400 mt-1">
+                  PNG, JPG, GIF (Max 5MB per file)
+                </p>
+              </div>
+            )}
           </div>
         </div>
 

@@ -19,18 +19,19 @@ export default function Products() {
   const updateProduct = useUpdateProduct();
   const [viewProduct, setViewProduct] = useState(null);
   const formattedData = useMemo(() => {
-    return products.map((item) => ({
-      id: item.id,
-      name: item.name,
-      description: item.description, 
-      category: item.category,
-      categoryid: item.category?.id, 
-      price: item.price,
-      stock: item.stock,
-      status: item.status,
-      images: item.images, 
-    }));
-  }, [products]);
+  return products.map((item) => ({
+    id: item.id,
+    name: item.name,
+    description: item.description,
+    category: item.category,
+    categoryid: item.category?.id,
+    subCategoryId: item.subCategoryId, // ✅ ADD THIS
+    price: item.price,
+    stock: item.stock,
+    status: item.status,
+    images: item.images,
+  }));
+}, [products]);
 
   const handleAddProduct = (data) => {
     if (editProduct) {

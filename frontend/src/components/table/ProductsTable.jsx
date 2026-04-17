@@ -22,17 +22,20 @@ export default function ProductsTable({
   const { mutate: deleteProduct } = useDeleteProduct();
 
   const productsData = useMemo(() => {
-    return data.map((item) => ({
-      id: item.id,
-      product: item.name,
-      image: item.images?.[0]?.url,
-      category: item.category?.name || "N/A",
-      price: item.price,
-      stock: item.stock,
-      status: item.stock === 0 ? "Out of Stock" : item.status,
-      description: item.description,
-    }));
-  }, [data]);
+  return data.map((item) => ({
+    id: item.id,
+    product: item.name,
+    image: item.images?.[0]?.url,
+    category: item.category?.name || "N/A",
+    categoryid: item.categoryid, 
+    subCategoryId: item.subCategoryId,
+    price: item.price,
+    stock: item.stock,
+    status: item.stock === 0 ? "Out of Stock" : item.status,
+    description: item.description,
+    original: item, 
+  }));
+}, [data]);
 
   const columns = [
     {
@@ -167,7 +170,7 @@ export default function ProductsTable({
          
           {
             label: "Edit",
-            onClick: (row) => onEdit?.(row),
+            onClick: (row) => onEdit?.(row.original),
           },
           {
             label: "Delete",
