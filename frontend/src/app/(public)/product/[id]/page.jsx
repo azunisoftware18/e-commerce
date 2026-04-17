@@ -79,7 +79,7 @@ export default function ViewProductPage() {
           <div className="space-y-6">
             <div className="aspect-4/5 rounded-[2.5rem] border border-[#e0e0e0] overflow-hidden bg-slate-50 relative group">
               <img
-                src={`http://localhost:8000${product.images?.[0]?.url}`}
+                src={`http://api.herbsnglam.com${product.images?.[0]?.url}`}
                 className="w-full h-full object-cover"
               />
               {/* <button className="absolute top-6 right-6 p-3 bg-white/80 backdrop-blur-md rounded-full shadow-lg border border-[#e0e0e0] hover:text-red-500 transition-all hover:scale-110">
