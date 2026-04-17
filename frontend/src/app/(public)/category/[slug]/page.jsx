@@ -87,7 +87,7 @@ const filteredProducts = products.filter((product) => {
               id={product.id}
               image={
                 product.images?.[0]?.url
-                  ? `http://localhost:8000${product.images[0].url}`
+                  ? `http://api.herbsnglam.com${product.images[0].url}`
                   : "/placeholder-product.png"
               }
               title={product.name}
