@@ -131,7 +131,7 @@ const handleUpdate = (data) => {
   const formattedData = categoriesData.map((item) => ({
     id: item.id,
     image: item.image
-      ? `http://localhost:8000${item.image}`
+      ? `http://api.herbsnglam.com${item.image}`
       : "https://via.placeholder.com/40",
     name: item.name,
     sku: item.sku,
@@ -139,7 +139,7 @@ const handleUpdate = (data) => {
     subCategories: (item.subCategories || []).map((sub) => ({
   ...sub,
   image: sub.image
-    ? `http://localhost:8000${sub.image}`
+    ? `http://api.herbsnglam.com${sub.image}`
     : "https://via.placeholder.com/40?text=Sub",
 })),
   }));

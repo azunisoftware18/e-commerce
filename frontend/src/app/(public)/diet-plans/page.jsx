@@ -65,7 +65,7 @@ export default function DietPlans() {
                 {/* Thumbnail */}
                 <div className="relative h-60 w-full overflow-hidden bg-slate-100">
                   <img
-                    src={`http://localhost:8000${plan.thumbnail}`}
+                    src={`http://api.herbsnglam.com${plan.thumbnail}`}
                     alt={plan.name}
                     className="h-full w-full transition-transform duration-700 group-hover:scale-110"
                   />

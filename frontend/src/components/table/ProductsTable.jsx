@@ -44,7 +44,7 @@ export default function ProductsTable({
           <img
             src={
               row.image
-                ? `http://localhost:8000${row.image}`
+                ? `http://api.herbsnglam.com${row.image}`
                 : "/placeholder.png"
             }
             alt={value}

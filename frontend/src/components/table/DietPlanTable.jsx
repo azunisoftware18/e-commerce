@@ -33,7 +33,7 @@ export default function DietPlanTable({
       render: (value, row) => (
         <div className="flex items-center gap-3">
           <img
-            src={`http://localhost:8000${row.thumbnail}`}
+            src={`http://api.herbsnglam.com${row.thumbnail}`}
             alt={value}
             className="w-10 h-10 object-cover rounded-lg border"
           />
