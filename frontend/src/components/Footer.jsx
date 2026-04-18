@@ -26,7 +26,7 @@ export default function Footer() {
               A
             </div>
             <h2 className="text-white font-semibold text-lg">
-              Azzunique Pvt Ltd
+              Herbs & Glam Pvt Ltd
             </h2>
           </div>
 

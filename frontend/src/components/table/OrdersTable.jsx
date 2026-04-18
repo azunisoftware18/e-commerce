@@ -141,7 +141,7 @@ export default function OrdersTable({ data = [] }) {
         <select
           value={value}
           onChange={(e) => handlePaymentChange(row.id, e.target.value)}
-          className={`text-sm rounded-md px-2 py-1 border focus:outline-none ${
+          className={`text-sm rounded-md px-2 py-1  ${
             value === "Paid"
               ? "bg-green-100 text-green-700"
               : value === "Pending"
