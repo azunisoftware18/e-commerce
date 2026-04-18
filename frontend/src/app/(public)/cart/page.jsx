@@ -45,6 +45,7 @@ export default function CartPage() {
   const [isHydrated, setIsHydrated] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [createdOrderId, setCreatedOrderId] = useState(null);
+  const [errorMsg, setErrorMsg] = useState("");
   const { mutateAsync: createPaymentOrder } = useCreatePaymentOrder();
   const { mutateAsync: verifyPayment } = useVerifyPayment();
 
@@ -93,10 +94,23 @@ export default function CartPage() {
       return;
     }
 
-    if (!selectedAddress || !paymentMethod) {
-      alert("Please select address and payment method");
-      return;
-    }
+    if (!selectedAddress && !paymentMethod) {
+  setErrorMsg("Please select address and payment method");
+  return;
+}
+
+if (!selectedAddress) {
+  setErrorMsg("Please select an address");
+  return;
+}
+
+if (!paymentMethod) {
+  setErrorMsg("Please select a payment method");
+  return;
+}
+
+// agar sab sahi ho
+setErrorMsg("");
 
     const payload = {
       items: reduxItems.map((item) => ({
@@ -348,8 +362,14 @@ export default function CartPage() {
                   className="h-12 rounded-xl"
                 />
                  */}
+
+                 {errorMsg && (
+  <div className="mb-3 text-red-600 text-sm font-semibold flex items-center gap-2">
+    <AlertCircle size={16} /> {errorMsg}
+  </div>
+)}
                   <Button
-                    disabled={!selectedAddress || !paymentMethod || isPending}
+                    disabled={isPending}
                     onClick={handlePlaceOrder}
                     className="w-full py-4 text-lg font-black uppercase tracking-wider"
                     text="Place Order"
