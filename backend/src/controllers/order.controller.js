@@ -188,7 +188,7 @@ export const createOrder = asyncHandler(async (req, res) => {
 
 export const updateOrder = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  let { status, payment, duedate } = req.body;
+  let { status, payment, duedate, cancelReason } = req.body;
 
   const existingOrder = await prisma.order.findUnique({ where: { id } });
   if (!existingOrder) {
@@ -211,6 +211,7 @@ export const updateOrder = asyncHandler(async (req, res) => {
       status: status || existingOrder.status,
       payment: payment || existingOrder.payment,
       duedate: duedate || existingOrder.duedate,
+      cancelReason: cancelReason || existingOrder.cancelReason,
     },
   });
 

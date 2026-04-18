@@ -13,10 +13,15 @@ export default function LedgerTable({ data = [] }) {
 
   const columns = [
     {
-      label: "Date",
+      label: "Order Date",
       accessor: "date",
-      render: (value) =>
-        value ? new Date(value).toLocaleDateString("en-IN") : "-",
+      render: (value) => {
+        if (!value) return "-";
+
+        const d = new Date(value);
+
+        return isNaN(d.getTime()) ? "-" : d.toISOString().slice(0, 10);
+      },
     },
     { label: "Order ID", accessor: "orderId" },
     { label: "Customer", accessor: "customer" },
@@ -46,6 +51,25 @@ export default function LedgerTable({ data = [] }) {
         );
       },
     },
+    {
+  label: "Razorpay Payment ID",
+  accessor: "razorpayPaymentId",
+  render: (v) => v || "-",
+},
+{
+  label: "Razorpay Order ID",
+  accessor: "razorpayOrderId",
+  render: (v) => v || "-",
+},
+{
+  label: "Payment Mode",
+  accessor: "paymentMode",
+  render: (v) => (
+    <span className="text-xs font-medium text-slate-600">
+      {v || "-"}
+    </span>
+  ),
+},
   ];
 
   // ✅ FILTER LOGIC (SAFE)
@@ -99,7 +123,7 @@ export default function LedgerTable({ data = [] }) {
       <TableHead
         columns={columns}
         onReset={handleReset}
-         actions={[]} 
+        actions={[]}
         searchProps={{
           value: search,
           placeholder: "Search orders...",
@@ -121,11 +145,7 @@ export default function LedgerTable({ data = [] }) {
         }}
       />
 
-      <TableBody
-        data={paginatedData}
-        columns={columns}
-        actions={[]}
-      />
+      <TableBody data={paginatedData} columns={columns} actions={[]} />
     </TableShell>
   );
 }

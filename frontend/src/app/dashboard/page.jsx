@@ -113,10 +113,10 @@ export default function Dashboard() {
 
       {/* --- STATS CARDS SECTION --- */}
       <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
-        <StatCard title="Total Orders" value={totalOrders} icon={ShoppingBag} trendValue="+5.2%" isUp={true} />
-        <StatCard title="Total Revenue" value={`₹${formattedRevenue}`} icon={IndianRupee} trendValue="+8.2%" isUp={true} />
-        <StatCard title="Pending Orders" value={pendingOrders} icon={ShoppingBag} trendValue="-2%" isUp={false} />
-        <StatCard title="Completed" value={completedOrders} icon={ShoppingBag} trendValue="+12%" isUp={true} />
+        <StatCard title="Total Orders" value={totalOrders} icon={ShoppingBag}  />
+        <StatCard title="Total Revenue" value={`₹${formattedRevenue}`} icon={IndianRupee}  />
+        <StatCard title="Pending Orders" value={pendingOrders} icon={ShoppingBag}  />
+        <StatCard title="Completed" value={completedOrders} icon={ShoppingBag}  />
       </section>
 
       {/* --- CHART SECTION --- */}
@@ -135,9 +135,13 @@ export default function Dashboard() {
           </div> */}
         </div>
 
-        <div className="w-full h-87.5">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={monthlyData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+       <div className="w-full h-80">
+  {monthlyData.length > 0 ? (
+    <ResponsiveContainer width="100%" height="100%" minHeight={300}>
+      <BarChart
+        data={monthlyData}
+        margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
+      >
               <defs>
                 <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#3B82F6" stopOpacity={1} />
@@ -176,6 +180,11 @@ export default function Dashboard() {
               />
             </BarChart>
           </ResponsiveContainer>
+        ) : (
+          <div className="flex items-center justify-center h-full text-slate-400">
+      No data available
+    </div>
+  )}
         </div>
       </section>
     </div>

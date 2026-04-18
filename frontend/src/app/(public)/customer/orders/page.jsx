@@ -39,24 +39,27 @@ export default function OrdersPage() {
   const [successOpen, setSuccessOpen] = useState(false);
 
   const handleCancelClick = (id) => {
-  setSelectedOrderId(id);
-  setConfirmOpen(true);
-};
+    setSelectedOrderId(id);
+    setConfirmOpen(true);
+  };
 
-const handleConfirmCancel = () => {
-  updateOrder(
-    {
-      id: selectedOrderId,
-      data: { status: "Cancelled" },
-    },
-    {
-      onSuccess: () => {
-        setConfirmOpen(false);
-        setSuccessOpen(true); // success dialog open
+  const handleConfirmCancel = (remark) => {
+    updateOrder(
+      {
+        id: selectedOrderId,
+        data: {
+          status: "Cancelled",
+          cancelReason: `USER: ${remark}`,
+        },
       },
-    }
-  );
-};
+      {
+        onSuccess: () => {
+          setConfirmOpen(false);
+          setSuccessOpen(true);
+        },
+      },
+    );
+  };
 
   if (isLoading) {
     return (
@@ -321,24 +324,25 @@ const handleConfirmCancel = () => {
         </main>
       </div>
       <ConfirmationDialog
-  open={confirmOpen}
-  title="Cancel Order?"
-  description="Are you sure you want to cancel this order?"
-  confirmText="Yes, Cancel Order"
-  cancelText="No"
-  onConfirm={handleConfirmCancel}
-  onCancel={() => setConfirmOpen(false)}
-  variant="danger"
-/>
-<ConfirmationDialog
-  open={successOpen}
-  title="Order Cancelled"
-  description="Your order has been cancelled successfully."
-  confirmText="OK"
-  showCancelButton={false}
-  variant="success"
-  onConfirm={() => setSuccessOpen(false)}
-/>
+        open={confirmOpen}
+        title="Cancel Order?"
+        description="Are you sure you want to cancel this order?"
+        confirmText="Yes, Cancel Order"
+        cancelText="No"
+        onConfirm={handleConfirmCancel}
+        onCancel={() => setConfirmOpen(false)}
+        variant="danger"
+        showRemark={true}
+      />
+      <ConfirmationDialog
+        open={successOpen}
+        title="Order Cancelled"
+        description="Your order has been cancelled successfully."
+        confirmText="OK"
+        showCancelButton={false}
+        variant="success"
+        onConfirm={() => setSuccessOpen(false)}
+      />
     </AuthGuard>
   );
 }

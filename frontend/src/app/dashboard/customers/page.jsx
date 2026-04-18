@@ -33,6 +33,30 @@ export default function Customers() {
     joinDate: item.joinDate?.split("T")[0],
   }));
 
+  const totalCustomers = customerData.length;
+
+  const activeCustomers = customerData.filter(
+    (c) => c.status === "ACTIVE",
+  ).length;
+
+  const newThisMonth = customerData.filter((c) => {
+    const joinDate = new Date(c.joinDate);
+    const now = new Date();
+    return (
+      joinDate.getMonth() === now.getMonth() &&
+      joinDate.getFullYear() === now.getFullYear()
+    );
+  }).length;
+
+  const churnRate =
+    totalCustomers === 0
+      ? 0
+      : (
+          (customerData.filter((c) => c.status === "INACTIVE").length /
+            totalCustomers) *
+          100
+        ).toFixed(1);
+
   const handleAddCustomer = (data) => {
     createCustomer.mutate(data, {
       onSuccess: () => {
@@ -43,18 +67,18 @@ export default function Customers() {
   };
 
   const handleDelete = (id) => {
-  if (!confirm("Delete this customer?")) return;
+    if (!confirm("Delete this customer?")) return;
 
-  deleteCustomer(id, {
-    onSuccess: () => toast.success("Customer deleted"),
-    onError: () => toast.error("Delete failed"),
-  });
-};
+    deleteCustomer(id, {
+      onSuccess: () => toast.success("Customer deleted"),
+      onError: () => toast.error("Delete failed"),
+    });
+  };
 
   const handleEdit = (row) => {
-  const original = customerData.find((c) => c.id === row.id);
-  setEditCustomer(original);
-};
+    const original = customerData.find((c) => c.id === row.id);
+    setEditCustomer(original);
+  };
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6 w-full bg-white min-h-screen">
@@ -76,34 +100,13 @@ export default function Customers() {
 
       {/* Stats Grid - Mobile par 1, Tablet par 2, aur Laptop/PC par 4 cards ek hi row mein */}
       <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6 w-full max-w-400">
-        <StatCard
-          title="Total Customers"
-          value="1,250"
-          icon={Users}
-          trendValue="+12.5"
-          isUp={true}
-        />
-        <StatCard
-          title="Active Now"
-          value="42"
-          icon={UserCheck}
-          trendValue="+5.2"
-          isUp={true}
-        />
-        <StatCard
-          title="New This Month"
-          value="156"
-          icon={Users}
-          trendValue="-2.4"
-          isUp={false}
-        />
-        <StatCard
-          title="Churn Rate"
-          value="1.2%"
-          icon={UserMinus}
-          trendValue="-0.5"
-          isUp={true}
-        />
+        <StatCard title="Total Customers" value={totalCustomers} icon={Users} />
+
+        <StatCard title="Active Now" value={activeCustomers} icon={UserCheck} />
+
+        <StatCard title="New This Month" value={newThisMonth} icon={Users} />
+
+        <StatCard title="Churn Rate" value={`${churnRate}%`} icon={UserMinus} />
       </section>
 
       <section className="mt-4 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -122,30 +125,30 @@ export default function Customers() {
         </div>
       </section>
       <AddCustomerModal
-  open={open}
-  onClose={() => setOpen(false)}
-  onSubmit={handleAddCustomer}
-/>
-<AddCustomerModal
-  open={!!editCustomer}
-  onClose={() => setEditCustomer(null)}
-  defaultValues={editCustomer}
-  onSubmit={(data) => {
-    updateCustomer(
-      { id: editCustomer.id, data },
-      {
-        onSuccess: () => {
-          toast.success("Customer updated");
-          setEditCustomer(null);
-        },
-        onError: (err) => {
-          console.log(err.response?.data);
-          toast.error("Update failed");
-        },
-      }
-    );
-  }}
-/>
+        open={open}
+        onClose={() => setOpen(false)}
+        onSubmit={handleAddCustomer}
+      />
+      <AddCustomerModal
+        open={!!editCustomer}
+        onClose={() => setEditCustomer(null)}
+        defaultValues={editCustomer}
+        onSubmit={(data) => {
+          updateCustomer(
+            { id: editCustomer.id, data },
+            {
+              onSuccess: () => {
+                toast.success("Customer updated");
+                setEditCustomer(null);
+              },
+              onError: (err) => {
+                console.log(err.response?.data);
+                toast.error("Update failed");
+              },
+            },
+          );
+        }}
+      />
     </div>
   );
 }

@@ -101,6 +101,7 @@ model Order {
   payment         PaymentStatus?  @default(Pending)
   date            DateTime        @default(now())
   duedate         DateTime?
+  cancelReason    String?
   createdby       String
   shippingId      String
   creator         User            @relation("CreatedOrders", fields: [createdby], references: [id], map: "Order_createdby_fkey")

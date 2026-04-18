@@ -8,12 +8,20 @@ import {
   TableEmpty,
   TablePagination,
 } from "@/components/table/core";
+import { useDietPlans } from "@/lib/queries/useDietPlans";
 
 export default function ConsultationsTable({ data = [], isLoading }) {
   const [search, setSearch] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
   const [page, setPage] = useState(1);
-
+  const { data: dietPlans = [] } = useDietPlans();
+  const dietPlanMap = useMemo(() => {
+  const map = {};
+  dietPlans.forEach((plan) => {
+    map[plan.id] = plan.name;
+  });
+  return map;
+}, [dietPlans]);
   const pageSize = 8;
 
   // ✅ Reset page on filter change
@@ -69,7 +77,7 @@ export default function ConsultationsTable({ data = [], isLoading }) {
     {
       label: "Diet Plan",
       accessor: "dietPlanId",
-      render: (value) => value || "—",
+      render: (value) => dietPlanMap[value] || "—",
     },
     {
       label: "Date",

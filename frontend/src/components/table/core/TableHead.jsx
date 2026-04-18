@@ -42,17 +42,17 @@ export default function TableHead({
                 )}
 
                 {/* Date */}
-                {showDate && (
+                {/* {showDate && (
                   <input
                     type="date"
                     {...dateProps}
                     className="flex-1 sm:flex-none h-10 px-3 rounded-xl border border-gray-200 text-sm text-slate-600 
         focus:ring-2 focus:ring-[#2A4150]/10 focus:border-[#2A4150] outline-none transition-all"
                   />
-                )}
+                )} */}
 
                 {/* Reset */}
-                {showReset && (
+                {/* {showReset && (
                   <Button
                     text="Reset Filters"
                     onClick={onReset}
@@ -61,7 +61,7 @@ export default function TableHead({
         flex items-center gap-2 hover:border-gray-400 text-slate-600 
         hover:bg-slate-50 hover:text-slate-900! active:bg-slate-100"
                   />
-                )}
+                )} */}
               </div>
             </div>
           </th>

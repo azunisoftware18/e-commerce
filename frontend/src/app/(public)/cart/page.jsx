@@ -397,7 +397,7 @@ const CartItem = ({ item, onUpdate, onRemove }) => (
   <div className="p-5 flex gap-4 group">
     <div className="w-24 h-24 bg-slate-50 rounded-2xl overflow-hidden border border-slate-100 shrink-0">
       <img
-        src={`http://api.herbsnglam.com${item.image}`}
+        src={item.image}
         className="w-full h-full object-cover transition-transform group-hover:scale-105"
         alt={item.name}
       />

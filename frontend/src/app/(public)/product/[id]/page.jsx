@@ -31,7 +31,7 @@ export default function ViewProductPage() {
         id: product.id,
         name: product.title,
         price: product.price,
-        image: `http://localhost:8000${product.images?.[0]?.url}`,
+        image: `http://api.herbsnglam.com${product.images?.[0]?.url}`,
         description: product.description,
       }),
     );
@@ -114,51 +114,51 @@ export default function ViewProductPage() {
                   "Premium quality formula designed for lasting results. Dermatologically tested, cruelty-free, and crafted with natural ingredients for your daily routine."}
               </p>
             </div>
-            
+
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 mt-10">
-                {!cartItem ? (
-                          <Button
-                            text="ADD TO CART"
-                            className="w-full h-11.25 font-bold py-3 rounded-md text-lg tracking-wide bg-[#2A4150] text-white"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              dispatch(
-                                addToCart({
-                                   id: product.id,
-  name: product.title,
-  image: `http://localhost:8000${product.images?.[0]?.url}`,
-  price: product.price,
-  description: product.description,
-                                }),
-                              );
-                            }}
-                          />
-                        ) : (
-                          <div
-                            className="w-full h-11.25 bg-[#2A4150] rounded-md overflow-hidden"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                            }}
-                          >
-                            <QuantitySelector
-                              variant="button"
-                              quantity={cartItem.quantity}
-                              showRemove={false}
-                              className="h-[full]"
-                              onIncrease={() => dispatch(updateQty({ id, delta: 1 }))}
-                              onDecrease={() => {
-                                if (cartItem.quantity === 1) {
-                                  dispatch(removeFromCart(id));
-                                } else {
-                                  dispatch(updateQty({ id, delta: -1 }));
-                                }
-                              }}
-                            />
-                          </div>
-                        )}
+              {!cartItem ? (
+                <Button
+                  text="ADD TO CART"
+                  className="w-full h-11.25 font-bold py-3 rounded-md text-lg tracking-wide bg-[#2A4150] text-white"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dispatch(
+                      addToCart({
+                        id: product.id,
+                        name: product.title,
+                        image: `http://localhost:8000${product.images?.[0]?.url}`,
+                        price: product.price,
+                        description: product.description,
+                      }),
+                    );
+                  }}
+                />
+              ) : (
+                <div
+                  className="w-full h-11.25 bg-[#2A4150] rounded-md overflow-hidden"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                >
+                  <QuantitySelector
+                    variant="button"
+                    quantity={cartItem.quantity}
+                    showRemove={false}
+                    className="h-[full]"
+                    onIncrease={() => dispatch(updateQty({ id, delta: 1 }))}
+                    onDecrease={() => {
+                      if (cartItem.quantity === 1) {
+                        dispatch(removeFromCart(id));
+                      } else {
+                        dispatch(updateQty({ id, delta: -1 }));
+                      }
+                    }}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Trust Footer */}
