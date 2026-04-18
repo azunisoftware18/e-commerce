@@ -255,6 +255,19 @@ export const downloadInvoice = async (req, res) => {
   try {
     const { id } = req.params;
 
+    const formatDate = (date) => {
+  if (!date) return "N/A";
+
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return "N/A";
+
+  return d.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
     const order = await prisma.order.findUnique({
       where: { id },
       include: {
@@ -269,6 +282,8 @@ export const downloadInvoice = async (req, res) => {
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
+
+    const orderDate = order.createdAt || order.date || order.duedate;
 
     const doc = new PDFDocument({ margin: 50, size: "A4" });
 
@@ -290,7 +305,7 @@ export const downloadInvoice = async (req, res) => {
       .fillColor(primaryColor)
       .fontSize(24)
       .font("Helvetica-Bold")
-      .text("AZZUNIQUE", 50, 50);
+      .text("HERBSNGLAM", 50, 50);
 
     doc
       .fillColor(secondaryColor)
@@ -304,22 +319,24 @@ export const downloadInvoice = async (req, res) => {
       .text("INVOICE", 350, 50, { align: "right", width: 200 });
 
     doc
-      .fillColor(secondaryColor)
-      .fontSize(9) 
-      .font("Helvetica")
-      .text(`Invoice No: ORD-${order.id}`, 250, 75, { align: "right", width: 300 }) 
-      .text(`Date: ${new Date(order.createdAt).toLocaleDateString('en-IN')}`, 250, 90, { align: "right", width: 300 });
+  .fillColor(secondaryColor)
+  .fontSize(9)
+  .font("Helvetica")
+  .text(`Invoice No: ORD-${order.id}`, 250, 75, {
+    align: "right",
+    width: 300,
+  });
+
+doc.text(`Date: ${formatDate(orderDate)}`, 250, 90, {
+  align: "right",
+  width: 300,
+});
 
     doc.moveDown(2);
     doc.moveTo(50, 115).lineTo(550, 115).strokeColor(borderColor).stroke();
     // BILLING & SHIPPING INFO
     const infoY = 140;
-    doc
-      .fillColor(primaryColor)
-      .fontSize(12)
-      .font("Helvetica-Bold")
-      .text("Bill To:", 50, infoY)
-      .text("Shipping Address:", 300, infoY);
+   
 
     doc
       .fillColor(secondaryColor)
@@ -333,7 +350,7 @@ export const downloadInvoice = async (req, res) => {
       doc
         .text(`${s.firstName} ${s.lastName}`, 300, infoY + 20)
         .text(`${s.address}`, 300, infoY + 35, { width: 200 })
-        .text(`${s.city}, ${s.zip}`, 300, infoY + 50);
+        .text(`${s.city},${s.state}, ${s.pinCode}`, 300, infoY + 50);
     }
 
     doc.moveDown(4);
