@@ -407,7 +407,7 @@ doc.text(`Date: ${formatDate(orderDate)}`, 250, 90, {
       .fillColor(secondaryColor)
       .fontSize(10)
       .font("Helvetica-Oblique")
-      .text("Thank you for shopping with Azzunique!", 50, 750, { align: "center", width: 500 });
+      .text("Thank you for shopping with us!", 50, 750, { align: "center", width: 500 });
 
     doc.end();
   } catch (error) {

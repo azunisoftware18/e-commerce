@@ -94,8 +94,8 @@ export default function DashboardNavbar({ toggleSidebar }) {
         {isDropdownOpen && (
           <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl py-2 z-50 animate-in fade-in zoom-in duration-200 origin-top-right">
             <div className="px-4 py-2 border-b border-slate-100 mb-1 sm:hidden">
-              <p className="text-sm font-bold text-[#2A4150]">Alex Admin</p>
-              <p className="text-[10px] text-slate-500">Superuser</p>
+              <p className="text-sm font-bold text-[#2A4150]">{user?.name || "Admin"}</p>
+              <p className="text-[10px] text-slate-500">{user?.role || "User"}</p>
             </div>
 
             <button

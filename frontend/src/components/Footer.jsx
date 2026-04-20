@@ -23,7 +23,7 @@ export default function Footer() {
         <div>
           <div className="flex items-center gap-3 mb-4">
             <div className="bg-white text-slate-800 rounded-full w-10 h-10 flex items-center justify-center font-bold">
-              A
+              H&G
             </div>
             <h2 className="text-white font-semibold text-lg">
               Herbs & Glam Pvt Ltd
@@ -33,7 +33,7 @@ export default function Footer() {
           <p className="text-sm mb-2">Healing with Science.</p>
           <p className="text-sm">
             To shop in USA, Canada, UAE and UK. Go to{" "}
-            <span className="text-white font-medium">Azzunique.shop</span>
+            <span className="text-white font-medium">herbs.shop</span>
           </p>
         </div>
 
