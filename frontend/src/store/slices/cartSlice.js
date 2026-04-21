@@ -37,7 +37,7 @@ const cartSlice = createSlice({
     if (exist) {
       exist.quantity += 1;
     } else {
-      state.items.push({ ...action.payload, quantity: 1 });
+      state.items.push({ ...action.payload, quantity: 1,  stock: action.payload.stock, });
     }
 
     saveCartToStorage(state.items);

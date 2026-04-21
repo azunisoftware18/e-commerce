@@ -157,15 +157,14 @@ export default function AddProductForm({
             </div>
 
             <div className="space-y-1">
-              <label className="text-sm font-semibold text-slate-700">
+              <label className="text-sm font-semibold text-slate-700 ">
                 Status *
               </label>
-              <select
-                {...register("status", { required: true })}
-                className="w-full h-11.25 bg-slate-50 border border-slate-200 rounded-xl px-4 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
-              >
+              <select {...register("status", { required: true })} 
+              className=" bg-slate-50 border border-slate-200 rounded-xl px-4 text-sm">
                 <option value="Active">Active (Visible)</option>
-                <option value="Inactive">Inactive (Draft)</option>
+                <option value="Out_of_Stock">Out of Stock</option>
+                <option value="Discontinued">Discontinued</option>
               </select>
             </div>
           </div>

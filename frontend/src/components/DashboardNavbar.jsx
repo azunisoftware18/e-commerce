@@ -45,13 +45,13 @@ export default function DashboardNavbar({ toggleSidebar }) {
   }, [isDropdownOpen]);
 
   const handleLogout = () => {
-    logoutApi(); 
+    logoutApi();
 
-    dispatch(logout()); 
+    dispatch(logout());
 
-    setIsDropdownOpen(false); 
+    setIsDropdownOpen(false);
 
-    router.push("/"); 
+    router.push("/");
   };
 
   return (
@@ -71,9 +71,12 @@ export default function DashboardNavbar({ toggleSidebar }) {
           className="flex items-center gap-3 group focus:outline-none"
         >
           <div className="flex-col items-end hidden sm:flex text-right">
-            <span className="text-sm font-bold text-[#2A4150]"> {user?.name || "Admin"}</span>
+            <span className="text-sm font-bold text-[#2A4150]">
+              {" "}
+              {user?.name || "Admin"}
+            </span>
             <span className="text-[10px] text-slate-500 uppercase tracking-wider">
-               {user?.role || "User"}
+              {user?.role || "User"}
             </span>
           </div>
 
@@ -94,25 +97,34 @@ export default function DashboardNavbar({ toggleSidebar }) {
         {isDropdownOpen && (
           <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl py-2 z-50 animate-in fade-in zoom-in duration-200 origin-top-right">
             <div className="px-4 py-2 border-b border-slate-100 mb-1 sm:hidden">
-              <p className="text-sm font-bold text-[#2A4150]">{user?.name || "Admin"}</p>
-              <p className="text-[10px] text-slate-500">{user?.role || "User"}</p>
+              <p className="text-sm font-bold text-[#2A4150]">
+                {user?.name || "Admin"}
+              </p>
+              <p className="text-[10px] text-slate-500">
+                {user?.role || "User"}
+              </p>
             </div>
 
             <button
-  onClick={() => {
-    setIsDropdownOpen(false); // dropdown close
-    router.push("/dashboard/admin-profile"); // redirect
-  }}
-  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-[#2A4150] transition-colors"
->
-  <UserCircle size={16} />
-  My Profile
-</button>
+              onClick={() => {
+                setIsDropdownOpen(false); // dropdown close
+                router.push("/dashboard/admin-profile"); // redirect
+              }}
+              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-[#2A4150] transition-colors"
+            >
+              <UserCircle size={16} />
+              My Profile
+            </button>
 
-            {/* <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-[#2A4150] transition-colors">
+            <button
+             onClick={() => {
+                setIsDropdownOpen(false); // dropdown close
+                router.push("/dashboard/settings"); // redirect
+              }}
+             className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-[#2A4150] transition-colors">
               <Settings size={16} />
               Settings
-            </button> */}
+            </button>
 
             <div className="h-px bg-slate-100 my-1" />
 

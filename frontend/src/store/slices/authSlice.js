@@ -4,6 +4,7 @@ const initialState = {
   user: null,
   isAuthenticated: false,
   openLoginModal: false,
+  isAuthChecked: false,
 };
 
 const authSlice = createSlice({
@@ -27,8 +28,11 @@ const authSlice = createSlice({
     closeLogin: (state) => {
       state.openLoginModal = false;
     },
+    setAuthChecked: (state) => {
+      state.isAuthChecked = true;
+    },
   },
 });
 
-export const { setUser, logout, openLogin, closeLogin } = authSlice.actions;
+export const { setUser, logout, openLogin, closeLogin, setAuthChecked } = authSlice.actions;
 export default authSlice.reducer;

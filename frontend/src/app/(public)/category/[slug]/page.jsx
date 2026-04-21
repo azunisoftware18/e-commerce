@@ -17,6 +17,7 @@ export default function CategoryPage({ params }) {
   str?.toLowerCase().replace(/\s+/g, "-");
 
 const filteredProducts = products.filter((product) => {
+   if (product.status === "Discontinued") return false;
   const categorySlug = normalize(product.category?.name);
   const subCategorySlug = normalize(product.subCategory?.name);
 
@@ -97,6 +98,7 @@ const filteredProducts = products.filter((product) => {
               reviews={10}
               size="Standard"
               badge={product.status === "Active" ? "New" : ""}
+              stock={product.stock}
             />
           ))}
         </div>

@@ -16,39 +16,28 @@ export default function ProductSection({
   const scrollRef = useRef();
 
   const filteredProducts = products.filter((p) => {
-    if (isBestSeller) return true; // sab products allow
+  // ❌ Discontinued products hatao
+  if (p.status === "Discontinued") return false;
 
-    if (category)
-      return p.category?.name?.toLowerCase() === category.toLowerCase();
+  if (isBestSeller) return true;
 
-    return true;
-  });
+  if (category)
+    return p.category?.name?.toLowerCase() === category.toLowerCase();
 
-  let finalProducts = filteredProducts;
+  return true;
+});
 
-  if (isBestSeller) {
-    const grouped = {};
+  let finalProducts = [...filteredProducts].sort((a, b) => {
+  if (!a.createdAt && !b.createdAt) return 0;
+  if (!a.createdAt) return 1;
+  if (!b.createdAt) return -1;
 
-    filteredProducts.forEach((p) => {
-      const cat = p.category?.name || "other";
-      if (!grouped[cat]) grouped[cat] = [];
-      grouped[cat].push(p);
-    });
+  return new Date(b.createdAt) - new Date(a.createdAt);
+});
 
-    finalProducts = [];
-    let added = true;
+ 
 
-    while (added) {
-      added = false;
-
-      for (const cat in grouped) {
-        if (grouped[cat].length) {
-          finalProducts.push(grouped[cat].shift());
-          added = true;
-        }
-      }
-    }
-  }
+finalProducts = finalProducts.slice(0, 20);
 
   // Scroll functions
   const scrollLeft = () => {
@@ -125,6 +114,7 @@ export default function ProductSection({
                 price={product.price}
                 rating={4.5}
                 reviews={10}
+                stock={product.stock}
               />
             </div>
           ))}

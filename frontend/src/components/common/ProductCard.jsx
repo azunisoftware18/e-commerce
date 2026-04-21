@@ -17,6 +17,7 @@ export default function ProductCard({
   rating,
   reviews,
   price,
+  stock,
   className = "",
 }) {
   const dispatch = useDispatch();
@@ -25,9 +26,8 @@ export default function ProductCard({
   return (
     <Link href={`/product/${id}`}>
       <div
-        className={`relative bg-white border border-slate-200 rounded-md overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col w-75 h-full ${className}`}>
-        
-
+        className={`relative bg-white border border-slate-200 rounded-md overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col w-75 h-full ${className}`}
+      >
         <div className="w-full">
           <img src={image} alt={title} className="w-full h-64 content-fit " />
         </div>
@@ -45,9 +45,7 @@ export default function ProductCard({
             {size}
           </span>
 
-          <div className="flex items-center justify-center gap-1 text-[14px] font-semibold text-slate-700 mt-1">
-            
-          </div>
+          <div className="flex items-center justify-center gap-1 text-[14px] font-semibold text-slate-700 mt-1"></div>
 
           <div className="text-2xl font-bold text-slate-900 mt-auto">
             ₹{price}
@@ -57,18 +55,37 @@ export default function ProductCard({
         <div className="px-2 pb-2 bg-[#e0e0e0] mt-auto">
           {!cartItem ? (
             <Button
-              text="ADD TO CART"
-              className="w-full h-11.25 font-bold py-3 rounded-md text-lg tracking-wide bg-[#2A4150] text-white"
+              text={stock === 0 ? "OUT OF STOCK" : "ADD TO CART"}
+              disabled={stock === 0}
+              className={`w-full h-11.25 font-bold py-3 rounded-md text-lg tracking-wide 
+    ${
+      stock === 0 ? "bg-gray-400 cursor-not-allowed" : "bg-[#2A4150] text-white"
+    }`}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+
+                // ❌ OUT OF STOCK
+                if (stock === 0) {
+                  alert("This product is out of stock");
+                  return;
+                }
+
+                // ❌ ALREADY ADDED
+                if (cartItem) {
+                  alert("Already added to cart");
+                  return;
+                }
+
+                // ✅ ADD
                 dispatch(
                   addToCart({
                     id,
-                    name: title, 
+                    name: title,
                     image,
                     price,
-                    description, 
+                    description,
+                    stock,
                   }),
                 );
               }}
@@ -86,7 +103,13 @@ export default function ProductCard({
                 quantity={cartItem.quantity}
                 showRemove={false}
                 className="h-[full]"
-                onIncrease={() => dispatch(updateQty({ id, delta: 1 }))}
+                onIncrease={() => {
+                  if (cartItem.quantity >= stock) {
+                    alert(`Only ${stock} items available`);
+                    return;
+                  }
+                  dispatch(updateQty({ id, delta: 1 }));
+                }}
                 onDecrease={() => {
                   if (cartItem.quantity === 1) {
                     dispatch(removeFromCart(id));

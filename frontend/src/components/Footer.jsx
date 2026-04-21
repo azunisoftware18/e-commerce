@@ -1,11 +1,41 @@
 "use client";
 
-import { useCategories } from "@/lib/queries/useCategories";
+import React from "react";
 import Link from "next/link";
-import { Facebook, Instagram, Linkedin, Youtube, Twitter } from "lucide-react";
+import {
+  Facebook,
+  Instagram,
+  Linkedin,
+  Youtube,
+  Twitter,
+  Mail,
+  Phone,
+  MapPin,
+  Globe,
+} from "lucide-react";
+
+// Hooks
+import { useSettings } from "@/lib/queries/useSettings";
 
 export default function Footer() {
-  const { data: categories = [], isLoading } = useCategories();
+  const { data: settings, isLoading: settingsLoading } = useSettings();
+
+  const legalLinks = [
+    { name: "Terms & Conditions", href: "/terms-conditions" },
+    { name: "Privacy Policy", href: "/privacy-policy" },
+    { name: "Cancellation & Refund", href: "/cancellation-refund" },
+  ];
+
+  const getSocialIcon = (platform) => {
+    const p = platform?.toLowerCase();
+    if (p?.includes("facebook")) return <Facebook size={18} />;
+    if (p?.includes("instagram")) return <Instagram size={18} />;
+    if (p?.includes("twitter") || p?.includes("x"))
+      return <Twitter size={18} />;
+    if (p?.includes("linkedin")) return <Linkedin size={18} />;
+    if (p?.includes("youtube")) return <Youtube size={18} />;
+    return <Globe size={18} />; // Default icon
+  };
 
   const policiesLinks = [
     { name: "Home", href: "/" },
@@ -17,89 +47,131 @@ export default function Footer() {
     name?.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
 
   return (
-    <footer className="bg-slate-800 text-gray-300 px-6 md:px-16 py-10">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-        {/* LEFT */}
-        <div>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="bg-white text-slate-800 rounded-full w-10 h-10 flex items-center justify-center font-bold">
-              H&G
-            </div>
-            <h2 className="text-white font-semibold text-lg">
-              Herbs & Glam Pvt Ltd
+    <footer className="bg-slate-800 text-gray-300 px-6 md:px-16 py-12 border-t border-slate-700">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
+        {/* 1. COMPANY IDENTITY (Logo & Info) */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            {settings?.logo ? (
+              <img
+                src={`http://localhost:8000${settings.logo}`}
+                alt="Logo"
+                className="w-20 h-10 object-cover "
+              />
+            ) : (
+              <div className="bg-white text-slate-800 rounded-lg w-10 h-10 flex items-center justify-center font-bold">
+                {settings?.companyName?.substring(0, 2).toUpperCase() || "H&G"}
+              </div>
+            )}
+            <h2 className="text-white font-bold text-xl tracking-tight">
+              {settings?.companyName || "Herbs & Glam"}
             </h2>
           </div>
 
-          <p className="text-sm mb-2">Healing with Science.</p>
-          <p className="text-sm">
-            To shop in USA, Canada, UAE and UK. Go to{" "}
-            <span className="text-white font-medium">herbs.shop</span>
-          </p>
-        </div>
-
-        {/* PRODUCTS */}
-        <div>
-          <h3 className="text-white font-semibold mb-4">Products</h3>
-
-          <ul className="space-y-2 text-sm">
-            {isLoading ? (
-              <li className="text-gray-400">Loading...</li>
-            ) : (
-              categories.slice(0, 6).map((cat) => (
-                <li key={cat.id}>
-                  <Link
-                    href={`/category/${cat.name
-                      ?.toLowerCase()
-                      .replace(/\s+/g, "-")}`}
-                    className="hover:text-white transition"
-                  >
-                    {formatCategory(cat.name)}
-                  </Link>
-                </li>
-              ))
+          <div className="space-y-3 text-sm">
+            {settings?.address && (
+              <div className="flex items-start gap-2">
+                <MapPin size={16} className="text-slate-400 mt-1 shrink-0" />
+                <span>{settings.address}</span>
+              </div>
             )}
-          </ul>
+            {settings?.email && (
+              <div className="flex items-center gap-2">
+                <Mail size={16} className="text-slate-400 shrink-0" />
+                <a
+                  href={`mailto:${settings.email}`}
+                  className="hover:text-white transition"
+                >
+                  {settings.email}
+                </a>
+              </div>
+            )}
+            {settings?.phone && (
+              <div className="flex items-center gap-2">
+                <Phone size={16} className="text-slate-400 shrink-0" />
+                <a
+                  href={`tel:${settings.phone}`}
+                  className="hover:text-white transition"
+                >
+                  {settings.phone}
+                </a>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* POLICIES + SOCIAL */}
+        {/* 2. PRODUCTS (Dynamic Categories) */}
         <div>
-          <h3 className="text-white font-semibold mb-4">Policies</h3>
-
-          <ul className="space-y-2 text-sm mb-6">
-            {policiesLinks.map((item, index) => (
+          <h3 className="text-white font-semibold mb-5 text-lg">
+            Help & Support
+          </h3>
+          <ul className="space-y-3 text-sm">
+            {legalLinks.map((item, index) => (
               <li key={index}>
-                <Link href={item.href} className="hover:text-white transition">
+                <Link
+                  href={item.href}
+                  className="hover:text-white transition-colors flex items-center gap-2"
+                >
                   {item.name}
                 </Link>
               </li>
             ))}
           </ul>
+        </div>
 
-          {/* SOCIAL ICONS */}
-          <div className="flex gap-4">
-            <a href="#" target="_blank" className="hover:text-white transition">
-              <Facebook size={18} />
-            </a>
-            <a href="#" target="_blank" className="hover:text-white transition">
-              <Instagram size={18} />
-            </a>
-            <a href="#" target="_blank" className="hover:text-white transition">
-              <Twitter size={18} />
-            </a>
-            <a href="#" target="_blank" className="hover:text-white transition">
-              <Youtube size={18} />
-            </a>
-            <a href="#" target="_blank" className="hover:text-white transition">
-              <Linkedin size={18} />
-            </a>
+        {/* 3. QUICK LINKS */}
+        <div>
+          <h3 className="text-white font-semibold mb-5 text-lg">Quick Links</h3>
+          <ul className="space-y-3 text-sm">
+            {policiesLinks.map((item, index) => (
+              <li key={index}>
+                <Link
+                  href={item.href}
+                  className="hover:text-white transition-colors"
+                >
+                  {item.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* 4. SOCIAL PRESENCE */}
+        <div>
+          <h3 className="text-white font-semibold mb-5 text-lg">Follow Us</h3>
+          <p className="text-sm mb-4 text-gray-400">
+            Stay connected with us on social media for updates.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            {settings?.socialLinks?.length > 0 ? (
+              settings.socialLinks.map((link, index) => (
+                <a
+                  key={index}
+                  href={
+                    link.url?.startsWith("http")
+                      ? link.url
+                      : `https://${link.url}`
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center hover:bg-[#2A4150] hover:text-white transition-all transform hover:-translate-y-1 shadow-sm"
+                  title={link.platform}
+                >
+                  {getSocialIcon(link.platform)}
+                </a>
+              ))
+            ) : (
+              <span className="text-xs text-gray-500">No links connected</span>
+            )}
           </div>
         </div>
       </div>
 
-      {/* BOTTOM */}
-      {/* <div className="border-t border-slate-700 mt-10 pt-5 text-center text-sm text-gray-400">
-        © 2026 Azzunique Pvt Ltd. All rights reserved.
-      </div> */}
+      {/* COPYRIGHT */}
+      <div className="border-t border-slate-700/50 mt-12 pt-8 text-center text-sm text-gray-500">
+        © {new Date().getFullYear()}{" "}
+        {settings?.companyName || "Azzunique Pvt Ltd"}. All rights reserved.
+      </div>
     </footer>
   );
 }

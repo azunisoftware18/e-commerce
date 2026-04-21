@@ -66,7 +66,7 @@ export default function DietPlanForm({
               className="w-full h-12.5 pl-12 pr-4 bg-white border border-slate-200 rounded-2xl text-sm focus:ring-2 focus:ring-[#2A4150]/10 outline-none appearance-none cursor-pointer text-[#2A4150] font-medium"
             >
               <option value="FREE">FREE</option>
-              <option value="PAID">PAID</option> {/* FIXED */}
+              {/* <option value="PAID">PAID</option>  */}
             </select>
           </div>
         </div>

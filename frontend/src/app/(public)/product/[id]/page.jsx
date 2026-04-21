@@ -33,6 +33,7 @@ export default function ViewProductPage() {
         price: product.price,
         image: `http://api.herbsnglam.com${product.images?.[0]?.url}`,
         description: product.description,
+        stock,
       }),
     );
   };
@@ -92,8 +93,25 @@ export default function ViewProductPage() {
           <div className="flex flex-col">
             <div className="border-b border-[#e0e0e0] pb-8">
               <div className="flex items-center gap-2 mb-4">
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-orange-100 text-orange-700 px-3 py-1 rounded-md">
-                  {product.stock > 0 ? "In Stock" : "Out of Stock"}
+                <span
+                  className={`text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-md
+  ${
+    product.stock === 0
+      ? "bg-red-100 text-red-700"
+      : product.stock <= 5
+        ? "bg-orange-100 text-orange-700"
+        : product.stock <= 10
+          ? "bg-yellow-100 text-yellow-700"
+          : "bg-green-100 text-green-700"
+  }`}
+                >
+                  {product.stock === 0
+                    ? "Out of Stock"
+                    : product.stock <= 5
+                      ? `Only ${product.stock} left`
+                      : product.stock <= 10
+                        ? "Low Stock"
+                        : "In Stock"}
                 </span>
               </div>
 
@@ -119,11 +137,31 @@ export default function ViewProductPage() {
             <div className="flex flex-col sm:flex-row gap-4 mt-10">
               {!cartItem ? (
                 <Button
-                  text="ADD TO CART"
-                  className="w-full h-11.25 font-bold py-3 rounded-md text-lg tracking-wide bg-[#2A4150] text-white"
+                  text={product.stock === 0 ? "OUT OF STOCK" : "ADD TO CART"}
+                  disabled={product.stock === 0}
+                  className={`w-full h-11.25 font-bold py-3 rounded-md text-lg tracking-wide 
+    ${
+      product.stock === 0
+        ? "bg-gray-400 cursor-not-allowed"
+        : "bg-[#2A4150] text-white"
+    }`}
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
+
+                    // ❌ OUT OF STOCK BLOCK
+                    if (product.stock === 0) {
+                      alert("This product is out of stock");
+                      return;
+                    }
+
+                    // ❌ ALREADY ADDED BLOCK (only 1 time)
+                    if (cartItem) {
+                      alert("Product already added to cart");
+                      return;
+                    }
+
+                    // ✅ ADD
                     dispatch(
                       addToCart({
                         id: product.id,
@@ -148,7 +186,13 @@ export default function ViewProductPage() {
                     quantity={cartItem.quantity}
                     showRemove={false}
                     className="h-[full]"
-                    onIncrease={() => dispatch(updateQty({ id, delta: 1 }))}
+                    onIncrease={() => {
+                      if (cartItem.quantity >= product.stock) {
+                        alert(`Only ${product.stock} items available`);
+                        return;
+                      }
+                      dispatch(updateQty({ id, delta: 1 }));
+                    }}
                     onDecrease={() => {
                       if (cartItem.quantity === 1) {
                         dispatch(removeFromCart(id));

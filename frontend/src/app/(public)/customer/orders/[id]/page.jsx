@@ -261,7 +261,7 @@ export default function OrderDetailsPage({ params }) {
                   <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-slate-500">
                     <span>Items Subtotal</span>
                     <span className="text-slate-900 font-black">
-                      ₹{((order.total || 0) - 100).toLocaleString()}
+                      ₹{((order.total || order.totalAmount || 0)).toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-slate-500">
@@ -269,10 +269,6 @@ export default function OrderDetailsPage({ params }) {
                     <span className="text-emerald-600 font-black tracking-tighter">
                       FREE
                     </span>
-                  </div>
-                  <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-slate-500">
-                    <span>GST (Estimated)</span>
-                    <span className="text-slate-900 font-black">₹100.00</span>
                   </div>
                   <div className="mt-8 pt-8 border-t-2 border-dashed border-slate-100 flex justify-between items-center">
                     <div>

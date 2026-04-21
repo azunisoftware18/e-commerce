@@ -9,14 +9,15 @@ import InputField from "../ui/InputField";
 export default function ConsultationForm({
   title = "",
   showSubmitButton = true,
-  onSubmitForm,       
-  isSubmitting = false, 
+  onSubmitForm,
+  isSubmitting = false,
 }) {
   const {
     register,
     handleSubmit,
     watch,
     unregister,
+    reset,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -25,19 +26,14 @@ export default function ConsultationForm({
   });
 
   const selectedIssues = watch("healthIssues") || [];
-  const isOtherSelected = selectedIssues.includes("Other");
 
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
   if (onSubmitForm) {
-    onSubmitForm(data);
+    await onSubmitForm(data); 
   }
-};
 
-  useEffect(() => {
-    if (!isOtherSelected) {
-      unregister("otherIssue");
-    }
-  }, [isOtherSelected, unregister]);
+  reset(); 
+};
 
   return (
     <div className="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow">
@@ -137,7 +133,7 @@ export default function ConsultationForm({
               "Hormonal issues",
               "Hair Fall",
               "Pigmentation",
-              "Other",
+              "Others: Not sure about the exact issue",
             ].map((issue) => (
               <label key={issue} className="flex items-center gap-2">
                 <input
@@ -160,30 +156,17 @@ export default function ConsultationForm({
           )}
 
           {/* ✅ Show textarea only if "Other" selected */}
-          {isOtherSelected && (
-            <div className="mt-3">
-              <TextAreaField
-                label="Please specify"
-                placeholder="Enter your issue..."
-                isRequired
-                error={errors.otherIssue?.message}
-                {...register("otherIssue", {
-                  required: "Please specify your issue",
-                })}
-              />
-            </div>
-          )}
         </div>
 
         {/* Submit */}
         {showSubmitButton && (
           <Button
-  type="submit"
-  text={isSubmitting ? "Submitting..." : "Submit Form"}
-  disabled={isSubmitting}
-  className="mt-4 px-6 py-2 rounded-md"
-  form="checkout-form" 
-/>
+            type="submit"
+            text={isSubmitting ? "Submitting..." : "Submit Form"}
+            disabled={isSubmitting}
+            className="mt-4 px-6 py-2 rounded-md"
+            form="checkout-form"
+          />
         )}
       </form>
     </div>

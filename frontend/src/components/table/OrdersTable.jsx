@@ -87,7 +87,7 @@ export default function OrdersTable({ data = [] }) {
     {
       label: "Order ID",
       accessor: "id",
-      render: (id) => `#${id?.slice(-6)}`,
+      render: (id) => `${id}`
     },
     {
       label: "Customer",
@@ -190,22 +190,22 @@ export default function OrdersTable({ data = [] }) {
       label: "Cancel Reason",
       accessor: "cancelReason",
       render: (value) => {
-  if (!value) return "-";
+        if (!value) return "-";
 
-  if (value.startsWith("STATUS:")) {
-    return <span className="text-blue-600 text-xs">{value}</span>;
-  }
+        if (value.startsWith("STATUS:")) {
+          return <span className="text-blue-600 text-xs">{value}</span>;
+        }
 
-  if (value.startsWith("PAYMENT:")) {
-    return <span className="text-purple-600 text-xs">{value}</span>;
-  }
+        if (value.startsWith("PAYMENT:")) {
+          return <span className="text-purple-600 text-xs">{value}</span>;
+        }
 
-  if (value.startsWith("USER:")) {
-    return <span className="text-red-600 text-xs">{value}</span>;
-  }
+        if (value.startsWith("USER:")) {
+          return <span className="text-red-600 text-xs">{value}</span>;
+        }
 
-  return <span className="text-slate-600 text-xs">{value}</span>;
-}
+        return <span className="text-slate-600 text-xs">{value}</span>;
+      },
     },
   ];
 

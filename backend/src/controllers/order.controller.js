@@ -322,7 +322,7 @@ export const downloadInvoice = async (req, res) => {
   .fillColor(secondaryColor)
   .fontSize(9)
   .font("Helvetica")
-  .text(`Invoice No: ORD-${order.id}`, 250, 75, {
+  .text(`Invoice No: ${order.id}`, 250, 75, {
     align: "right",
     width: 300,
   });

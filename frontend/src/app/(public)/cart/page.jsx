@@ -95,22 +95,22 @@ export default function CartPage() {
     }
 
     if (!selectedAddress && !paymentMethod) {
-  setErrorMsg("Please select address and payment method");
-  return;
-}
+      setErrorMsg("Please select address and payment method");
+      return;
+    }
 
-if (!selectedAddress) {
-  setErrorMsg("Please select an address");
-  return;
-}
+    if (!selectedAddress) {
+      setErrorMsg("Please select an address");
+      return;
+    }
 
-if (!paymentMethod) {
-  setErrorMsg("Please select a payment method");
-  return;
-}
+    if (!paymentMethod) {
+      setErrorMsg("Please select a payment method");
+      return;
+    }
 
-// agar sab sahi ho
-setErrorMsg("");
+    // agar sab sahi ho
+    setErrorMsg("");
 
     const payload = {
       items: reduxItems.map((item) => ({
@@ -263,9 +263,23 @@ setErrorMsg("");
                   <CartItem
                     key={item.id}
                     item={item}
-                    onUpdate={(delta) =>
-                      dispatch(updateQty({ id: item.id, delta }))
-                    }
+                    onUpdate={(delta) => {
+                      const newQty = item.quantity + delta;
+
+                      // ❌ STOCK LIMIT BLOCK
+                      if (newQty > item.stock) {
+                        alert(`Only ${item.stock} items available`);
+                        return;
+                      }
+
+                      // ❌ ZERO STOCK BLOCK
+                      if (item.stock === 0) {
+                        alert("This product is out of stock");
+                        return;
+                      }
+
+                      dispatch(updateQty({ id: item.id, delta }));
+                    }}
                     onRemove={() => dispatch(removeFromCart(item.id))}
                   />
                 ))}
@@ -363,11 +377,11 @@ setErrorMsg("");
                 />
                  */}
 
-                 {errorMsg && (
-  <div className="mb-3 text-red-600 text-sm font-semibold flex items-center gap-2">
-    <AlertCircle size={16} /> {errorMsg}
-  </div>
-)}
+                  {errorMsg && (
+                    <div className="mb-3 text-red-600 text-sm font-semibold flex items-center gap-2">
+                      <AlertCircle size={16} /> {errorMsg}
+                    </div>
+                  )}
                   <Button
                     disabled={isPending}
                     onClick={handlePlaceOrder}
@@ -440,7 +454,13 @@ const CartItem = ({ item, onUpdate, onRemove }) => (
         <QuantitySelector
           quantity={item.quantity}
           onIncrease={() => onUpdate(1)}
-          onDecrease={() => onUpdate(-1)}
+          onDecrease={() => {
+            if (item.quantity === 1) {
+              onRemove(); // ✅ remove item
+            } else {
+              onUpdate(-1); // ✅ decrease
+            }
+          }}
           onRemove={onRemove}
         />
       </div>

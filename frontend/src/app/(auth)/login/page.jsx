@@ -121,10 +121,8 @@ export default function Login({ title, onSuccess, isModal = false }) {
             className="w-full font-bold py-4 rounded-2xl bg-[#2A4150] text-white hover:bg-[#1a2a35] transition-all shadow-xl shadow-blue-900/20 active:scale-[0.98]"
           />
 
-          <div className="flex justify-between items-center text-xs pt-4">
-            <span className="text-slate-400 hover:text-[#2A4150] transition-colors font-medium">
-              Forgot Password?
-            </span>
+          <div className="grid justify-items-end text-xs pt-4 ">
+            
             <Link
               href="/sign-up"
               className="text-[#2A4150] font-extrabold hover:underline underline-offset-4"
