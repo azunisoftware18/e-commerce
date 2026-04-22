@@ -54,7 +54,7 @@ export default function Footer() {
           <div className="flex items-center gap-3">
             {settings?.logo ? (
               <img
-                src={`http://api.herbsandglam.com/${settings?.logo}`}
+                src={`http://api.herbsnglam.com/${settings?.logo}`}
                 alt="Logo"
                 className="w-20 h-10 object-cover "
               />
