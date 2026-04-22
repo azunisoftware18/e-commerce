@@ -21,12 +21,14 @@ import Button from "./ui/Button";
 import { closeLogin, logout, openLogin } from "@/store/slices/authSlice";
 import { useCategories } from "@/lib/queries/useCategories";
 import { useProducts } from "@/lib/queries/useProducts";
+import { useSettings } from "@/lib/queries/useSettings";
 
 export default function Header() {
   const router = useRouter();
   const dispatch = useDispatch();
   const menuRef = useRef(null);
   const { data: categories = [] } = useCategories();
+  const { data: settings } = useSettings();
   const [openMenu, setOpenMenu] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -49,7 +51,7 @@ export default function Header() {
         .toLowerCase()
         .includes(search.toLowerCase()),
     )
-    .slice(0, 5); 
+    .slice(0, 5);
 
   useEffect(() => {
     const close = () => {
@@ -89,12 +91,19 @@ export default function Header() {
             </button>
 
             {/* Logo */}
-            <Link
-              href="/"
-              className="shrink-0 text-xl font-black tracking-tighter md:text-3xl"
-            >
-              <span className="text-[#2A4150]">G</span>
-              <span className="text-[#9ca0a3]">LAM</span>
+            <Link href="/" className="shrink-0 flex items-center gap-2">
+              {settings?.logo ? (
+                <img
+                  src={`http://api.herbsnglam.com${settings.logo}`}
+                  alt="Logo"
+                  className="h-30 w-30 object-contain"
+                />
+              ) : (
+                <span className="text-xl font-black tracking-tighter md:text-3xl">
+                  <span className="text-[#2A4150]">G</span>
+                  <span className="text-[#9ca0a3]">LAM</span>
+                </span>
+              )}
             </Link>
 
             {/* Desktop Search */}
