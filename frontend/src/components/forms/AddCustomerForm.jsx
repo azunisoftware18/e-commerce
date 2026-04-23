@@ -39,8 +39,8 @@ export default function AddCustomerForm({
   const [showPassword, setShowPassword] = useState(false);
 
   const handleFormSubmit = (data) => {
-    if (!data.password) {
-      delete data.password; // 👈 empty password remove
+    if (!data.password || data.password.trim() === "") {
+      delete data.password;
     }
 
     onSubmit?.(data);
@@ -103,21 +103,30 @@ export default function AddCustomerForm({
 
           <div className="relative">
             <InputField
-              label="Account Password"
+              label={defaultValues ? "Set New Password" : "Account Password"}
               type={showPassword ? "text" : "password"}
-              placeholder={defaultValues ? "Leave blank to keep same" : "********"}
+              placeholder={
+                defaultValues ? "Leave blank to keep same" : "********"
+              }
               icon={Lock}
               isRequired={!defaultValues}
               error={errors.password?.message}
               className="pr-10" // 👈 space for icon
               {...register("password", {
-                minLength: {
-                  value: 8,
-                  message: "Minimum 8 characters required",
-                },
-                pattern: {
-                  value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/,
-                  message: "Must include uppercase, lowercase, number & symbol",
+                validate: (value) => {
+                  if (!value || value.trim() === "") return true; // skip validation
+
+                  if (value.length < 8) return "Minimum 8 characters required";
+
+                  if (
+                    !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/.test(
+                      value,
+                    )
+                  ) {
+                    return "Must include uppercase, lowercase, number & symbol";
+                  }
+
+                  return true;
                 },
               })}
             />

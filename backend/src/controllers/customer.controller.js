@@ -139,7 +139,7 @@ const getCustomerById = asyncHandler(async (req, res) => {
 const updateCustomer = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { role } = req.user;
-  const { name, email, phone, location, status } = req.body;
+  const { name, email, phone, location, status, password } = req.body;
 
   if (role !== "Admin") {
     return ApiError.send(res, 403, "Only Admins can update a customer.");
@@ -158,6 +158,11 @@ const updateCustomer = asyncHandler(async (req, res) => {
   if (phone) updateData.phone = phone.trim();
   if (location) updateData.location = location.trim();
   if (status) updateData.status = status.trim();
+
+  // ✅ PASSWORD UPDATE (ADMIN WITHOUT OLD PASSWORD)
+  if (password && password.trim() !== "") {
+    updateData.password = await hashPassword(password);
+  }
 
   if (Object.keys(updateData).length === 0) {
     return ApiError.send(
