@@ -105,9 +105,9 @@ export default function AddCustomerForm({
             <InputField
               label="Account Password"
               type={showPassword ? "text" : "password"}
-              placeholder="********"
+              placeholder={defaultValues ? "Leave blank to keep same" : "********"}
               icon={Lock}
-              isRequired
+              isRequired={!defaultValues}
               error={errors.password?.message}
               className="pr-10" // 👈 space for icon
               {...register("password", {

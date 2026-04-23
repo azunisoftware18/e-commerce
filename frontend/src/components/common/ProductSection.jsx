@@ -115,6 +115,7 @@ finalProducts = finalProducts.slice(0, 20);
                 rating={4.5}
                 reviews={10}
                 stock={product.stock}
+                status={product.status}
               />
             </div>
           ))}

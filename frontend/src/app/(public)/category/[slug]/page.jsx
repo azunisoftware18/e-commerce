@@ -99,6 +99,7 @@ const filteredProducts = products.filter((product) => {
               size="Standard"
               badge={product.status === "Active" ? "New" : ""}
               stock={product.stock}
+              status={product.status}
             />
           ))}
         </div>

@@ -18,11 +18,13 @@ export default function ProductCard({
   reviews,
   price,
   stock,
+  status,
   className = "",
 }) {
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart.items);
   const cartItem = cartItems.find((item) => item.id === id);
+  const isOutOfStock = status === "Out_of_Stock" || stock === 0;
   return (
     <Link href={`/product/${id}`}>
       <div
@@ -37,9 +39,10 @@ export default function ProductCard({
             {title}
           </h3>
 
-          <p className="text-[15px] font-medium text-[#689F38] line-clamp-2 min-h-11">
-            {description}
-          </p>
+          <div
+            className="text-[15px] font-medium text-[#689F38] line-clamp-2 min-h-11"
+            dangerouslySetInnerHTML={{ __html: description || "" }}
+          />
 
           <span className="text-[16px] text-slate-700 font-medium mt-1 min-h-6">
             {size}
@@ -66,7 +69,7 @@ export default function ProductCard({
                 e.stopPropagation();
 
                 // ❌ OUT OF STOCK
-                if (stock === 0) {
+                if (isOutOfStock) {
                   alert("This product is out of stock");
                   return;
                 }
@@ -104,7 +107,7 @@ export default function ProductCard({
                 showRemove={false}
                 className="h-[full]"
                 onIncrease={() => {
-                  if (cartItem.quantity >= stock) {
+                  if (isOutOfStock || cartItem.quantity >= stock) {
                     alert(`Only ${stock} items available`);
                     return;
                   }

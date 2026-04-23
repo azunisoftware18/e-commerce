@@ -80,7 +80,7 @@ export default function Header() {
   return (
     <>
       <header className="sticky top-0 z-50 w-full border-b border-[#e0e0e0] bg-white/95 backdrop-blur-md shadow-sm">
-        <div className="mx-auto max-w-full px-4 sm:px-6 lg:px-10">
+        <div className="mx-auto max-w-full px-4 sm:px-6 lg:px-10 bg bg-white">
           <div className="flex h-16 items-center justify-between md:h-20">
             {/* Mobile Menu Toggle */}
             <button

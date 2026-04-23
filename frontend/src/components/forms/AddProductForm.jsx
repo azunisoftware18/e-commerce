@@ -8,6 +8,7 @@ import { Upload, Package, Layers, Info } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useCategories } from "@/lib/queries/useCategories";
 import { useCategoryWithSubCategories } from "@/lib/queries/useSubCategories";
+import RichTextEditor from "../ui/RichTextEditor";
 
 export default function AddProductForm({
   title = "",
@@ -29,7 +30,7 @@ export default function AddProductForm({
   const { data: categories = [], isLoading } = useCategories();
   const [previewImages, setPreviewImages] = useState([]);
   const { data: categoryData } = useCategoryWithSubCategories(selectedCategory);
-
+  const [description, setDescription] = useState("");
   const subCategories = categoryData?.subCategories || [];
   const handleFormSubmit = (data) => {
     onSubmit?.(data);
@@ -53,6 +54,12 @@ export default function AddProductForm({
       });
     }
   }, [editData, reset]);
+
+  useEffect(() => {
+    if (editData) {
+      setDescription(editData.description || "");
+    }
+  }, [editData]);
 
   useEffect(() => {
     if (!editData) {
@@ -85,16 +92,6 @@ export default function AddProductForm({
             isRequired
             error={errors.name?.message}
             {...register("name", { required: "Product name is required" })}
-          />
-
-          <TextAreaField
-            label="Product Description"
-            placeholder="Describe the key features and specifications..."
-            isRequired
-            error={errors.description?.message}
-            {...register("description", {
-              required: "Description is required",
-            })}
           />
         </div>
 
@@ -156,12 +153,15 @@ export default function AddProductForm({
               )}
             </div>
 
-            <div className="space-y-1">
-              <label className="text-sm font-semibold text-slate-700 ">
+            <div className="space-y-1 w-full">
+              <label className="text-sm font-semibold text-slate-700">
                 Status *
               </label>
-              <select {...register("status", { required: true })} 
-              className=" bg-slate-50 border border-slate-200 rounded-xl px-4 text-sm">
+
+              <select
+                {...register("status", { required: true })}
+                className="w-full h-11.5 bg-slate-50 border border-slate-200 rounded-xl px-4 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+              >
                 <option value="Active">Active (Visible)</option>
                 <option value="Out_of_Stock">Out of Stock</option>
                 <option value="Discontinued">Discontinued</option>
@@ -272,6 +272,15 @@ export default function AddProductForm({
             )}
           </div>
         </div>
+
+        <RichTextEditor
+          label="Product Description"
+          value={description}
+          onChange={(val) => {
+            setDescription(val);
+            setValue("description", val, { shouldValidate: true });
+          }}
+        />
 
         {/* Footer Actions */}
         <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100">

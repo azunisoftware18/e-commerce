@@ -63,10 +63,16 @@ export default function ProductsTable({
       label: "Description",
       accessor: "description",
       render: (value) => (
-        <span className="text-slate-500 text-sm line-clamp-1 max-w-50">
-          {value || "—"}
-        </span>
-      ),
+  <div
+    className="product-description text-slate-500 text-sm max-w-50 overflow-hidden"
+    style={{
+      display: "-webkit-box",
+      WebkitLineClamp: 1,
+      WebkitBoxOrient: "vertical",
+    }}
+    dangerouslySetInnerHTML={{ __html: value || "" }}
+  />
+),
     },
     { label: "Category", accessor: "category" },
     {
