@@ -104,6 +104,8 @@ model Order {
   cancelReason    String?
   createdby       String
   shippingId      String
+  trackingId      String?  
+  courierName     String? 
   creator         User            @relation("CreatedOrders", fields: [createdby], references: [id], map: "Order_createdby_fkey")
   customer        User            @relation("CustomerOrders", fields: [customerid], references: [id], map: "Order_customerid_fkey")
   shipping        ShippingAddress @relation(fields: [shippingId], references: [id], map: "Order_shippingId_fkey")

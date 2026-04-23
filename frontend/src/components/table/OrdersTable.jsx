@@ -5,6 +5,7 @@ import { TableShell, TableHead, TableBody, TablePagination } from "./core";
 import { useUpdateOrder } from "@/lib/mutations/useOrders";
 import toast from "react-hot-toast";
 import ConfirmationDialog from "../common/ConfirmationDialog";
+import { Package, Plus } from "lucide-react";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_IMAGE_URL;
 export default function OrdersTable({ data = [] }) {
@@ -80,14 +81,19 @@ export default function OrdersTable({ data = [] }) {
             src={`${BASE_URL}${items?.[0]?.product?.images?.[0]?.url}`}
             className="w-10 h-10 rounded-lg"
           />
-          <span>{items?.[0]?.product?.name || "-"}</span>
+          <span
+            title={items?.[0]?.product?.name}
+            className="text-sm font-medium text-slate-800 line-clamp-2 wrap-break-word max-w-50"
+          >
+            {items?.[0]?.product?.name || "-"}
+          </span>
         </div>
       ),
     },
     {
       label: "Order ID",
       accessor: "id",
-      render: (id) => `${id}`
+      render: (id) => `${id}`,
     },
     {
       label: "Customer",
@@ -160,6 +166,48 @@ export default function OrdersTable({ data = [] }) {
           ))}
         </select>
       ),
+    },
+    {
+  label: "Tracking ID",
+  accessor: "trackingId",
+  render: (v, row) => (
+  <button
+    onClick={() => {
+      setSelectedOrderId(row.id);
+      setTrackingData({
+        trackingId: row.trackingId || "",
+        courierName: row.courierName || "",
+      });
+      setTrackingDialog(true);
+    }}
+    className={`
+  inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold
+  transition-all duration-200 border
+  ${
+    v
+      ? "bg-blue-50 text-black border-blue-200 hover:bg-slate-100"
+      : "bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200"
+  }
+`}
+  >
+    {v ? (
+      <>
+        <Package className="w-3.5 h-3.5" />
+        {v}
+      </>
+    ) : (
+      <>
+        <Plus className="w-3.5 h-3.5" />
+        Add
+      </>
+    )}
+  </button>
+),
+},
+    {
+      label: "Courier Name",
+      accessor: "courierName",
+      render: (v) => v || "-",
     },
     {
       label: "Razorpay Payment ID",
@@ -241,6 +289,12 @@ export default function OrdersTable({ data = [] }) {
     setStatus("All");
   };
 
+  const [trackingDialog, setTrackingDialog] = useState(false);
+const [trackingData, setTrackingData] = useState({
+  trackingId: "",
+  courierName: "",
+});
+
   return (
     <>
       <TableShell
@@ -320,6 +374,64 @@ export default function OrdersTable({ data = [] }) {
           );
         }}
       />
+      <ConfirmationDialog
+  open={trackingDialog}
+  title="Update Tracking Details"
+  description="Enter Tracking ID and Courier Name"
+  confirmText="Update"
+  cancelText="Cancel"
+  variant="info"
+  loading={loading}
+  onCancel={() => setTrackingDialog(false)}
+  onConfirm={() => {
+    setLoading(true);
+
+    updateOrder(
+      {
+        id: selectedOrderId,
+        data: {
+          trackingId: trackingData.trackingId,
+          courierName: trackingData.courierName,
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success("Tracking Updated ");
+          setTrackingDialog(false);
+        },
+        onError: () => {
+          toast.error("Update Failed");
+        },
+        onSettled: () => {
+          setLoading(false);
+        },
+      }
+    );
+  }}
+>
+  {/* 👇 CUSTOM INPUTS */}
+  <div className="space-y-3">
+    <input
+      type="text"
+      placeholder="Tracking ID"
+      value={trackingData.trackingId}
+      onChange={(e) =>
+        setTrackingData({ ...trackingData, trackingId: e.target.value })
+      }
+      className="w-full border rounded-xl px-3 py-2"
+    />
+
+    <input
+      type="text"
+      placeholder="Courier Name"
+      value={trackingData.courierName}
+      onChange={(e) =>
+        setTrackingData({ ...trackingData, courierName: e.target.value })
+      }
+      className="w-full border rounded-xl px-3 py-2"
+    />
+  </div>
+</ConfirmationDialog>
     </>
   );
 }

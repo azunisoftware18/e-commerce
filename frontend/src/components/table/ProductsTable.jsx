@@ -22,20 +22,20 @@ export default function ProductsTable({
   const { mutate: deleteProduct } = useDeleteProduct();
 
   const productsData = useMemo(() => {
-  return data.map((item) => ({
-    id: item.id,
-    product: item.name,
-    image: item.images?.[0]?.url,
-    category: item.category?.name || "N/A",
-    categoryid: item.categoryid, 
-    subCategoryId: item.subCategoryId,
-    price: item.price,
-    stock: item.stock,
-    status: item.stock === 0 ? "Out of Stock" : item.status,
-    description: item.description,
-    original: item, 
-  }));
-}, [data]);
+    return data.map((item) => ({
+      id: item.id,
+      product: item.name,
+      image: item.images?.[0]?.url,
+      category: item.category?.name || "N/A",
+      categoryid: item.categoryid,
+      subCategoryId: item.subCategoryId,
+      price: item.price,
+      stock: item.stock,
+      status: item.stock === 0 ? "Out of Stock" : item.status,
+      description: item.description,
+      original: item,
+    }));
+  }, [data]);
 
   const columns = [
     {
@@ -55,7 +55,7 @@ export default function ProductsTable({
           />
 
           {/* 📝 Name */}
-          <span className="font-medium text-slate-800">{value}</span>
+          <span className="font-medium text-slate-800 line-clamp-2 wrap-break-word">{value}</span>
         </div>
       ),
     },
@@ -63,16 +63,16 @@ export default function ProductsTable({
       label: "Description",
       accessor: "description",
       render: (value) => (
-  <div
-    className="product-description text-slate-500 text-sm max-w-50 overflow-hidden"
-    style={{
-      display: "-webkit-box",
-      WebkitLineClamp: 1,
-      WebkitBoxOrient: "vertical",
-    }}
-    dangerouslySetInnerHTML={{ __html: value || "" }}
-  />
-),
+        <div
+          className="product-description text-slate-500 text-sm max-w-50 overflow-hidden"
+          style={{
+            display: "-webkit-box",
+            WebkitLineClamp: 1,
+            WebkitBoxOrient: "vertical",
+          }}
+          dangerouslySetInnerHTML={{ __html: value || "" }}
+        />
+      ),
     },
     { label: "Category", accessor: "category" },
     {
@@ -150,7 +150,7 @@ export default function ProductsTable({
     >
       <TableHead
         columns={columns}
-        actions={[ { lable: "Edit" }, { lable: "Delete" }]}
+        actions={[{ lable: "Edit" }, { lable: "Delete" }]}
         onReset={handleReset}
         searchProps={{
           value: search,
@@ -173,7 +173,6 @@ export default function ProductsTable({
         data={paginatedData}
         columns={columns}
         actions={[
-         
           {
             label: "Edit",
             onClick: (row) => onEdit?.(row.original),

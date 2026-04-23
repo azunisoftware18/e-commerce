@@ -61,7 +61,7 @@ export default function RichTextEditor({ value, onChange, label }) {
           ↻
         </button>
 
-        <div className="h-4 w-[1px] bg-slate-300 mx-1" />
+        <div className="h-4 w-px bg-slate-300 mx-1" />
 
         <button
   type="button"
@@ -99,7 +99,7 @@ export default function RichTextEditor({ value, onChange, label }) {
           className="w-6 h-6 cursor-pointer"
         />
 
-        <div className="h-4 w-[1px] bg-slate-300 mx-1" />
+        <div className="h-4 w-px bg-slate-300 mx-1" />
 
         <button
           type="button"

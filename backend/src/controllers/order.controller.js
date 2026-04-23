@@ -29,9 +29,6 @@ export const getAllOrders = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, "Orders fetched", orders));
   }
 
-
-  
-
   if (role === "Customer") {
     // Fetch orders where customerId matches the logged-in user's id
     const customerOrders = await prisma.order.findMany({
@@ -154,6 +151,8 @@ export const createOrder = asyncHandler(async (req, res) => {
         paymentMode: req.body.paymentMethod || "COD",
         shippingId: newShipping.id,
         duedate: dueDate,
+        trackingId: req.body.trackingId,
+        courierName: req.body.courierName,
         items: {
           create: items.map((item) => ({
             productid: item.id,
@@ -188,7 +187,8 @@ export const createOrder = asyncHandler(async (req, res) => {
 
 export const updateOrder = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  let { status, payment, duedate, cancelReason } = req.body;
+  let { status, payment, duedate, cancelReason, trackingId, courierName } =
+    req.body;
 
   const existingOrder = await prisma.order.findUnique({ where: { id } });
   if (!existingOrder) {
@@ -212,6 +212,8 @@ export const updateOrder = asyncHandler(async (req, res) => {
       payment: payment || existingOrder.payment,
       duedate: duedate || existingOrder.duedate,
       cancelReason: cancelReason || existingOrder.cancelReason,
+      trackingId: trackingId ?? existingOrder.trackingId,
+      courierName: courierName ?? existingOrder.courierName,
     },
   });
 
@@ -256,17 +258,17 @@ export const downloadInvoice = async (req, res) => {
     const { id } = req.params;
 
     const formatDate = (date) => {
-  if (!date) return "N/A";
+      if (!date) return "N/A";
 
-  const d = new Date(date);
-  if (isNaN(d.getTime())) return "N/A";
+      const d = new Date(date);
+      if (isNaN(d.getTime())) return "N/A";
 
-  return d.toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-};
+      return d.toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+    };
 
     const order = await prisma.order.findUnique({
       where: { id },
@@ -290,7 +292,7 @@ export const downloadInvoice = async (req, res) => {
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename=invoice-${order.id}.pdf`
+      `attachment; filename=invoice-${order.id}.pdf`,
     );
 
     doc.pipe(res);
@@ -319,24 +321,23 @@ export const downloadInvoice = async (req, res) => {
       .text("INVOICE", 350, 50, { align: "right", width: 200 });
 
     doc
-  .fillColor(secondaryColor)
-  .fontSize(9)
-  .font("Helvetica")
-  .text(`Invoice No: ${order.id}`, 250, 75, {
-    align: "right",
-    width: 300,
-  });
+      .fillColor(secondaryColor)
+      .fontSize(9)
+      .font("Helvetica")
+      .text(`Invoice No: ${order.id}`, 250, 75, {
+        align: "right",
+        width: 300,
+      });
 
-doc.text(`Date: ${formatDate(orderDate)}`, 250, 90, {
-  align: "right",
-  width: 300,
-});
+    doc.text(`Date: ${formatDate(orderDate)}`, 250, 90, {
+      align: "right",
+      width: 300,
+    });
 
     doc.moveDown(2);
     doc.moveTo(50, 115).lineTo(550, 115).strokeColor(borderColor).stroke();
     // BILLING & SHIPPING INFO
     const infoY = 140;
-   
 
     doc
       .fillColor(secondaryColor)
@@ -357,9 +358,7 @@ doc.text(`Date: ${formatDate(orderDate)}`, 250, 90, {
 
     // ITEMS TABLE HEADER
     const tableTop = 240;
-    doc
-      .rect(50, tableTop, 500, 25)
-      .fill(primaryColor);
+    doc.rect(50, tableTop, 500, 25).fill(primaryColor);
 
     doc
       .fillColor("#FFFFFF")
@@ -371,10 +370,10 @@ doc.text(`Date: ${formatDate(orderDate)}`, 250, 90, {
 
     // TABLE ROWS
     let currentY = tableTop + 25;
-    
+
     order.items.forEach((item, index) => {
       const itemTotal = item.price * item.quantity;
-      
+
       // Zebra Striping logic
       if (index % 2 === 0) {
         doc.rect(50, currentY, 500, 25).fill("#F8FAFC");
@@ -383,16 +382,32 @@ doc.text(`Date: ${formatDate(orderDate)}`, 250, 90, {
       doc
         .fillColor("#334155")
         .font("Helvetica")
-        .text(item.product.name, 60, currentY + 7, { width: 280, lineBreak: false })
-        .text(item.quantity.toString(), 350, currentY + 7, { width: 50, align: "center" })
-        .text(`Rs.${item.price}`, 420, currentY + 7, { width: 50, align: "right" })
-        .text(`Rs.${itemTotal}`, 480, currentY + 7, { width: 60, align: "right" });
+        .text(item.product.name, 60, currentY + 7, {
+          width: 280,
+          lineBreak: false,
+        })
+        .text(item.quantity.toString(), 350, currentY + 7, {
+          width: 50,
+          align: "center",
+        })
+        .text(`Rs.${item.price}`, 420, currentY + 7, {
+          width: 50,
+          align: "right",
+        })
+        .text(`Rs.${itemTotal}`, 480, currentY + 7, {
+          width: 60,
+          align: "right",
+        });
 
       currentY += 25;
     });
 
     // TOTAL SECTION
-    doc.moveTo(50, currentY + 10).lineTo(550, currentY + 10).strokeColor(borderColor).stroke();
+    doc
+      .moveTo(50, currentY + 10)
+      .lineTo(550, currentY + 10)
+      .strokeColor(borderColor)
+      .stroke();
 
     const footerY = currentY + 25;
     doc
@@ -400,14 +415,20 @@ doc.text(`Date: ${formatDate(orderDate)}`, 250, 90, {
       .fontSize(14)
       .font("Helvetica-Bold")
       .text("Grand Total:", 350, footerY)
-      .text(`Rs.${order.total.toLocaleString()}`, 480, footerY, { width: 60, align: "right" });
+      .text(`Rs.${order.total.toLocaleString()}`, 480, footerY, {
+        width: 60,
+        align: "right",
+      });
 
     // FOOTER NOTE
     doc
       .fillColor(secondaryColor)
       .fontSize(10)
       .font("Helvetica-Oblique")
-      .text("Thank you for shopping with us!", 50, 750, { align: "center", width: 500 });
+      .text("Thank you for shopping with us!", 50, 750, {
+        align: "center",
+        width: 500,
+      });
 
     doc.end();
   } catch (error) {

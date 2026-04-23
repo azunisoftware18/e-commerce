@@ -102,21 +102,21 @@ export default function OrderDetailsPage({ params }) {
   };
 
   const getStatusColor = (status) => {
-  switch (status?.toLowerCase()) {
-    case "pending":
-      return "text-yellow-600 bg-yellow-50 border-yellow-200";
-    case "processing":
-      return "text-blue-600 bg-blue-50 border-blue-200";
-    case "shipped":
-      return "text-purple-600 bg-purple-50 border-purple-200";
-    case "delivered":
-      return "text-emerald-600 bg-emerald-50 border-emerald-200";
-    case "cancelled":
-      return "text-red-600 bg-red-50 border-red-200";
-    default:
-      return "text-slate-600 bg-slate-50 border-slate-200";
-  }
-};
+    switch (status?.toLowerCase()) {
+      case "pending":
+        return "text-yellow-600 bg-yellow-50 border-yellow-200";
+      case "processing":
+        return "text-blue-600 bg-blue-50 border-blue-200";
+      case "shipped":
+        return "text-purple-600 bg-purple-50 border-purple-200";
+      case "delivered":
+        return "text-emerald-600 bg-emerald-50 border-emerald-200";
+      case "cancelled":
+        return "text-red-600 bg-red-50 border-red-200";
+      default:
+        return "text-slate-600 bg-slate-50 border-slate-200";
+    }
+  };
 
   return (
     <AuthGuard>
@@ -261,7 +261,8 @@ export default function OrderDetailsPage({ params }) {
                   <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-slate-500">
                     <span>Items Subtotal</span>
                     <span className="text-slate-900 font-black">
-                      ₹{((order.total || order.totalAmount || 0)).toLocaleString()}
+                      ₹
+                      {(order.total || order.totalAmount || 0).toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-slate-500">
@@ -325,6 +326,41 @@ export default function OrderDetailsPage({ params }) {
                 <div className="absolute -bottom-12 -right-12 w-40 h-40 bg-white/5 rounded-full blur-3xl group-hover:bg-white/10 transition-colors" />
               </div>
 
+              {(order.trackingId || order.courierName) && (
+  <div className="bg-white rounded-[2.5rem] border border-slate-200/60 p-6 shadow-sm">
+    <div className="flex items-center gap-3 mb-4">
+      <div className="p-2 bg-blue-50 rounded-lg">
+        <Truck className="text-blue-600" size={18} />
+      </div>
+      <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+        Tracking Details
+      </h2>
+    </div>
+
+    <div className="space-y-3">
+      {/* Tracking ID */}
+      <div className="flex justify-between items-center text-sm">
+        <span className="text-slate-500 font-semibold">
+          Tracking ID
+        </span>
+        <span className="font-bold text-slate-900">
+          {order.trackingId || "-"}
+        </span>
+      </div>
+
+      {/* Courier Name */}
+      <div className="flex justify-between items-center text-sm">
+        <span className="text-slate-500 font-semibold">
+          Courier
+        </span>
+        <span className="font-bold text-slate-900">
+          {order.courierName || "-"}
+        </span>
+      </div>
+    </div>
+  </div>
+)}
+
               <div className="bg-white rounded-[2.5rem] border border-slate-200/60 p-8">
                 <div
                   className={`p-4 rounded-2xl text-center border transition-colors ${
@@ -334,10 +370,10 @@ export default function OrderDetailsPage({ params }) {
                   }`}
                 >
                   <p
-  className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${getStatusColor(order.status)}`}
->
-  {order.status || "Pending"}
-</p>
+                    className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${getStatusColor(order.status)}`}
+                  >
+                    {order.status || "Pending"}
+                  </p>
                 </div>
                 {order.status === "Cancelled" &&
                   getCancelReason(order.cancelReason) && (
@@ -351,6 +387,7 @@ export default function OrderDetailsPage({ params }) {
                     </div>
                   )}
               </div>
+              
             </div>
           </div>
         </main>
