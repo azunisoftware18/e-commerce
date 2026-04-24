@@ -150,7 +150,7 @@ const updateProduct = asyncHandler(async (req, res) => {
       data: {
         images: {
           create: req.files.map((file) => ({
-            url: `/uploads/${file.filename}`,
+            url: `/uploads/images/${file.filename}`,
           })),
         },
       },
