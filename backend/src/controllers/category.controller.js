@@ -56,7 +56,6 @@ const createCategory = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, "Category created successfully", { category }));
 });
 
-// Get all categories
 const getAllCategories = asyncHandler(async (req, res) => {
   const categories = await prisma.category.findMany({
     include: { creator: true, products: true, subCategories: true },
@@ -67,7 +66,6 @@ const getAllCategories = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, "Categories fetched", { categories }));
 });
 
-// Get category by ID
 const getCategoryById = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
