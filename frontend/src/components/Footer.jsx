@@ -13,7 +13,7 @@ import {
   MapPin,
   Globe,
 } from "lucide-react";
-
+import { FaWhatsapp } from "react-icons/fa";
 // Hooks
 import { useSettings } from "@/lib/queries/useSettings";
 
@@ -28,6 +28,8 @@ export default function Footer() {
 
   const getSocialIcon = (platform) => {
     const p = platform?.toLowerCase();
+    if (p?.includes("whatsapp"))
+    return <FaWhatsapp size={18} />;
     if (p?.includes("facebook")) return <Facebook size={18} />;
     if (p?.includes("instagram")) return <Instagram size={18} />;
     if (p?.includes("twitter") || p?.includes("x"))
