@@ -9,28 +9,37 @@ FROM node:20-alpine
 WORKDIR /app
 
 # -------------------------
-# 3. Install dependencies first (cache optimization)
+# 3. Install dependencies
 # -------------------------
 COPY package*.json ./
-
 RUN npm install
 
 # -------------------------
-# 4. Copy project files
+# 4. Copy only required files (IMPORTANT)
 # -------------------------
-COPY . .
+COPY src ./src
+COPY prisma ./prisma
+
+# ⚠️ public folder intentionally NOT copied
 
 # -------------------------
-# 5. Generate Prisma Client
+# 5. Create uploads folder (safe fallback)
+# -------------------------
+RUN mkdir -p public/uploads/images \
+    public/uploads/pdfs \
+    public/uploads/thumbnails
+
+# -------------------------
+# 6. Prisma
 # -------------------------
 RUN npx prisma generate
 
 # -------------------------
-# 6. Expose port
+# 7. Expose port
 # -------------------------
 EXPOSE 8000
 
 # -------------------------
-# 7. Start app (PRODUCTION)
+# 8. Start app
 # -------------------------
 CMD ["npm", "start"]
