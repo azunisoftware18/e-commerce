@@ -1,6 +1,5 @@
 import { fetchCities, fetchStates } from "../services/location.service.js";
 
-// ✅ helper: clean text
 const cleanText = (text) =>
   text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
@@ -20,7 +19,6 @@ export const getStates = async (req, res) => {
   }
 };
 
-// ✅ Cities Controller
 export const getCities = async (req, res) => {
   try {
     const { state } = req.params;
@@ -34,7 +32,6 @@ export const getCities = async (req, res) => {
 
     const cities = await fetchCities(state);
 
-    // 🔥 clean + sort
     const cleanedCities = cities
       .map(cleanText)
       .sort((a, b) => a.localeCompare(b));
