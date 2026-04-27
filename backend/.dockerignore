@@ -4,3 +4,6 @@ Dockerfile
 .dockerignore
 .git
 .env
+
+
+public/uploads
