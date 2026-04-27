@@ -102,7 +102,6 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* 2. PRODUCTS (Dynamic Categories) */}
         <div>
           <h3 className="text-white font-semibold mb-5 text-lg">
             Help & Support

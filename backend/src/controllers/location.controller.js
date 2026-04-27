@@ -4,7 +4,6 @@ import { fetchCities, fetchStates } from "../services/location.service.js";
 const cleanText = (text) =>
   text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-// ✅ States Controller
 export const getStates = async (req, res) => {
   try {
     const states = await fetchStates();
