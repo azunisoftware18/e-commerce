@@ -10,11 +10,9 @@ import { deleteOldImage } from "../utils/utils.js";
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || "/home/shiv/uploads";
 
-// Fix __dirname in ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Create a new category
 const createCategory = asyncHandler(async (req, res) => {
   const { name, sku, description } = req.body;
   const { id, role } = req.user;
