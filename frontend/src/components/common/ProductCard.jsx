@@ -27,8 +27,8 @@ export default function ProductCard({
   const isOutOfStock = status === "Out_of_Stock" || stock === 0;
 
   return (
-    <Link 
-      href={`/product/${id}`} 
+    <Link
+      href={`/product/${id}`}
       className="block h-full group select-none touch-manipulation"
     >
       <div
@@ -51,9 +51,9 @@ export default function ProductCard({
       >
         {/* IMAGE SECTION WITH HOVER SCALE & REFLECTION SHIMMER */}
         <div className="w-full relative overflow-hidden bg-slate-50 aspect-square flex items-center justify-center p-3 sm:p-4">
-          <img 
-            src={image} 
-            alt={title} 
+          <img
+            src={image}
+            alt={title}
             className={`
               w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 lg:w-60 lg:h-60 
               object-cover rounded-md sm:rounded-lg 
@@ -63,21 +63,24 @@ export default function ProductCard({
             `}
             loading="lazy"
           />
-          
+
           {/* GLASS-SHINE SHIMMER - Visible on hover for desktop */}
-          <div className="
+          <div
+            className="
             absolute inset-0 w-[200%] h-full 
             bg-linear-to-r from-transparent via-white/20 to-transparent 
             -skew-x-12 -translate-x-[150%] 
             md:group-hover:translate-x-[150%] 
             transition-transform duration-1000 ease-out 
             pointer-events-none hidden md:block
-          " />
+          "
+          />
 
           {/* OUT OF STOCK GLASS BADGE */}
           {isOutOfStock && (
             <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] sm:backdrop-blur-xs flex items-center justify-center transition-all duration-300">
-              <span className="
+              <span
+                className="
                 bg-rose-500 text-white 
                 text-[8px] sm:text-[10px] md:text-xs 
                 font-black 
@@ -85,7 +88,8 @@ export default function ProductCard({
                 rounded-full shadow-md tracking-widest uppercase 
                 transition-transform duration-300 
                 md:group-hover:scale-105
-              ">
+              "
+              >
                 OUT OF STOCK
               </span>
             </div>
@@ -94,42 +98,46 @@ export default function ProductCard({
 
         {/* DETAILS SECTION - Reduced spacing */}
         <div className="p-2.5 sm:p-3 md:p-4 flex flex-col gap-1 sm:gap-1.5 flex-1 bg-white">
-          
           {/* TITLE */}
-          <h3 className="
-            text-sm sm:text-base md:text-base lg:text-lg
-            font-semibold md:font-bold 
-            text-slate-800 
-            line-clamp-2 
-            min-h-10 sm:min-h-12 
-            transition-colors duration-300 
-            leading-snug
-            mb-0.5 sm:mb-1
-          ">
+          <h3
+            className="
+    text-sm sm:text-base
+    font-semibold md:font-bold
+    text-slate-800
+    overflow-hidden
+    text-ellipsis
+    whitespace-nowrap
+    w-full
+  "
+          >
             {title}
           </h3>
 
           {/* DESCRIPTION - Hidden on mobile, visible on tablet+ */}
           {description && (
-            <div
+            <p
               className="
-                hidden sm:block
-                text-[10px] sm:text-xs md:text-xs
-                font-normal text-slate-500 
-                line-clamp-2 
-                leading-relaxed 
-                transition-colors duration-300 
-                md:group-hover:text-slate-600
-                mb-0.5 sm:mb-1
-              "
-              dangerouslySetInnerHTML={{ __html: description || "" }}
-            />
+    hidden sm:block
+    text-xs
+    text-slate-500
+    overflow-hidden
+    leading-relaxed
+  "
+              style={{
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+              }}
+            >
+              {description?.replace(/<[^>]*>?/gm, "")}
+            </p>
           )}
 
           {/* SIZE / VARIANT BADGE */}
           {size && (
             <div className="mb-1 sm:mb-1.5">
-              <span className="
+              <span
+                className="
                 inline-block 
                 bg-slate-50 border border-slate-200 
                 text-slate-600 
@@ -140,39 +148,46 @@ export default function ProductCard({
                 transition-all duration-300 
                 md:group-hover:bg-emerald-50/50 
                 md:group-hover:border-emerald-200
-              ">
+              "
+              >
                 Pack: {size}
               </span>
             </div>
-          )}         
+          )}
 
           {/* PRICE TAG AREA - Tighter spacing */}
-          <div className="
+          <div
+            className="
             mt-auto pt-1.5 sm:pt-2
             border-t border-slate-50 
             flex items-center justify-between 
             transition-all duration-300 
             md:group-hover:border-emerald-100
-          ">
+          "
+          >
             <div className="flex flex-col gap-0">
-              <span className="
+              <span
+                className="
                 text-[8px] sm:text-[10px] md:text-[10px]
                 uppercase tracking-wider 
                 text-slate-400 
                 font-semibold
                 leading-none
                 mb-0.5
-              ">
+              "
+              >
                 Price
               </span>
-              <span className="
+              <span
+                className="
                 text-base sm:text-lg md:text-xl 
                 font-black 
                 text-slate-900 
                 leading-none 
                 transition-transform duration-300 
                 md:group-hover:translate-x-0.5
-              ">
+              "
+              >
                 ₹{price}
               </span>
             </div>
@@ -189,12 +204,12 @@ export default function ProductCard({
                     {isOutOfStock ? "OUT OF STOCK" : "ADD TO CART"}
                   </span>
                   {!isOutOfStock && (
-                    <ShoppingCart 
+                    <ShoppingCart
                       className="
                         w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 
                         transform transition-transform duration-300 
                         md:group-hover:translate-x-0.5
-                      " 
+                      "
                     />
                   )}
                 </div>
@@ -210,8 +225,8 @@ export default function ProductCard({
                 transition-all duration-300 
                 active:scale-[0.95] md:active:scale-95
                 ${
-                  isOutOfStock 
-                    ? "bg-slate-200 text-slate-400 cursor-not-allowed shadow-none" 
+                  isOutOfStock
+                    ? "bg-slate-200 text-slate-400 cursor-not-allowed shadow-none"
                     : "bg-[#2A4150] text-white md:hover:shadow-lg md:hover:shadow-emerald-600/20"
                 }
               `}

@@ -18,26 +18,28 @@ export default function ProductSection({
   // Helper function to get image URL
   const getImageUrl = (image) => {
     if (!image) return "/placeholder.png";
-    
+
     // If image is an object with url/signedUrl
-    if (typeof image === 'object') {
+    if (typeof image === "object") {
       if (image.signedUrl) return image.signedUrl;
       if (image.url) {
         // Check if it's already a full URL
-        if (image.url.startsWith('http')) return image.url;
+        if (image.url.startsWith("http")) return image.url;
         // If relative path, prepend base URL
-        const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_IMAGE_URL || "http://localhost:8000";
-        return `${BASE_URL}${image.url.startsWith('/') ? '' : '/'}${image.url}`;
+        const BASE_URL =
+          process.env.NEXT_PUBLIC_API_BASE_IMAGE_URL || "http://localhost:8000";
+        return `${BASE_URL}${image.url.startsWith("/") ? "" : "/"}${image.url}`;
       }
     }
-    
+
     // If image is a string
-    if (typeof image === 'string') {
-      if (image.startsWith('http')) return image;
-      const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_IMAGE_URL || "http://localhost:8000";
-      return `${BASE_URL}${image.startsWith('/') ? '' : '/'}${image}`;
+    if (typeof image === "string") {
+      if (image.startsWith("http")) return image;
+      const BASE_URL =
+        process.env.NEXT_PUBLIC_API_BASE_IMAGE_URL || "http://localhost:8000";
+      return `${BASE_URL}${image.startsWith("/") ? "" : "/"}${image}`;
     }
-    
+
     return "/placeholder.png";
   };
 
@@ -137,15 +139,24 @@ export default function ProductSection({
         >
           {finalProducts.map((product) => {
             // Get the best available image
-            const productImage = 
-              getImageUrl(product.images?.[0]) || 
-              getImageUrl(product.image) || 
+            const productImage =
+              getImageUrl(product.images?.[0]) ||
+              getImageUrl(product.image) ||
               "/placeholder.png";
 
             return (
               <div
                 key={product.id}
-                className="sm:min-w-[48%] md:min-w-70 lg:min-w-75 snap-start first:ml-1 last:mr-1 shrink-0"
+                className="
+  w-45
+  sm:w-55
+  md:w-60
+  lg:w-65
+  snap-start
+  first:ml-1
+  last:mr-1
+  shrink-0
+"
               >
                 <ProductCard
                   id={product.id}
