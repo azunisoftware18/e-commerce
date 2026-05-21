@@ -1,11 +1,11 @@
 "use client";
 
-import { useResetForgotPassword } from "@/lib/mutations/useResetForgotPassword";
-import { Eye, EyeOff } from "lucide-react";
+import { Suspense, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
+import { useResetForgotPassword } from "@/lib/mutations/useResetForgotPassword";
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -14,14 +14,15 @@ export default function ResetPasswordPage() {
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [message, setMessage] = useState("");
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] =
+    useState(false);
 
   const { mutate, isLoading } = useResetForgotPassword();
 
   const handleReset = () => {
-    // Validation
     if (!password || !confirmPassword) {
       setMessage("All fields are required");
       return;
@@ -37,7 +38,6 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    // API Call
     mutate(
       {
         token,
@@ -46,7 +46,10 @@ export default function ResetPasswordPage() {
       },
       {
         onSuccess: (res) => {
-          setMessage(res?.data?.message || "Password reset successful");
+          setMessage(
+            res?.data?.message ||
+              "Password reset successful"
+          );
 
           setTimeout(() => {
             router.push("/login");
@@ -54,9 +57,12 @@ export default function ResetPasswordPage() {
         },
 
         onError: (error) => {
-          setMessage(error?.response?.data?.message || "Something went wrong");
+          setMessage(
+            error?.response?.data?.message ||
+              "Something went wrong"
+          );
         },
-      },
+      }
     );
   };
 
@@ -68,41 +74,63 @@ export default function ResetPasswordPage() {
         </h1>
 
         <div className="space-y-4">
-          {/* Password Field */}
+          {/* Password */}
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
               placeholder="Enter new password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) =>
+                setPassword(e.target.value)
+              }
               className="w-full border border-slate-300 rounded-lg px-4 py-3 pr-12 outline-none focus:border-[#2A4150]"
             />
 
             <button
               type="button"
-              onClick={() => setShowPassword(!showPassword)}
+              onClick={() =>
+                setShowPassword(!showPassword)
+              }
               className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500"
             >
-              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              {showPassword ? (
+                <EyeOff size={20} />
+              ) : (
+                <Eye size={20} />
+              )}
             </button>
           </div>
 
-          {/* Confirm Password Field */}
+          {/* Confirm Password */}
           <div className="relative">
             <input
-              type={showConfirmPassword ? "text" : "password"}
+              type={
+                showConfirmPassword
+                  ? "text"
+                  : "password"
+              }
               placeholder="Confirm password"
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={(e) =>
+                setConfirmPassword(e.target.value)
+              }
               className="w-full border border-slate-300 rounded-lg px-4 py-3 pr-12 outline-none focus:border-[#2A4150]"
             />
 
             <button
               type="button"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              onClick={() =>
+                setShowConfirmPassword(
+                  !showConfirmPassword
+                )
+              }
               className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500"
             >
-              {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              {showConfirmPassword ? (
+                <EyeOff size={20} />
+              ) : (
+                <Eye size={20} />
+              )}
             </button>
           </div>
         </div>
@@ -110,15 +138,27 @@ export default function ResetPasswordPage() {
         <button
           onClick={handleReset}
           disabled={isLoading}
-          className="w-full bg-[#2A4150] text-white py-3 rounded-lg font-semibold hover:bg-[#1d3442] transition"
+          className="w-full bg-[#2A4150] text-white py-3 rounded-lg font-semibold hover:bg-[#1d3442] transition mt-4"
         >
-          {isLoading ? "Resetting..." : "Reset Password"}
+          {isLoading
+            ? "Resetting..."
+            : "Reset Password"}
         </button>
 
         {message && (
-          <p className="mt-4 text-center text-sm text-slate-600">{message}</p>
+          <p className="mt-4 text-center text-sm text-slate-600">
+            {message}
+          </p>
         )}
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }
