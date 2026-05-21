@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   Clock,
   ExternalLink,
+  ImageIcon,
 } from "lucide-react";
 import { useOrder } from "@/lib/queries/useOrders";
 import AuthGuard from "@/components/common/AuthGuard";
@@ -22,6 +23,43 @@ export default function OrderDetailsPage({ params }) {
   const router = useRouter();
   const { id: orderId } = React.use(params);
   const { data: order, isLoading, isError } = useOrder(orderId);
+  const [imageErrors, setImageErrors] = useState({});
+
+  // Helper function to get image URL
+  const getImageUrl = (image) => {
+    if (!image) return null;
+    
+    // If image is an object with url/signedUrl
+    if (typeof image === 'object') {
+      if (image.signedUrl) return image.signedUrl;
+      if (image.url) {
+        if (image.url.startsWith('http')) return image.url;
+        const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_IMAGE_URL || "http://localhost:8000";
+        return `${BASE_URL}${image.url.startsWith('/') ? '' : '/'}${image.url}`;
+      }
+    }
+    
+    // If image is a string
+    if (typeof image === 'string') {
+      if (image.startsWith('http')) return image;
+      const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_IMAGE_URL || "http://localhost:8000";
+      return `${BASE_URL}${image.startsWith('/') ? '' : '/'}${image}`;
+    }
+    
+    return null;
+  };
+
+  // Get product image URL from item
+  const getItemImageUrl = (item) => {
+    if (item.image) return getImageUrl(item.image);
+    if (item.product?.images?.[0]) return getImageUrl(item.product.images[0]);
+    if (item.product?.image) return getImageUrl(item.product.image);
+    return null;
+  };
+
+  const handleImageError = (itemIndex) => {
+    setImageErrors((prev) => ({ ...prev, [itemIndex]: true }));
+  };
 
   // Helper to format dates consistently
   const formatDate = (dateString) => {
@@ -36,7 +74,8 @@ export default function OrderDetailsPage({ params }) {
   // Logic to determine progress based on actual status
   const getStatusIndex = (status) => {
     const statuses = ["Pending", "Processing", "Shipped", "Delivered"];
-    return statuses.indexOf(status || "Pending");
+    const index = statuses.indexOf(status || "Pending");
+    return index >= 0 ? index : 0;
   };
 
   const currentStatusIdx = getStatusIndex(order?.status);
@@ -93,11 +132,7 @@ export default function OrderDetailsPage({ params }) {
 
   const getCancelReason = (reason) => {
     if (!reason) return null;
-
-    // ❌ USER reason hide
     if (reason.startsWith("USER:")) return null;
-
-    // ✅ only STATUS / PAYMENT
     return reason.replace(/^(STATUS|PAYMENT):\s*/, "");
   };
 
@@ -121,9 +156,9 @@ export default function OrderDetailsPage({ params }) {
   return (
     <AuthGuard>
       <div className="min-h-screen bg-[#F8FAFC] pb-20 font-sans">
-        {/* --- HEADER --- */}
-        <header className="bg-[#F8FAFC] backdrop-blur-md sticky top-0 z-30 px-6 py-4 ">
-          <div className="w-full  mx-auto flex items-center justify-between ">
+        {/* HEADER */}
+        <header className="bg-[#F8FAFC] backdrop-blur-md sticky top-0 z-30 px-6 py-4">
+          <div className="w-full mx-auto flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => router.back()}
@@ -149,7 +184,7 @@ export default function OrderDetailsPage({ params }) {
         </header>
 
         <main className="max-w-7xl mx-auto px-6 py-10 space-y-8">
-          {/* --- TRACKING TIMELINE --- */}
+          {/* TRACKING TIMELINE */}
           <section className="bg-white rounded-[2.5rem] border border-slate-200/60 p-8 shadow-sm">
             <div className="flex flex-col md:flex-row justify-between items-start gap-8 relative">
               {trackingSteps.map((step, index) => {
@@ -199,7 +234,7 @@ export default function OrderDetailsPage({ params }) {
           </section>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* --- LEFT: ITEMS --- */}
+            {/* LEFT: ITEMS */}
             <div className="lg:col-span-2 space-y-6">
               <div className="bg-white rounded-[2.5rem] border border-slate-200/60 overflow-hidden shadow-sm">
                 <div className="px-8 py-6 border-b border-slate-50 flex justify-between items-center">
@@ -211,44 +246,59 @@ export default function OrderDetailsPage({ params }) {
                   </span>
                 </div>
                 <div className="divide-y divide-slate-50">
-                  {(order.items || order.orderItems || []).map((item, i) => (
-                    <div
-                      key={i}
-                      className="p-6 flex items-center justify-between hover:bg-slate-50/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-6">
-                        <div className="w-20 h-20 bg-slate-50 rounded-2xl overflow-hidden border border-slate-100 group">
-                          <img
-                            src={
-                              item.product?.images?.[0]?.url
-                                ? `${process.env.NEXT_PUBLIC_API_BASE_IMAGE_URL}${item.product.images[0].url}`
-                                : "/placeholder-product.png"
-                            }
-                            alt=""
-                            className="w-full h-full object-cover transition-transform group-hover:scale-110"
-                          />
+                  {(order.items || order.orderItems || []).map((item, i) => {
+                    const imageUrl = getItemImageUrl(item);
+                    
+                    return (
+                      <div
+                        key={i}
+                        className="p-6 flex items-center justify-between hover:bg-slate-50/50 transition-colors"
+                      >
+                        <div className="flex items-center gap-6">
+                          {/* Product Image */}
+                          <div className="w-20 h-20 bg-slate-50 rounded-2xl overflow-hidden border border-slate-100 group">
+                            {imageUrl && !imageErrors[i] ? (
+                              <img
+                                src={imageUrl}
+                                alt={item.product?.name || "Product"}
+                                className="w-full h-full object-cover transition-transform group-hover:scale-110"
+                                onError={() => handleImageError(i)}
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-slate-50">
+                                <ImageIcon size={24} className="text-slate-300" />
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div>
+                            <h3 className="text-sm font-black text-slate-800 hover:text-[#2A4150] cursor-pointer flex items-center gap-2">
+                              {item.product?.name || item.name || "Product"}
+                              <ExternalLink
+                                size={12}
+                                className="text-slate-300"
+                              />
+                            </h3>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">
+                              Quantity:{" "}
+                              <span className="text-slate-900">
+                                {item.quantity}
+                              </span>
+                            </p>
+                            {item.product?.sku && (
+                              <p className="text-[10px] text-slate-400 mt-0.5">
+                                SKU: {item.product.sku}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="text-sm font-black text-slate-800 hover:text-[#2A4150] cursor-pointer flex items-center gap-2">
-                            {item.product?.name}{" "}
-                            <ExternalLink
-                              size={12}
-                              className="text-slate-300"
-                            />
-                          </h3>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">
-                            Quantity:{" "}
-                            <span className="text-slate-900">
-                              {item.quantity}
-                            </span>
-                          </p>
-                        </div>
+                        <p className="text-sm font-black text-[#2A4150]">
+                          ₹{(item.price * (item.quantity || 1)).toLocaleString()}
+                        </p>
                       </div>
-                      <p className="text-sm font-black text-[#2A4150]">
-                        ₹{item.price.toLocaleString()}
-                      </p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
@@ -271,6 +321,14 @@ export default function OrderDetailsPage({ params }) {
                       FREE
                     </span>
                   </div>
+                  {order.discount > 0 && (
+                    <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-slate-500">
+                      <span>Discount</span>
+                      <span className="text-red-600 font-black">
+                        -₹{order.discount.toLocaleString()}
+                      </span>
+                    </div>
+                  )}
                   <div className="mt-8 pt-8 border-t-2 border-dashed border-slate-100 flex justify-between items-center">
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
@@ -286,8 +344,9 @@ export default function OrderDetailsPage({ params }) {
               </div>
             </div>
 
-            {/* --- RIGHT: SIDEBAR --- */}
+            {/* RIGHT: SIDEBAR */}
             <div className="space-y-6">
+              {/* Shipping Address */}
               <div className="bg-[#2A4150] rounded-[2.5rem] p-8 shadow-2xl shadow-blue-900/20 text-white relative overflow-hidden group">
                 <div className="relative z-10">
                   <div className="flex items-center gap-3 mb-6">
@@ -298,83 +357,92 @@ export default function OrderDetailsPage({ params }) {
                       Shipping To
                     </h2>
                   </div>
-                  <p className="text-sm font-bold leading-relaxed mb-1">
-                    {order.shipping?.firstName} {order.shipping?.lastName}
-                  </p>
-
-                  <p className="text-sm font-medium text-white/80 leading-relaxed">
-                    {order.shipping?.address}
-                  </p>
-
-                  <p className="text-sm font-medium text-white/80 leading-relaxed">
-                    {order.shipping?.city}, {order.shipping?.state},{" "}
-                    {order.shipping?.pinCode}
-                  </p>
-
-                  <p className="text-sm font-medium text-white/80 leading-relaxed">
-                    {order.shipping?.pincode}
-                  </p>
-                  <p className="text-sm font-medium text-white/80 leading-relaxed ">
-                    {order.shipping?.email}
-                  </p>
-
-                  <p className="text-sm font-medium text-white/80 leading-relaxed">
-                    {order.customer?.phone}
-                  </p>
+                  
+                  {order.shipping ? (
+                    <>
+                      <p className="text-sm font-bold leading-relaxed mb-1">
+                        {order.shipping.firstName} {order.shipping.lastName}
+                      </p>
+                      <p className="text-sm font-medium text-white/80 leading-relaxed">
+                        {order.shipping.address}
+                      </p>
+                      <p className="text-sm font-medium text-white/80 leading-relaxed">
+                        {order.shipping.city}, {order.shipping.state}{" "}
+                        {order.shipping.pinCode || order.shipping.pincode}
+                      </p>
+                      {order.shipping.phone && (
+                        <p className="text-sm font-medium text-white/80 leading-relaxed mt-2">
+                          📞 {order.shipping.phone}
+                        </p>
+                      )}
+                      {order.shipping.email && (
+                        <p className="text-sm font-medium text-white/80 leading-relaxed">
+                          ✉️ {order.shipping.email}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-sm text-white/60">No shipping details available</p>
+                  )}
                 </div>
-                {/* Decorative Circle */}
                 <div className="absolute -bottom-12 -right-12 w-40 h-40 bg-white/5 rounded-full blur-3xl group-hover:bg-white/10 transition-colors" />
               </div>
 
+              {/* Tracking Details */}
               {(order.trackingId || order.courierName) && (
-  <div className="bg-white rounded-[2.5rem] border border-slate-200/60 p-6 shadow-sm">
-    <div className="flex items-center gap-3 mb-4">
-      <div className="p-2 bg-blue-50 rounded-lg">
-        <Truck className="text-blue-600" size={18} />
-      </div>
-      <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-        Tracking Details
-      </h2>
-    </div>
+                <div className="bg-white rounded-[2.5rem] border border-slate-200/60 p-6 shadow-sm">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-blue-50 rounded-lg">
+                      <Truck className="text-blue-600" size={18} />
+                    </div>
+                    <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                      Tracking Details
+                    </h2>
+                  </div>
 
-    <div className="space-y-3">
-      {/* Tracking ID */}
-      <div className="flex justify-between items-center text-sm">
-        <span className="text-slate-500 font-semibold">
-          Tracking ID
-        </span>
-        <span className="font-bold text-slate-900">
-          {order.trackingId || "-"}
-        </span>
-      </div>
+                  <div className="space-y-3">
+                    {order.trackingId && (
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-500 font-semibold">
+                          Tracking ID
+                        </span>
+                        <span className="font-bold text-slate-900 font-mono">
+                          {order.trackingId}
+                        </span>
+                      </div>
+                    )}
+                    {order.courierName && (
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-500 font-semibold">
+                          Courier
+                        </span>
+                        <span className="font-bold text-slate-900">
+                          {order.courierName}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
-      {/* Courier Name */}
-      <div className="flex justify-between items-center text-sm">
-        <span className="text-slate-500 font-semibold">
-          Courier
-        </span>
-        <span className="font-bold text-slate-900">
-          {order.courierName || "-"}
-        </span>
-      </div>
-    </div>
-  </div>
-)}
-
+              {/* Status */}
               <div className="bg-white rounded-[2.5rem] border border-slate-200/60 p-8">
                 <div
                   className={`p-4 rounded-2xl text-center border transition-colors ${
                     order.status === "Delivered"
                       ? "bg-emerald-50 border-emerald-100"
-                      : "bg-blue-50 border-blue-100"
+                      : order.status === "Cancelled"
+                        ? "bg-red-50 border-red-100"
+                        : "bg-blue-50 border-blue-100"
                   }`}
                 >
-                  <p
-                    className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${getStatusColor(order.status)}`}
+                  <span
+                    className={`inline-block text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${getStatusColor(order.status)}`}
                   >
                     {order.status || "Pending"}
-                  </p>
+                  </span>
                 </div>
+                
                 {order.status === "Cancelled" &&
                   getCancelReason(order.cancelReason) && (
                     <div className="bg-red-50 border border-red-100 rounded-2xl p-4 mt-4 text-center">
@@ -386,8 +454,18 @@ export default function OrderDetailsPage({ params }) {
                       </p>
                     </div>
                   )}
+                  
+                {order.estimatedDelivery && (
+                  <div className="mt-4 text-center">
+                    <p className="text-[10px] text-slate-400 uppercase tracking-wider">
+                      Estimated Delivery
+                    </p>
+                    <p className="text-sm font-bold text-slate-700">
+                      {formatDate(order.estimatedDelivery)}
+                    </p>
+                  </div>
+                )}
               </div>
-              
             </div>
           </div>
         </main>

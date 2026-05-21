@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import { TableShell, TableHead, TableBody, TablePagination } from "./core";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, ImageIcon } from "lucide-react";
 
 export default function CategoriesTable({
   data = [],
@@ -44,11 +44,17 @@ export default function CategoriesTable({
             <div className="w-6" />
           )}
 
-          <img
-  src={row.image || "https://via.placeholder.com/40?text=No"}
-  alt="category"
-  className="w-8 h-8 rounded object-cover border"
-/>
+          {row.isSub ? (
+  <div className="w-8 h-8 rounded border flex items-center justify-center bg-slate-100">
+    <ImageIcon size={16} className="text-slate-500" />
+  </div>
+) : (
+  <img
+    src={row.image || "https://via.placeholder.com/40?text=No"}
+    alt="category"
+    className="w-8 h-8 rounded object-cover border"
+  />
+)}
           <span
             className={`${row.isSub ? "text-slate-800 pl-4" : "font-bold text-slate-800"}`}
           >

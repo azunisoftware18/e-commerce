@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import { useForm } from "react-hook-form";
 import Button from "../ui/Button";
-import TextAreaField from "../ui/TextAreaField";
 import InputField from "../ui/InputField";
 
 export default function ConsultationForm({
-  title = "",
+  title = "Book a Consultation",
   showSubmitButton = true,
   onSubmitForm,
   isSubmitting = false,
@@ -15,8 +14,6 @@ export default function ConsultationForm({
   const {
     register,
     handleSubmit,
-    watch,
-    unregister,
     reset,
     formState: { errors },
   } = useForm({
@@ -25,32 +22,35 @@ export default function ConsultationForm({
     },
   });
 
-  const selectedIssues = watch("healthIssues") || [];
-
   const onSubmit = async (data) => {
-  if (onSubmitForm) {
-    await onSubmitForm(data); 
-  }
-
-  reset(); 
-};
+    if (onSubmitForm) {
+      await onSubmitForm(data);
+    }
+    reset();
+  };
 
   return (
-    <div className="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow">
-      <h1 className="text-3xl font-bold mb-6">{title}</h1>
+    /* Box padding badha kar p-8 sm:p-10 kiya gaya hai design ko breath karne ke liye */
+    <div className="w-full max-w-3xl mx-auto bg-white p-8 sm:p-10 border border-slate-100 rounded-4xl shadow-xl overflow-hidden">
+      {title && (
+        <h1 className="text-3xl font-bold mb-8 text-[#2A4150] tracking-tight border-b border-slate-100 pb-4">
+          {title}
+        </h1>
+      )}
 
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="space-y-4"
+        className="space-y-6"
         id="checkout-form"
       >
-        {/* Name Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Name Row - Gap badha kar 6 kiya hai */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <InputField
             label="First Name"
-            placeholder="First Name"
+            placeholder="Enter your first name"
             isRequired
             error={errors.firstName?.message}
+            className="rounded-xl border-slate-200 focus:border-[#2A4150] h-11 text-sm"
             {...register("firstName", {
               required: "First name is required",
             })}
@@ -58,75 +58,81 @@ export default function ConsultationForm({
 
           <InputField
             label="Last Name"
-            placeholder="Last Name"
+            placeholder="Enter your last name"
             isRequired
             error={errors.lastName?.message}
+            className="rounded-xl border-slate-200 focus:border-[#2A4150] h-11 text-sm"
             {...register("lastName", {
               required: "Last name is required",
             })}
           />
         </div>
 
-        {/* Age */}
-        <InputField
-          label="Age"
-          placeholder="Ex. 22"
-          type="number"
-          isRequired
-          error={errors.age?.message}
-          {...register("age", {
-            required: "Age is required",
-            min: { value: 1, message: "Invalid age" },
-          })}
-        />
+        {/* Age & Weight Row - Isko grid me daal diya taaki desktop par vertical space bache */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <InputField
+            label="Age"
+            placeholder="Enter your age"
+            type="number"
+            isRequired
+            error={errors.age?.message}
+            className="rounded-xl border-slate-200 focus:border-[#2A4150] h-11 text-sm"
+            {...register("age", {
+              required: "Age is required",
+              min: { value: 1, message: "Invalid age" },
+            })}
+          />
 
-        {/* Weight */}
-        <InputField
-          label="Weight (in kg)"
-          placeholder="Ex. 45"
-          type="number"
-          isRequired
-          error={errors.weight?.message}
-          {...register("weight", {
-            required: "Weight is required",
-          })}
-        />
+          <InputField
+            label="Weight (in kg)"
+            placeholder="Enter your weight"
+            type="number"
+            isRequired
+            error={errors.weight?.message}
+            className="rounded-xl border-slate-200 focus:border-[#2A4150] h-11 text-sm"
+            {...register("weight", {
+              required: "Weight is required",
+            })}
+          />
+        </div>
 
-        {/* Phone */}
+        {/* Phone - Clean Label aur Natural Placeholder */}
         <InputField
-          label="Phone/Mobile (With Country Code)"
-          placeholder="917750824146"
+          label="Phone Number"
+          placeholder="Enter your phone number"
           isRequired
           error={errors.phone?.message}
+          className="rounded-xl border-slate-200 focus:border-[#2A4150] h-11 text-sm"
           {...register("phone", {
-            required: "Phone is required",
+            required: "Phone number is required",
             pattern: {
-              value: /^[0-9]+$/,
-              message: "Only numbers allowed",
+              value: /^[0-9+() \-]+$/,
+              message: "Please enter a valid phone number",
             },
           })}
         />
 
         {/* Email */}
         <InputField
-          label="Email"
-          placeholder="Email Address"
+          label="Email Address"
+          placeholder="Enter your email address"
           error={errors.email?.message}
+          className="rounded-xl border-slate-200 focus:border-[#2A4150] h-11 text-sm"
           {...register("email", {
             pattern: {
               value: /^\S+@\S+$/i,
-              message: "Invalid email",
+              message: "Invalid email address",
             },
           })}
         />
 
         {/* Health Issues */}
-        <div>
-          <label className="text-sm font-medium text-slate-700">
-            Health Issues (Select At least One) *
+        <div className="space-y-3">
+          <label className="text-sm font-semibold text-slate-700 ml-1">
+            Health Issues <span className="text-xs font-normal text-slate-500">(Select at least one)</span> *
           </label>
 
-          <div className="mt-2 space-y-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
             {[
               "Thyroid",
               "Weight gain",
@@ -135,13 +141,14 @@ export default function ConsultationForm({
               "Pigmentation",
               "Others: Not sure about the exact issue",
             ].map((issue) => (
-              <label key={issue} className="flex items-center gap-2">
+              <label key={issue} className="flex items-center gap-3 px-2 py-1.5 cursor-pointer hover:bg-slate-100/50 rounded-lg transition-colors text-sm text-slate-600 font-medium">
                 <input
                   type="checkbox"
                   value={issue}
+                  className="w-4 h-4 rounded border-slate-300 text-[#2A4150] focus:ring-[#2A4150]"
                   {...register("healthIssues", {
                     validate: (value) =>
-                      value?.length > 0 || "Select at least one issue",
+                      value?.length > 0 || "Please select at least one issue",
                   })}
                 />
                 {issue}
@@ -150,23 +157,25 @@ export default function ConsultationForm({
           </div>
 
           {errors.healthIssues && (
-            <p className="text-red-500 text-sm mt-1">
+            <p className="text-red-500 text-xs font-semibold ml-1 mt-1">
               {errors.healthIssues.message}
             </p>
           )}
-
-          {/* ✅ Show textarea only if "Other" selected */}
         </div>
 
-        {/* Submit */}
+        {/* Submit Button - Premium Gradient added to match login page */}
         {showSubmitButton && (
-          <Button
-            type="submit"
-            text={isSubmitting ? "Submitting..." : "Submit Form"}
-            disabled={isSubmitting}
-            className="mt-4 px-6 py-2 rounded-md"
-            form="checkout-form"
-          />
+          <div className="pt-2">
+            <Button
+              type="submit"
+              text={isSubmitting ? "Submitting..." : "Submit Form"}
+              disabled={isSubmitting}
+              className="w-full sm:w-auto px-8 py-3 rounded-xl bg-gradient-to-r from-[#2A4150] to-[#1a3340] 
+                text-white hover:from-[#1a3340] hover:to-[#2A4150] font-bold text-sm
+                transition-all duration-300 shadow-lg shadow-[#2A4150]/10 active:scale-[0.98]"
+              form="checkout-form"
+            />
+          </div>
         )}
       </form>
     </div>

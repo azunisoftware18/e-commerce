@@ -9,35 +9,41 @@ export default function Consultation() {
 
   const handleSubmit = (data) => {
     mutate(data, {
-      onSuccess: (res) => {toast.success("Consultation request submitted");
+      onSuccess: (res) => {
+        toast.success("Consultation request submitted");
       },
       onError: (err) => {
         console.log("ERROR:", err);
+        toast.error(err?.response?.data?.message || "Something went wrong");
       },
     });
   };
 
   return (
-    <main className="min-h-screen flex flex-col md:flex-row bg-[#e0e0e0]">
+    <main className="min-h-screen flex flex-col md:flex-row bg-[#2A4150]">
       
-      <section className="w-full md:w-1/2 flex items-center justify-center p-6 lg:p-20 bg-[#2A4150] text-white shadow-2xl z-10">
-        <div className="w-full max-w-lg">
+      {/* LEFT SECTION: Form Content Area */}
+      {/* Mobile/Tablet par w-full (full width) rahega aur desktop par automatic split standard side layout (md:w-1/2) le lega */}
+      <section className="w-full md:w-1/2 flex items-center justify-center py-12 px-4 sm:px-8 md:p-12 lg:p-20 text-white shadow-2xl z-10">
+        <div className="w-full max-w-lg mx-auto">
           
-          <header className="mb-10">
-            <span className="text-[#e0e0e0] uppercase tracking-widest text-xs font-semibold">
+          <header className="mb-8 md:mb-10 text-center md:text-left">
+            <span className="text-slate-300 uppercase tracking-widest text-xs font-bold bg-white/10 px-3 py-1 rounded-full inline-block md:bg-transparent md:p-0 md:rounded-none">
               Get Started
             </span>
-            <h1 className="text-4xl md:text-5xl font-serif font-bold mt-2 mb-4">
-              Book a <span className="text-[#e0e0e0]">Consultation</span>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mt-3 mb-4 tracking-tight">
+              Book a <span className="text-slate-300">Consultation</span>
             </h1>
-            <div className="h-1 w-20 bg-[#e0e0e0] mb-6"></div>
-            <p className="text-gray-300 text-lg leading-relaxed">
-              Take the first step toward your goals.
+            <div className="h-1 w-16 bg-slate-300 mx-auto md:mx-0 mb-6 rounded-full"></div>
+            <p className="text-slate-200 text-sm sm:text-base leading-relaxed max-w-md mx-auto md:mx-0">
+              Take the first step toward your health goals. Please fill out the form below.
             </p>
           </header>
 
-          <div className="bg-white/5 p-1 rounded-xl backdrop-blur-sm text-[#2A4150]">
+          {/* Form wrapper layout glassmorphism details */}
+          <div className="bg-white/5 p-1 rounded-3xl sm:rounded-4xl backdrop-blur-sm text-[#2A4150]">
             <ConsultationForm
+              title="" 
               onSubmitForm={handleSubmit}   
               isSubmitting={isPending}    
               showSubmitButton={true}
@@ -46,23 +52,27 @@ export default function Consultation() {
         </div>
       </section>
 
-      <section className="relative w-full md:w-1/2 h-64 md:h-auto overflow-hidden">
+      {/* RIGHT SECTION: Visual Image Section */}
+      {/* ⚡ 'hidden md:block' se mobile aur tablet par image clean tareeqe se hide ho jayegi */}
+      <section className="hidden md:block relative md:w-1/2 h-screen sticky top-0 overflow-hidden">
         <img 
           src="https://i.pinimg.com/1200x/1c/e6/48/1ce6488e1797d67b3904e71ddbd682f6.jpg" 
           alt="Professional Consultation" 
           className="absolute inset-0 w-full h-full object-cover scale-105 hover:scale-100 transition-transform duration-700 ease-in-out"
         />
         
-        {/* Thematic Overlays */}
-        <div className="absolute inset-0 bg-[#2A4150]/20 mix-blend-multiply"></div>
-        <div className="absolute inset-0 bg-linear-to-r from-[#2A4150] via-transparent to-transparent opacity-60 md:opacity-100"></div>
+        {/* Overlays */}
+        <div className="absolute inset-0 bg-[#2A4150]/30 mix-blend-multiply"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-[#2A4150] via-[#2A4150]/20 to-transparent opacity-100"></div>
 
-        {/* <div className="hidden lg:block absolute bottom-12 right-12 bg-white/10 backdrop-blur-md p-6 border border-white/20 rounded-sm max-w-xs">
-          <p className="text-white text-sm italic">
-            "The best way to predict the future is to create it."
+        {/* Elegant Overlap Quote: Only on desktops */}
+        <div className="hidden lg:block absolute bottom-12 right-12 bg-white/10 backdrop-blur-md p-6 border border-white/10 rounded-2xl max-w-xs">
+          <p className="text-white text-sm italic font-medium leading-relaxed">
+            "Your health is an investment, not an expense."
           </p>
-        </div> */}
+        </div>
       </section>
+
     </main>
   );
 }

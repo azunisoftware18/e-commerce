@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Star, BadgeCheck } from "lucide-react";
+import { Star, ShoppingCart } from "lucide-react";
 import Button from "../ui/Button";
 import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
@@ -25,62 +25,202 @@ export default function ProductCard({
   const cartItems = useSelector((state) => state.cart.items);
   const cartItem = cartItems.find((item) => item.id === id);
   const isOutOfStock = status === "Out_of_Stock" || stock === 0;
+
   return (
-    <Link href={`/product/${id}`}>
+    <Link 
+      href={`/product/${id}`} 
+      className="block h-full group select-none touch-manipulation"
+    >
       <div
-        className={`relative bg-white border border-slate-200 rounded-md overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col w-75 h-full ${className}`}
+        className={`
+          relative bg-white border border-slate-100 rounded-lg sm:rounded-xl 
+          overflow-hidden shadow-sm
+          transition-all duration-500 ease-out flex flex-col 
+          w-full h-full
+          
+          /* Mobile Press Touch Effect (Active State) */
+          active:scale-[0.97] active:shadow-md active:border-emerald-500/20
+          
+          /* Tablet and Desktop Hover Animations */
+          md:hover:-translate-y-2
+          md:hover:shadow-[0_20px_40px_rgba(16,185,129,0.14)] 
+          md:hover:border-emerald-500/20 
+          
+          will-change-transform ${className}
+        `}
       >
-        <div className="w-full">
-          <img src={image} alt={title} className="w-full h-64 content-fit " />
+        {/* IMAGE SECTION WITH HOVER SCALE & REFLECTION SHIMMER */}
+        <div className="w-full relative overflow-hidden bg-slate-50 aspect-square flex items-center justify-center p-3 sm:p-4">
+          <img 
+            src={image} 
+            alt={title} 
+            className={`
+              w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 lg:w-60 lg:h-60 
+              object-cover rounded-md sm:rounded-lg 
+              transition-transform duration-700 ease-out 
+              md:group-hover:scale-105
+              ${isOutOfStock ? "opacity-40 blur-[1px]" : ""}
+            `}
+            loading="lazy"
+          />
+          
+          {/* GLASS-SHINE SHIMMER - Visible on hover for desktop */}
+          <div className="
+            absolute inset-0 w-[200%] h-full 
+            bg-linear-to-r from-transparent via-white/20 to-transparent 
+            -skew-x-12 -translate-x-[150%] 
+            md:group-hover:translate-x-[150%] 
+            transition-transform duration-1000 ease-out 
+            pointer-events-none hidden md:block
+          " />
+
+          {/* OUT OF STOCK GLASS BADGE */}
+          {isOutOfStock && (
+            <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] sm:backdrop-blur-xs flex items-center justify-center transition-all duration-300">
+              <span className="
+                bg-rose-500 text-white 
+                text-[8px] sm:text-[10px] md:text-xs 
+                font-black 
+                px-2 sm:px-3 py-1 sm:py-1.5 
+                rounded-full shadow-md tracking-widest uppercase 
+                transition-transform duration-300 
+                md:group-hover:scale-105
+              ">
+                OUT OF STOCK
+              </span>
+            </div>
+          )}
         </div>
 
-        <div className="px-4 pb-2 flex flex-col items-center text-center gap-2 flex-1 bg-[#e0e0e0]">
-          <h3 className="text-[17px] leading-tight font-medium text-slate-800 line-clamp-2 min-h-11">
+        {/* DETAILS SECTION - Reduced spacing */}
+        <div className="p-2.5 sm:p-3 md:p-4 flex flex-col gap-1 sm:gap-1.5 flex-1 bg-white">
+          
+          {/* TITLE */}
+          <h3 className="
+            text-sm sm:text-base md:text-base lg:text-lg
+            font-semibold md:font-bold 
+            text-slate-800 
+            line-clamp-2 
+            min-h-10 sm:min-h-12 
+            transition-colors duration-300 
+            leading-snug
+            mb-0.5 sm:mb-1
+          ">
             {title}
           </h3>
 
-          <div
-            className="text-[15px] font-medium text-[#689F38] line-clamp-2 min-h-11"
-            dangerouslySetInnerHTML={{ __html: description || "" }}
-          />
+          {/* DESCRIPTION - Hidden on mobile, visible on tablet+ */}
+          {description && (
+            <div
+              className="
+                hidden sm:block
+                text-[10px] sm:text-xs md:text-xs
+                font-normal text-slate-500 
+                line-clamp-2 
+                leading-relaxed 
+                transition-colors duration-300 
+                md:group-hover:text-slate-600
+                mb-0.5 sm:mb-1
+              "
+              dangerouslySetInnerHTML={{ __html: description || "" }}
+            />
+          )}
 
-          <span className="text-[16px] text-slate-700 font-medium mt-1 min-h-6">
-            {size}
-          </span>
+          {/* SIZE / VARIANT BADGE */}
+          {size && (
+            <div className="mb-1 sm:mb-1.5">
+              <span className="
+                inline-block 
+                bg-slate-50 border border-slate-200 
+                text-slate-600 
+                text-[10px] sm:text-xs 
+                px-2 sm:px-2.5 py-0.5 sm:py-1 
+                rounded-md 
+                font-medium 
+                transition-all duration-300 
+                md:group-hover:bg-emerald-50/50 
+                md:group-hover:border-emerald-200
+              ">
+                Pack: {size}
+              </span>
+            </div>
+          )}         
 
-          <div className="flex items-center justify-center gap-1 text-[14px] font-semibold text-slate-700 mt-1"></div>
-
-          <div className="text-2xl font-bold text-slate-900 mt-auto">
-            ₹{price}
+          {/* PRICE TAG AREA - Tighter spacing */}
+          <div className="
+            mt-auto pt-1.5 sm:pt-2
+            border-t border-slate-50 
+            flex items-center justify-between 
+            transition-all duration-300 
+            md:group-hover:border-emerald-100
+          ">
+            <div className="flex flex-col gap-0">
+              <span className="
+                text-[8px] sm:text-[10px] md:text-[10px]
+                uppercase tracking-wider 
+                text-slate-400 
+                font-semibold
+                leading-none
+                mb-0.5
+              ">
+                Price
+              </span>
+              <span className="
+                text-base sm:text-lg md:text-xl 
+                font-black 
+                text-slate-900 
+                leading-none 
+                transition-transform duration-300 
+                md:group-hover:translate-x-0.5
+              ">
+                ₹{price}
+              </span>
+            </div>
           </div>
         </div>
 
-        <div className="px-2 pb-2 bg-[#e0e0e0] mt-auto">
+        {/* BUTTON / ACTION AREA - Compact */}
+        <div className="px-2.5 sm:px-3 md:px-4 pb-2.5 sm:pb-3 md:pb-4 pt-0 bg-white">
           {!cartItem ? (
             <Button
-              text={stock === 0 ? "OUT OF STOCK" : "ADD TO CART"}
-              disabled={stock === 0}
-              className={`w-full h-11.25 font-bold py-3 rounded-md text-lg tracking-wide 
-    ${
-      stock === 0 ? "bg-gray-400 cursor-not-allowed" : "bg-[#2A4150] text-white"
-    }`}
+              text={
+                <div className="flex items-center justify-center gap-1 sm:gap-1.5 w-full">
+                  <span className="text-[10px] sm:text-xs md:text-sm">
+                    {isOutOfStock ? "OUT OF STOCK" : "ADD TO CART"}
+                  </span>
+                  {!isOutOfStock && (
+                    <ShoppingCart 
+                      className="
+                        w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 
+                        transform transition-transform duration-300 
+                        md:group-hover:translate-x-0.5
+                      " 
+                    />
+                  )}
+                </div>
+              }
+              disabled={isOutOfStock}
+              className={`
+                w-full 
+                h-9 sm:h-10 md:h-11 
+                font-bold md:font-extrabold 
+                rounded-md sm:rounded-lg 
+                text-[10px] sm:text-xs md:text-sm 
+                tracking-wider uppercase 
+                transition-all duration-300 
+                active:scale-[0.95] md:active:scale-95
+                ${
+                  isOutOfStock 
+                    ? "bg-slate-200 text-slate-400 cursor-not-allowed shadow-none" 
+                    : "bg-[#2A4150] text-white md:hover:shadow-lg md:hover:shadow-emerald-600/20"
+                }
+              `}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
 
-                // ❌ OUT OF STOCK
-                if (isOutOfStock) {
-                  alert("This product is out of stock");
-                  return;
-                }
+                if (isOutOfStock) return;
 
-                // ❌ ALREADY ADDED
-                if (cartItem) {
-                  alert("Already added to cart");
-                  return;
-                }
-
-                // ✅ ADD
                 dispatch(
                   addToCart({
                     id,
@@ -95,7 +235,17 @@ export default function ProductCard({
             />
           ) : (
             <div
-              className="w-full h-11.25 bg-[#2A4150] rounded-md overflow-hidden"
+              className="
+                w-full 
+                h-9 sm:h-10 md:h-11 
+                bg-[#2A4150] 
+                rounded-md sm:rounded-lg 
+                overflow-hidden 
+                shadow-sm 
+                border border-[#2A4150] 
+                transition-transform duration-200 
+                active:scale-[0.96]
+              "
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -105,7 +255,7 @@ export default function ProductCard({
                 variant="button"
                 quantity={cartItem.quantity}
                 showRemove={false}
-                className="h-[full]"
+                className="h-full w-full"
                 onIncrease={() => {
                   if (isOutOfStock || cartItem.quantity >= stock) {
                     alert(`Only ${stock} items available`);

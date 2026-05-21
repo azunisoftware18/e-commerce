@@ -85,63 +85,71 @@ export default function Categories() {
   const [editData, setEditData] = useState(null);
 
   const handleEditCategory = (row, type = "category") => {
-  setEditData({
-    ...row,
-    type, 
-  });
-  setOpen(true);
-};
+    setEditData({
+      ...row,
+      type,
+    });
+    setOpen(true);
+  };
 
-const handleUpdate = (data) => {
-  if (editData?.type === "subcategory") {
-    updateSubCategory.mutate(
-      { id: editData.id, data },
-      {
-        onSuccess: () => {
-          toast.success("SubCategory updated ✅");
-          setOpen(false);
-          setEditData(null);
+  const handleUpdate = (data) => {
+    if (editData?.type === "subcategory") {
+      updateSubCategory.mutate(
+        { id: editData.id, data },
+        {
+          onSuccess: () => {
+            toast.success("SubCategory updated ✅");
+            setOpen(false);
+            setEditData(null);
+          },
+          onError: (err) => {
+            toast.error(err?.response?.data?.message || "Update failed");
+          },
         },
-        onError: (err) => {
-          toast.error(err?.response?.data?.message || "Update failed");
+      );
+    } else {
+      updateCategory.mutate(
+        { id: editData.id, data },
+        {
+          onSuccess: () => {
+            toast.success("Category updated ✅");
+            setOpen(false);
+            setEditData(null);
+          },
+          onError: (err) => {
+            toast.error(err?.response?.data?.message || "Update failed");
+          },
         },
-      }
-    );
-  } else {
-    updateCategory.mutate(
-      { id: editData.id, data },
-      {
-        onSuccess: () => {
-          toast.success("Category updated ✅");
-          setOpen(false);
-          setEditData(null);
-        },
-        onError: (err) => {
-          toast.error(err?.response?.data?.message || "Update failed");
-        },
-      }
-    );
-  }
-};
+      );
+    }
+  };
 
   if (isLoading) {
     return <div className="p-6">Loading categories...</div>;
   }
 
+  // In your Categories component, update the formattedData logic:
+
   const formattedData = categoriesData.map((item) => ({
     id: item.id,
-    image: item.image
-      ? `http://api.herbsnglam.com${item.image}`
-      : "https://via.placeholder.com/40",
+    image:
+      item.image?.url ||
+      item.image?.signedUrl ||
+      "https://via.placeholder.com/40",
     name: item.name,
     sku: item.sku,
     description: item.description,
     subCategories: (item.subCategories || []).map((sub) => ({
-  ...sub,
-  image: sub.image
-    ? `http://api.herbsnglam.com${sub.image}`
-    : "https://via.placeholder.com/40?text=Sub",
-})),
+      id: sub.id,
+      name: sub.name,
+      sku: sub.sku,
+      description: sub.description,
+      image:
+        sub.image?.url ||
+        sub.image?.signedUrl ||
+        "https://via.placeholder.com/40?text=Sub",
+      categoryId: sub.categoryId,
+    })),
   }));
 
   const handleUpdateCategory = (data) => {

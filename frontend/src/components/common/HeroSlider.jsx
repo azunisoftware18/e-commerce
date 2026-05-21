@@ -38,14 +38,15 @@ export default function HeroSlider({
           }`}
         >
           <div className="relative w-full h-full">
+            {/* FIXED: Changed object-fill to object-cover to prevent image stretching */}
             <img
               src={item.src}
               alt={item.title}
-              className="w-full h-full object-fill "
+              className="w-full h-full object-cover object-center "
             />
 
             {/* Professional Gradient Overlay */}
-            <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-center px-6 md:px-20 lg:px-32">
+            <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-center px-6 md:px-20 lg:px-32">
               <div
                 className={`transition-all duration-1000 delay-300 transform ${
                   index === current
@@ -53,25 +54,25 @@ export default function HeroSlider({
                     : "translate-y-10 opacity-0"
                 }`}
               >
-                {/* Small Tagline/Badge */}
-                {/* <span className="text-white/80 text-xs md:text-sm font-medium tracking-[0.3em] uppercase mb-4 block">
-                  New Arrival 2026
-                </span> */}
+                {/* Optional Soft Subtitle/Tagline */}
+                <span className="text-white/90 text-xs md:text-sm font-medium tracking-[0.2em] uppercase mb-3 block">
+                  Premium Wellness Collection
+                </span>
 
-                {/* Main Title with Letter Spacing */}
-                <h2 className="text-white text-4xl md:text-7xl font-black mb-4 uppercase leading-tight tracking-tighter max-w-3xl">
+                {/* FIXED: Changed font-black & tracking-tighter to elegant font-serif & tracking-wide */}
+                <h2 className="text-white text-4xl md:text-6xl lg:text-7xl font-serif font-normal mb-5 uppercase leading-tight tracking-wide max-w-3xl drop-shadow-sm">
                   {item.title}
-                </h2>
+                </h2> 
 
-                {/* Description with better line height */}
-                <p className="text-white/70 text-sm md:text-lg max-w-xl mb-8 line-relaxed font-light">
+                {/* Description with better visibility */}
+                <p className="text-white/80 text-sm md:text-base max-w-xl mb-8 leading-relaxed font-light tracking-wide">
                   {item.description}
                 </p>
 
-                {/* CTA Button */}
+                {/* FIXED: Added rounded corners to match the Login button style */}
                 <Link
                   href={typeof item.link === "string" ? item.link : "/"}
-                  className="inline-block bg-white text-black px-8 py-3 md:px-10 md:py-4 text-sm font-bold uppercase tracking-widest hover:bg-[#2A4150] hover:text-white transition-colors duration-300"
+                  className="inline-block bg-white text-black px-8 py-3 md:px-10 md:py-3.5 text-xs md:text-sm font-bold uppercase tracking-widest rounded-lg hover:bg-[#2A4150] hover:text-white shadow-md transition-all duration-300 transform active:scale-95"
                 >
                   Shop Now
                 </Link>
@@ -81,28 +82,28 @@ export default function HeroSlider({
         </div>
       ))}
 
-      {/* Navigation Buttons - Hidden on mobile, visible on hover on desktop */}
+      {/* Navigation Buttons */}
       {images.length > 1 && (
         <div className="absolute inset-0 z-20 flex items-center justify-between px-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
           <button
             onClick={prevSlide}
-            className="pointer-events-auto backdrop-blur-md bg-white/10 hover:bg-white text-white hover:text-black p-3 md:p-4 rounded-full transition-all duration-300 border border-white/20"
+            className="pointer-events-auto backdrop-blur-md bg-white/10 hover:bg-white text-white hover:text-black p-3 rounded-full transition-all duration-300 border border-white/20"
           >
-            <ChevronLeft className="w-6 h-6 md:w-8 md:h-8" />
+            <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
           </button>
 
           <button
             onClick={nextSlide}
-            className="pointer-events-auto backdrop-blur-md bg-white/10 hover:bg-white text-white hover:text-black p-3 md:p-4 rounded-full transition-all duration-300 border border-white/20"
+            className="pointer-events-auto backdrop-blur-md bg-white/10 hover:bg-white text-white hover:text-black p-3 rounded-full transition-all duration-300 border border-white/20"
           >
-            <ChevronRight className="w-6 h-6 md:w-8 md:h-8" />
+            <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
           </button>
         </div>
       )}
 
-      {/* Modern Slim Indicators */}
+      {/* Modern Indicators */}
       {images.length > 1 && (
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-4 z-30">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3 z-30">
           {images.map((_, i) => (
             <button
               key={i}
@@ -112,8 +113,8 @@ export default function HeroSlider({
               <div
                 className={`h-0.5 transition-all duration-500 ${
                   current === i
-                    ? "w-12 bg-white"
-                    : "w-6 bg-white/40 group-hover:bg-white/70"
+                    ? "w-10 bg-white"
+                    : "w-5 bg-white/40 group-hover:bg-white/70"
                 }`}
               />
             </button>

@@ -87,7 +87,12 @@ export default function CheckoutPage() {
                   <div className="flex justify-between items-center group">
                     <div className="flex flex-col">
                       <span className="text-sm font-medium text-blue-100/80">Premium Guide</span>
-                      <span className="text-lg font-bold truncate max-w-50">{plan?.name}</span>
+                      <span className="text-lg font-bold truncate max-w-50">
+  {plan?.name
+    ?.replace(/[-_]/g, " ")
+    ?.toLowerCase()
+    ?.replace(/\b\w/g, (char) => char.toUpperCase())}
+</span>
                     </div>
                     <span className="text-xl font-black">₹{plan?.price || 0}</span>
                   </div>

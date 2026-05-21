@@ -60,7 +60,7 @@ export default function CartPage() {
   }, [dispatch]);
 
   const FREE_SHIPPING_MIN = 500;
-  const DISCOUNT_THRESHOLD = 1000;
+  
 
   const { subtotal, shipping, discount, total, progress } = useMemo(() => {
     const sub = reduxItems.reduce(
@@ -68,7 +68,7 @@ export default function CartPage() {
       0,
     );
     const ship = sub >= FREE_SHIPPING_MIN || sub === 0 ? 0 : 0;
-    const disc = sub > DISCOUNT_THRESHOLD ? 100 : 0;
+    const disc = 0;
     return {
       subtotal: sub,
       shipping: ship,
@@ -218,7 +218,7 @@ export default function CartPage() {
               Back to Shop
             </Link>
             <h1 className="text-4xl font-black text-slate-900 tracking-tight">
-              Your Bag{" "}
+              Your Cart{" "}
               <span className="text-slate-400 font-normal">
                 ({reduxItems.length})
               </span>
@@ -348,13 +348,13 @@ export default function CartPage() {
                     value={shipping}
                     isFree={shipping === 0}
                   />
-                  {discount > 0 && (
+                  {/* {discount > 0 && (
                     <PriceRow
                       label="Bag Discount"
                       value={-discount}
                       isDiscount
                     />
-                  )}
+                  )} */}
 
                   <div className="pt-4 border-t border-dashed border-slate-200 flex justify-between items-end">
                     <span className="font-bold text-slate-900">
@@ -436,14 +436,21 @@ const CartItem = ({ item, onUpdate, onRemove }) => (
         alt={item.name}
       />
     </div>
-    <div className="flex-1 flex flex-col justify-between">
+    <div className="flex-1 min-w-0 flex flex-col justify-between">
       <div className="flex justify-between">
         <div>
           <h3 className="font-bold text-slate-900">{item.name}</h3>
 
-          <p className="text-xs text-slate-400 mt-1 line-clamp-2">
-            {item.description || "No description"}
-          </p>
+          <div
+  className="text-xs text-slate-400 mt-1 leading-relaxed w-full overflow-hidden line-clamp-2"
+  style={{
+    wordBreak: "break-word",
+    overflowWrap: "anywhere",
+  }}
+  dangerouslySetInnerHTML={{
+    __html: item.description || "No description",
+  }}
+/>
         </div>
 
         <span className="font-black text-slate-900">
@@ -509,7 +516,7 @@ const EmptyCartView = () => (
       <div className="absolute top-0 right-0 w-6 h-6 bg-[#2A4150] rounded-full border-4 border-white" />
     </div>
     <h2 className="text-4xl font-black text-slate-900 mb-2 tracking-tighter">
-      YOUR BAG IS EMPTY
+      YOUR CART IS EMPTY
     </h2>
     <p className="text-slate-500 mb-8 max-w-xs font-medium italic">
       Looks like you haven't decided yet. Our new collection is waiting!

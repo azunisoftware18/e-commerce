@@ -13,6 +13,7 @@ import {
   ChevronDown,
   Menu,
   X,
+  Search,
 } from "lucide-react";
 
 import SearchField from "./ui/SearchField";
@@ -77,41 +78,85 @@ export default function Header() {
     router.push("/");
   };
 
+  const getLogoUrl = () => {
+    if (!settings) return null;
+
+    if (settings.logoSignedUrl) {
+      return settings.logoSignedUrl;
+    }
+
+    if (
+      settings.logo &&
+      typeof settings.logo === "string" &&
+      settings.logo.startsWith("http")
+    ) {
+      return settings.logo;
+    }
+
+    if (settings.logoKey) {
+      return `https://azzunique-fintech-node.s3.ap-south-1.amazonaws.com/${settings.logoKey}`;
+    }
+
+    return null;
+  };
+
+  const logoUrl = getLogoUrl();
+
+  // Short category names for menu
+  const getShortName = (name) => {
+    const shortNames = {
+      "BEAUTY HAIR CARE SKIN CARE": "Beauty",
+      "HEALTH & WELLNESS": "Health",
+      "PERSONAL CARE": "Personal Care",
+      "FOOD & NUTRITION": "Nutrition",
+      // Add more mappings as needed
+    };
+    return shortNames[name] || name;
+  };
+
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b border-[#e0e0e0] bg-white/95 backdrop-blur-md shadow-sm">
-        <div className="mx-auto max-w-full px-4 sm:px-6 lg:px-10 bg bg-white">
-          <div className="flex h-16 items-center justify-between md:h-20">
-            {/* Mobile Menu Toggle */}
-            <button
-              className="md:hidden p-2 -ml-2 text-slate-600"
-              onClick={() => setIsMobileMenuOpen(true)}
-            >
-              <Menu size={24} />
-            </button>
+      <header className="sticky top-0 z-50 w-full border-b border-slate-100 bg-white/95 backdrop-blur-md shadow-sm">
+        {/* Main Header - Reduced padding */}
+        <div className="mx-auto max-w-full px-3 sm:px-4 lg:px-8">
+          <div className="flex h-14 md:h-16 items-center justify-between gap-3">
+            
+            {/* LEFT SECTION: Menu + Logo */}
+            <div className="flex items-center gap-1">
+              {/* Mobile Menu Toggle */}
+              <button
+                className="lg:hidden p-2 -ml-1 text-slate-600 hover:text-[#2A4150] transition-colors"
+                onClick={() => setIsMobileMenuOpen(true)}
+              >
+                <Menu size={22} />
+              </button>
 
-            {/* Logo */}
-            <Link href="/" className="shrink-0 flex items-center gap-2">
-              {settings?.logo ? (
-                <img
-                  src={`http://api.herbsnglam.com${settings.logo}`}
-                  alt="Logo"
-                  className="h-30 w-30 object-contain"
-                />
-              ) : (
-                <span className="text-xl font-black tracking-tighter md:text-3xl">
-                  <span className="text-[#2A4150]">G</span>
-                  <span className="text-[#9ca0a3]">LAM</span>
-                </span>
-              )}
-            </Link>
+              {/* Logo - Always on left */}
+              <Link href="/" className="shrink-0 flex items-center gap-2">
+                {logoUrl ? (
+                  <img
+                    src={logoUrl}
+                    alt="Logo"
+                    className="h-8 sm:h-10 md:h-12 w-auto object-contain"
+                    onError={(e) => {
+                      e.target.style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <span className="text-lg sm:text-xl md:text-2xl font-black tracking-tighter">
+                    <span className="text-[#2A4150]">G</span>
+                    <span className="text-[#9ca0a3]">LAM</span>
+                  </span>
+                )}
+              </Link>
+            </div>
 
-            {/* Desktop Search */}
-            <div className="hidden max-w-xl flex-1 mx-8 md:block">
+            {/* Desktop Search - Centered (hidden on mobile) */}
+            <div className="hidden lg:block flex-1 max-w-2xl mx-4 xl:mx-8">
               <SearchField
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                results={searchResults} // 🔥 ADD THIS
+                results={searchResults}
                 showResults
                 onResultClick={(item) => {
                   router.push(
@@ -124,22 +169,27 @@ export default function Header() {
               />
             </div>
 
-            {/* Actions */}
-            <div className="flex items-center gap-2 md:gap-6">
+            {/* RIGHT SECTION: Search Icon + Cart + User */}
+            <div className="flex items-center gap-0.5 sm:gap-1 md:gap-2">
+              {/* Mobile Search Icon */}
+              <button className="lg:hidden p-2 text-slate-600 hover:text-[#2A4150] transition-colors">
+                <Search size={22} />
+              </button>
+
               {/* Cart */}
               <Link
                 href="/cart"
-                className="relative flex items-center gap-2 text-slate-700 hover:text-[#2A4150] p-2"
+                className="relative flex items-center gap-1.5 text-slate-600 hover:text-[#2A4150] p-2 transition-colors"
               >
                 <div className="relative">
                   <ShoppingCart size={22} className="md:w-6 md:h-6" />
                   {totalQuantity > 0 && (
-                    <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#2A4150] text-[10px] font-bold text-white">
+                    <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#2A4150] text-[10px] font-bold text-white ring-2 ring-white">
                       {totalQuantity}
                     </span>
                   )}
                 </div>
-                <span className="hidden text-sm font-medium lg:inline">
+                <span className="hidden lg:inline text-sm font-medium">
                   Cart
                 </span>
               </Link>
@@ -157,7 +207,7 @@ export default function Header() {
                   <Button
                     text="Login"
                     onClick={() => dispatch(openLogin())}
-                    className="px-3 py-1.5 text-xs md:text-sm md:px-6 md:py-2"
+                    className="px-3 py-1.5 text-xs sm:text-sm md:px-5 md:py-2 font-medium"
                   />
                 )}
               </div>
@@ -165,12 +215,12 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Mobile Search */}
-        <div className="px-4 pb-3 md:hidden">
+        {/* Mobile Search - Below header */}
+        <div className="px-3 pb-2 lg:hidden">
           <SearchField
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            results={searchResults} // 🔥 ADD THIS
+            results={searchResults}
             showResults
             onResultClick={(item) => {
               router.push(
@@ -179,27 +229,29 @@ export default function Header() {
                   .replace(/\s+/g, "-")}?search=${item.name}`,
               );
             }}
-            placeholder="Search products, categories..."
+            placeholder="Search products..."
           />
         </div>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:block border-t border-slate-50 bg-white">
+        {/* Desktop Navigation - Compact & Balanced */}
+        <nav className="hidden lg:block border-t border-slate-50 bg-white">
           <div className="mx-auto max-w-7xl px-4">
-            <ul className="flex items-center justify-between py-3">
+            <ul className="flex items-center justify-center gap-2 xl:gap-4 py-2">
               <li>
                 <NavLink item="HOME" />
               </li>
-              {categories.map((cat) => (
-                <li key={cat.id} className="uppercase">
+              <li className="text-slate-300 select-none">|</li>
+              {categories.slice(0, 6).map((cat) => (
+                <li key={cat.id}>
                   <NavLink item={cat} />
                 </li>
               ))}
+              <li className="text-slate-300 select-none">|</li>
               <li>
-                <NavLink item="FREE DIET PLANS" />
+                <NavLink item="DIET PLANS" />
               </li>
               <li>
-                <NavLink item="TALK TO OUR EXPERTS" />
+                <NavLink item="EXPERTS" />
               </li>
               <li>
                 <NavLink item="ABOUT US" />
@@ -218,16 +270,19 @@ export default function Header() {
           onClick={() => setIsMobileMenuOpen(false)}
         />
         <aside
-          className={`absolute left-0 top-0 h-full w-70 bg-white shadow-2xl transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
+          className={`absolute left-0 top-0 h-full w-72 bg-white shadow-2xl transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
         >
-          <div className="flex items-center justify-between p-4 border-b">
-            <span className="font-bold text-[#2A4150]">Menu</span>
-            <button onClick={() => setIsMobileMenuOpen(false)}>
-              <X size={24} />
+          <div className="flex items-center justify-between p-4 border-b border-slate-100">
+            <span className="font-bold text-lg text-[#2A4150]">Menu</span>
+            <button 
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="p-1 hover:bg-slate-100 rounded-lg transition-colors"
+            >
+              <X size={22} />
             </button>
           </div>
 
-          <div className="overflow-y-auto h-[calc(100%-60px)] py-4">
+          <div className="overflow-y-auto h-[calc(100%-60px)] py-2">
             <MobileNavLink
               item="HOME"
               onClose={() => setIsMobileMenuOpen(false)}
@@ -239,16 +294,17 @@ export default function Header() {
                 onClose={() => setIsMobileMenuOpen(false)}
               />
             ))}
+            <div className="border-t border-slate-100 my-2" />
+            <MobileNavLink
+              item="DIET PLANS"
+              onClose={() => setIsMobileMenuOpen(false)}
+            />
+            <MobileNavLink
+              item="EXPERTS"
+              onClose={() => setIsMobileMenuOpen(false)}
+            />
             <MobileNavLink
               item="ABOUT US"
-              onClose={() => setIsMobileMenuOpen(false)}
-            />
-            <MobileNavLink
-              item="FREE DIET PLANS"
-              onClose={() => setIsMobileMenuOpen(false)}
-            />
-            <MobileNavLink
-              item="TALK TO OUR EXPERTS"
               onClose={() => setIsMobileMenuOpen(false)}
             />
           </div>
@@ -271,14 +327,17 @@ function NavLink({ item }) {
   const name = isString ? item : item.name;
   const hasSubCategories = !isString && item.subCategories?.length > 0;
 
+  // Short display name
+  const displayName = isString ? name : name.length > 15 ? name.substring(0, 15) + "..." : name;
+
   let href;
 
   if (isString) {
     if (item === "HOME") {
       href = "/";
-    } else if (item === "TALK TO OUR EXPERTS") {
+    } else if (item === "EXPERTS") {
       href = "/consultation";
-    } else if (item === "FREE DIET PLANS") {
+    } else if (item === "DIET PLANS") {
       href = "/diet-plans";
     } else {
       href = `/${item.toLowerCase().replace(/\s+/g, "-")}`;
@@ -297,22 +356,22 @@ function NavLink({ item }) {
         href={href}
         onClick={(e) => {
           if (!isString) {
-            e.preventDefault(); // ❌ stop category navigation
+            e.preventDefault();
           }
         }}
-        className="group flex items-center py-2 text-[11px] font-bold tracking-widest text-slate-600 hover:text-[#2A4150] md:text-[12px]"
+        className="group flex items-center gap-1 py-1.5 text-[11px] xl:text-xs font-semibold tracking-wide text-slate-600 hover:text-[#2A4150] transition-colors"
       >
-        {name}
+        {displayName}
 
         {hasSubCategories && (
           <ChevronDown
             size={14}
-            className={`ml-1 transition-transform ${hover ? "rotate-180" : ""}`}
+            className={`transition-transform duration-200 ${hover ? "rotate-180" : ""}`}
           />
         )}
 
         <span
-          className={`absolute -bottom-1 left-0 h-0.5 bg-[#2A4150] transition-all ${
+          className={`absolute -bottom-0.5 left-0 h-0.5 bg-[#2A4150] transition-all duration-300 ${
             hover ? "w-full" : "w-0"
           }`}
         />
@@ -320,14 +379,16 @@ function NavLink({ item }) {
 
       {hasSubCategories && (
         <div
-          className={`absolute left-0 top-full z-100 min-w-55 pt-2 transition-all ${hover ? "translate-y-0 opacity-100 visible" : "translate-y-2 opacity-0 invisible"}`}
+          className={`absolute left-0 top-full z-100 min-w-50 pt-2 transition-all duration-200 ${
+            hover ? "translate-y-0 opacity-100 visible" : "translate-y-2 opacity-0 invisible"
+          }`}
         >
-          <div className="overflow-hidden rounded-xl border border-slate-100 bg-white py-2 shadow-2xl">
+          <div className="overflow-hidden rounded-lg border border-slate-100 bg-white py-1 shadow-xl">
             {item.subCategories.map((sub) => (
               <Link
                 key={sub.id}
                 href={`/category/${sub.name.toLowerCase().replace(/\s+/g, "-")}`}
-                className="flex items-center justify-between px-5 py-3 text-[13px] font-medium text-slate-600 transition-all hover:bg-slate-50 hover:text-[#2A4150]"
+                className="flex items-center justify-between px-4 py-2.5 text-[13px] font-medium text-slate-600 transition-all hover:bg-slate-50 hover:text-[#2A4150]"
               >
                 {sub.name} <ChevronRight size={14} />
               </Link>
@@ -350,9 +411,9 @@ function MobileNavLink({ item, onClose }) {
   if (isString) {
     if (item === "HOME") {
       href = "/";
-    } else if (item === "TALK TO OUR EXPERTS") {
+    } else if (item === "EXPERTS") {
       href = "/consultation";
-    } else if (item === "FREE DIET PLANS") {
+    } else if (item === "DIET PLANS") {
       href = "/diet-plans";
     } else {
       href = `/${item.toLowerCase().replace(/\s+/g, "-")}`;
@@ -363,40 +424,40 @@ function MobileNavLink({ item, onClose }) {
 
   return (
     <div className="border-b border-slate-50 last:border-0">
-      <div className="flex items-center justify-between px-4">
+      <div className="flex items-center justify-between">
         <Link
           href={href}
           onClick={(e) => {
             if (!isString) {
-              e.preventDefault(); // ❌ category click band
+              e.preventDefault();
             } else {
-              onClose(); // ✅ normal links work
+              onClose();
             }
           }}
-          className="flex-1 py-4 text-sm font-bold text-slate-700 uppercase tracking-tight"
+          className="flex-1 px-5 py-3.5 text-sm font-semibold text-slate-700 tracking-wide"
         >
           {name}
         </Link>
         {hasSub && (
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="p-4 text-slate-400"
+            className="p-4 text-slate-400 hover:text-[#2A4150] transition-colors"
           >
             <ChevronDown
               size={18}
-              className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
+              className={`transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
             />
           </button>
         )}
       </div>
       {hasSub && isOpen && (
-        <div className="bg-slate-50 py-2">
+        <div className="bg-slate-50/50 py-1">
           {item.subCategories.map((sub) => (
             <Link
               key={sub.id}
               href={`/category/${sub.name.toLowerCase().replace(/\s+/g, "-")}`}
               onClick={onClose}
-              className="block px-8 py-3 text-sm text-slate-600"
+              className="block px-10 py-3 text-sm text-slate-600 hover:text-[#2A4150] hover:bg-white transition-colors"
             >
               {sub.name}
             </Link>
@@ -412,29 +473,28 @@ function UserDropdown({ user, isOpen, setOpen, onLogout }) {
     { label: "Your Profile", href: "/customer/profile" },
     { label: "Your Orders", href: "/customer/orders" },
     { label: "Manage Address", href: "/customer/address" },
-    // { label: "Contact Us", href: "/contact-us" },
   ];
 
   return (
     <>
       <button
         onClick={() => setOpen(!isOpen)}
-        className="flex items-center gap-1 rounded-lg p-1 text-[#2A4150] transition-colors hover:bg-slate-50"
+        className="flex items-center gap-1 rounded-lg p-1.5 text-[#2A4150] transition-colors hover:bg-slate-50"
       >
         <div className="rounded-full bg-slate-100 p-1.5">
-          <User size={22} />
+          <User size={20} />
         </div>
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-3 w-56 animate-in fade-in zoom-in duration-200 overflow-hidden rounded-xl border border-[#e0e0e0] bg-white shadow-xl z-50">
+        <div className="absolute right-0 mt-2 w-56 animate-in fade-in zoom-in duration-200 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl z-50">
           <div className="py-1">
             {menuItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 onClick={() => setOpen(false)}
-                className="block px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50"
+                className="block px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors"
               >
                 {item.label}
               </Link>
@@ -443,7 +503,7 @@ function UserDropdown({ user, isOpen, setOpen, onLogout }) {
               <Link
                 href="/dashboard"
                 onClick={() => setOpen(false)}
-                className="block px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50"
+                className="block px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors"
               >
                 Admin Dashboard
               </Link>
@@ -451,7 +511,7 @@ function UserDropdown({ user, isOpen, setOpen, onLogout }) {
           </div>
           <button
             onClick={onLogout}
-            className="flex w-full items-center gap-2 px-4 py-3 text-sm font-bold text-red-500 border-t border-[#e0e0e0] hover:bg-red-50"
+            className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium text-red-500 border-t border-slate-100 hover:bg-red-50 transition-colors"
           >
             <LogOut size={16} /> Logout
           </button>

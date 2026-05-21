@@ -2,10 +2,12 @@ import prisma from "../db/db.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { deleteOldImage } from "../utils/utils.js";
+import { upload, deleteByKey, getSignedFileUrl } from "../utils/s3Service.js";
+import fs from "fs";
 import path from "path";
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || "/home/shiv/uploads";
+
 // CREATE
 export const createSubCategory = asyncHandler(async (req, res) => {
   const { name, sku, description, categoryId } = req.body;
@@ -23,12 +25,39 @@ export const createSubCategory = asyncHandler(async (req, res) => {
   });
 
   if (!category) {
+    // Delete uploaded file if category not found
+    if (req.file) {
+      const localFilePath = path.join(UPLOAD_DIR, "thumbnails", req.file.filename);
+      if (fs.existsSync(localFilePath)) {
+        fs.unlinkSync(localFilePath);
+      }
+    }
     return ApiError.send(res, 404, "Parent category not found");
   }
 
-  const image = req.file
-  ? `/uploads/thumbnails/${req.file.filename}`
-  : null;
+  let imageData = null;
+
+  if (req.file) {
+    try {
+      const localFilePath = path.join(UPLOAD_DIR, "thumbnails", req.file.filename);
+      
+      // Upload to S3
+      const s3Result = await upload(localFilePath);
+      
+      imageData = {
+        key: s3Result.key,
+        url: s3Result.url,
+      };
+    } catch (error) {
+      // Cleanup local file on S3 upload error
+      const localFilePath = path.join(UPLOAD_DIR, "thumbnails", req.file.filename);
+      if (fs.existsSync(localFilePath)) {
+        fs.unlinkSync(localFilePath);
+      }
+      console.error("S3 Upload Error:", error);
+      return ApiError.send(res, 500, "Failed to upload image. Please try again.");
+    }
+  }
 
   const subCategory = await prisma.subCategory.create({
     data: {
@@ -36,7 +65,7 @@ export const createSubCategory = asyncHandler(async (req, res) => {
       sku: sku?.trim(),
       description: description?.trim(),
       categoryId,
-      image, // 👈 IMPORTANT
+      image: imageData,
     },
   });
 
@@ -45,7 +74,7 @@ export const createSubCategory = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, "SubCategory created", subCategory));
 });
 
-// udate 
+// UPDATE
 export const updateSubCategory = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { name, sku, description, categoryId } = req.body;
@@ -59,24 +88,47 @@ export const updateSubCategory = asyncHandler(async (req, res) => {
   });
 
   if (!existingSubCategory) {
+    // Delete uploaded file if subcategory not found
+    if (req.file) {
+      const localFilePath = path.join(UPLOAD_DIR, "thumbnails", req.file.filename);
+      if (fs.existsSync(localFilePath)) {
+        fs.unlinkSync(localFilePath);
+      }
+    }
     return ApiError.send(res, 404, "SubCategory not found");
   }
 
-  let newImageFilename = existingSubCategory.image;
+  let imageData = existingSubCategory.image;
 
-  // ✅ SAME IMAGE REPLACE LOGIC
   if (req.file) {
-    if (existingSubCategory.image) {
-      const fileName = existingSubCategory.image.replace(
-  "/uploads/thumbnails/",
-  ""
-);
+    try {
+      // Delete old image from S3 if exists
+      if (existingSubCategory.image?.key) {
+        try {
+          await deleteByKey(existingSubCategory.image.key);
+        } catch (error) {
+          console.error("Failed to delete old S3 image:", error);
+        }
+      }
 
-const fullPath = path.join(UPLOAD_DIR, "thumbnails", fileName);
-      deleteOldImage(fullPath);
+      const localFilePath = path.join(UPLOAD_DIR, "thumbnails", req.file.filename);
+      
+      // Upload new image to S3
+      const s3Result = await upload(localFilePath);
+      
+      imageData = {
+        key: s3Result.key,
+        url: s3Result.url,
+      };
+    } catch (error) {
+      // Cleanup local file on S3 upload error
+      const localFilePath = path.join(UPLOAD_DIR, "thumbnails", req.file.filename);
+      if (fs.existsSync(localFilePath)) {
+        fs.unlinkSync(localFilePath);
+      }
+      console.error("S3 Upload Error:", error);
+      return ApiError.send(res, 500, "Failed to upload image. Please try again.");
     }
-
-    newImageFilename = `/uploads/thumbnails/${req.file.filename}`;
   }
 
   const updatedSubCategory = await prisma.subCategory.update({
@@ -86,7 +138,7 @@ const fullPath = path.join(UPLOAD_DIR, "thumbnails", fileName);
       sku: sku?.trim() ?? existingSubCategory.sku,
       description: description?.trim() ?? existingSubCategory.description,
       categoryId: categoryId ?? existingSubCategory.categoryId,
-      image: newImageFilename,
+      image: imageData,
     },
   });
 
@@ -103,9 +155,30 @@ export const getSubCategories = asyncHandler(async (req, res) => {
     include: { category: true },
   });
 
+  // Generate signed URLs for images
+  const subCategoriesWithUrls = await Promise.all(
+    subCategories.map(async (subCategory) => {
+      if (subCategory.image?.key) {
+        try {
+          const signedUrl = await getSignedFileUrl(subCategory.image.key);
+          return {
+            ...subCategory,
+            image: {
+              ...subCategory.image,
+              signedUrl,
+            },
+          };
+        } catch (error) {
+          console.error("Error generating signed URL:", error);
+        }
+      }
+      return subCategory;
+    })
+  );
+
   return res
     .status(200)
-    .json(new ApiResponse(200, "All subcategories", subCategories));
+    .json(new ApiResponse(200, "All subcategories", subCategoriesWithUrls));
 });
 
 // GET BY ID WITH CATEGORY
@@ -115,7 +188,7 @@ export const getCategoryWithSubCategories = asyncHandler(async (req, res) => {
   const category = await prisma.category.findUnique({
     where: { id },
     include: {
-      subCategories: true, // 👈 important
+      subCategories: true,
     },
   });
 
@@ -123,12 +196,45 @@ export const getCategoryWithSubCategories = asyncHandler(async (req, res) => {
     return ApiError.send(res, 404, "Category not found");
   }
 
+  // Generate signed URLs for category image
+  if (category.image?.key) {
+    try {
+      const signedUrl = await getSignedFileUrl(category.image.key);
+      category.image = {
+        ...category.image,
+        signedUrl,
+      };
+    } catch (error) {
+      console.error("Error generating signed URL for category:", error);
+    }
+  }
+
+  // Generate signed URLs for subcategory images
+  if (category.subCategories) {
+    await Promise.all(
+      category.subCategories.map(async (subCategory) => {
+        if (subCategory.image?.key) {
+          try {
+            const signedUrl = await getSignedFileUrl(subCategory.image.key);
+            subCategory.image = {
+              ...subCategory.image,
+              signedUrl,
+            };
+          } catch (error) {
+            console.error("Error generating signed URL for subcategory:", error);
+          }
+        }
+        return subCategory;
+      })
+    );
+  }
+
   return res.status(200).json(
     new ApiResponse(200, "Category with subcategories", category)
   );
 });
 
-// DELETE BY ID
+// DELETE
 export const deleteSubCategory = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
@@ -139,7 +245,7 @@ export const deleteSubCategory = asyncHandler(async (req, res) => {
   const subCategory = await prisma.subCategory.findUnique({
     where: { id },
     include: {
-      products: true, // 👈 IMPORTANT
+      products: true,
     },
   });
 
@@ -147,7 +253,7 @@ export const deleteSubCategory = asyncHandler(async (req, res) => {
     return ApiError.send(res, 404, "SubCategory not found");
   }
 
-  // 🚫 BLOCK DELETE IF PRODUCTS EXIST
+  // Block delete if products exist
   if (subCategory.products.length > 0) {
     return ApiError.send(
       res,
@@ -156,28 +262,21 @@ export const deleteSubCategory = asyncHandler(async (req, res) => {
     );
   }
 
-  // ✅ IMAGE DELETE
-  if (subCategory.image) {
+  // Delete image from S3 if exists
+  if (subCategory.image?.key) {
     try {
-      const fileName = subCategory.image.replace(
-  "/uploads/thumbnails/",
-  ""
-);
-
-const fullPath = path.join(UPLOAD_DIR, "thumbnails", fileName);
-      deleteOldImage(fullPath);
-    } catch (err) {
-      console.log("Image delete error:", err.message);
+      await deleteByKey(subCategory.image.key);
+    } catch (error) {
+      console.error("Failed to delete S3 image:", error);
     }
   }
 
-  // ✅ DELETE SUBCATEGORY
+  // Delete subcategory from database
   await prisma.subCategory.delete({
     where: { id },
   });
 
-  return res.status(200).json({
-    success: true,
-    message: "SubCategory deleted successfully",
-  });
+  return res.status(200).json(
+    new ApiResponse(200, "SubCategory deleted successfully")
+  );
 });

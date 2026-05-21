@@ -13,13 +13,14 @@ import {
   Plus,
   Trash2,
   Share2,
+  ImageIcon,
 } from "lucide-react";
 
 // Components
 import InputField from "@/components/ui/InputField";
 import TextAreaField from "@/components/ui/TextAreaField";
 import Button from "@/components/ui/Button";
-import FilterDropdown from "@/components/ui/FilterDropdown"; // Aapka custom dropdown
+import FilterDropdown from "@/components/ui/FilterDropdown";
 
 // Hooks
 import { useSettings } from "@/lib/queries/useSettings";
@@ -39,6 +40,20 @@ export default function SettingPage() {
   const { data: settings, isLoading } = useSettings();
   const { mutate: upsertSetting, isPending: isUpdating } = useUpsertSetting();
   const [preview, setPreview] = useState(null);
+  const [imageError, setImageError] = useState(false);
+
+  // Helper function to get logo URL
+  const getLogoUrl = (settingsData) => {
+    if (!settingsData) return null;
+    
+    // Priority: logoSignedUrl > logo > logoKey
+    if (settingsData.logoSignedUrl) return settingsData.logoSignedUrl;
+    if (settingsData.logo && settingsData.logo.startsWith('http')) return settingsData.logo;
+    if (settingsData.logoKey) {
+      return `https://azzunique-fintech-node.s3.ap-south-1.amazonaws.com/${settingsData.logoKey}`;
+    }
+    return null;
+  };
 
   const {
     register,
@@ -64,21 +79,24 @@ export default function SettingPage() {
 
   const logoFile = watch("logo");
 
+  // Handle logo preview
   useEffect(() => {
     if (logoFile && logoFile.length > 0) {
       const file = logoFile[0];
       const objectUrl = URL.createObjectURL(file);
       setPreview(objectUrl);
-
-      return () => URL.revokeObjectURL(objectUrl); // cleanup
-    } else if (settings?.logo) {
-      // 👈 fallback to existing image
-      setPreview(`http://api.herbsnglam.com${settings.logo}`);
+      setImageError(false);
+      return () => URL.revokeObjectURL(objectUrl);
+    } else if (settings) {
+      const logoUrl = getLogoUrl(settings);
+      setPreview(logoUrl);
+      setImageError(false);
     } else {
       setPreview(null);
     }
   }, [logoFile, settings]);
 
+  // Reset form when settings load
   useEffect(() => {
     if (settings) {
       reset({
@@ -91,7 +109,10 @@ export default function SettingPage() {
             ? settings.socialLinks
             : [{ platform: "", url: "" }],
       });
-      if (settings.logo) setPreview(`http://api.herbsnglam.com${settings.logo}`);
+      
+      const logoUrl = getLogoUrl(settings);
+      setPreview(logoUrl);
+      setImageError(false);
     }
   }, [settings, reset]);
 
@@ -100,22 +121,38 @@ export default function SettingPage() {
       ...data,
       image: data.logo?.[0] || null,
     };
+    
     upsertSetting(payload, {
-      onSuccess: () => toast.success("Settings saved!"),
+      onSuccess: () => toast.success("Settings saved successfully!"),
       onError: (err) =>
         toast.error(err?.response?.data?.error || "Error saving settings"),
     });
   };
 
-  if (isLoading)
+  const handleReset = () => {
+    reset();
+    if (settings) {
+      const logoUrl = getLogoUrl(settings);
+      setPreview(logoUrl);
+      setImageError(false);
+    }
+  };
+
+  if (isLoading) {
     return (
-      <div className="p-20 text-center animate-pulse text-[#2A4150]">
-        Loading System Settings...
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-[#2A4150] border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="mt-4 text-[#2A4150] font-medium animate-pulse">
+            Loading System Settings...
+          </p>
+        </div>
       </div>
     );
+  }
 
   return (
-    <div className="w-full mx-auto p-4 md:p-8 bg-white ">
+    <div className="w-full mx-auto p-4 md:p-8 bg-white">
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
@@ -148,23 +185,39 @@ export default function SettingPage() {
             <div className="flex flex-col sm:flex-row items-center gap-8">
               <div className="group relative">
                 <div className="w-32 h-32 rounded-2xl bg-[#e0e0e0]/30 border-2 border-dashed border-[#e0e0e0] flex items-center justify-center overflow-hidden transition-all group-hover:border-[#2A4150]">
-                  {preview ? (
+                  {preview && !imageError ? (
                     <img
                       src={preview}
                       className="w-full h-full object-cover"
-                      alt="Preview"
+                      alt="Company Logo"
+                      onError={() => setImageError(true)}
                     />
                   ) : (
-                    <Camera className="text-[#2A4150]/40 w-8 h-8" />
+                    <div className="flex flex-col items-center gap-2">
+                      {settings?.companyName ? (
+                        <>
+                          <ImageIcon className="text-[#2A4150]/40 w-8 h-8" />
+                          <span className="text-[10px] text-[#2A4150]/60 font-medium text-center px-2">
+                            {settings.companyName}
+                          </span>
+                        </>
+                      ) : (
+                        <Camera className="text-[#2A4150]/40 w-8 h-8" />
+                      )}
+                    </div>
                   )}
                 </div>
-                <label className="absolute -bottom-2 -right-2 bg-white shadow-md border border-[#e0e0e0] rounded-full p-2 cursor-pointer hover:bg-[#e0e0e0]/10">
+                <label className="absolute -bottom-2 -right-2 bg-white shadow-md border border-[#e0e0e0] rounded-full p-2 cursor-pointer hover:bg-[#e0e0e0]/10 transition-colors">
                   <Plus size={16} className="text-[#2A4150]" />
                   <input
                     type="file"
                     className="hidden"
                     {...register("logo")}
                     accept="image/*"
+                    onChange={(e) => {
+                      register("logo").onChange(e);
+                      setImageError(false);
+                    }}
                   />
                 </label>
               </div>
@@ -177,6 +230,11 @@ export default function SettingPage() {
                   Upload a high-resolution square logo. Accepted formats: PNG,
                   JPG or SVG (Max 2MB).
                 </p>
+                {settings?.logoKey && (
+                  <p className="text-[10px] text-[#2A4150]/40 mt-1">
+                    Current: {settings.logoKey.split('/').pop()}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -246,7 +304,6 @@ export default function SettingPage() {
                   <label className="text-xs font-semibold text-[#2A4150]/70 uppercase tracking-wider">
                     Platform
                   </label>
-
                   <div
                     onClick={(e) => e.preventDefault()}
                     onMouseDown={(e) => e.stopPropagation()}
@@ -266,8 +323,9 @@ export default function SettingPage() {
                     />
                   </div>
                 </div>
+                
                 {/* URL Input */}
-                <div className="w-full flex-1 space-y-1.5 ">
+                <div className="w-full flex-1 space-y-1.5">
                   <label className="text-xs font-semibold text-[#2A4150]/70 uppercase tracking-wider">
                     Link / URL
                   </label>
@@ -307,11 +365,9 @@ export default function SettingPage() {
             variant="secondary"
             className="w-full sm:w-auto px-8 bg-[#e0e0e0] text-[#2A4150] hover:bg-[#d1d1d1]"
             icon={<RotateCcw size={16} />}
-            onClick={() => {
-              reset();
-              setPreview(settings?.logo);
-            }}
+            onClick={handleReset}
             disabled={isUpdating}
+            type="button"
           />
           <Button
             type="submit"

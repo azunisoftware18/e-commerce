@@ -8,6 +8,7 @@ import {
   TablePagination,
 } from "@/components/table/core";
 import { useDeleteProduct } from "@/lib/mutations/useProducts";
+import { ImageIcon } from "lucide-react";
 
 export default function ProductsTable({
   data = [],
@@ -20,12 +21,18 @@ export default function ProductsTable({
   const [status, setStatus] = useState("All");
   const itemsPerPage = 10;
   const { mutate: deleteProduct } = useDeleteProduct();
+   const [imageErrors, setImageErrors] = useState({});
+   const handleImageError = (id) => {
+    setImageErrors((prev) => ({ ...prev, [id]: true }));
+  };
 
   const productsData = useMemo(() => {
     return data.map((item) => ({
       id: item.id,
       product: item.name,
-      image: item.images?.[0]?.url,
+       image: item.displayImage || 
+             getImageUrl(item.images?.[0]) || 
+             getImageUrl(item.image),
       category: item.category?.name || "N/A",
       categoryid: item.categoryid,
       subCategoryId: item.subCategoryId,
@@ -44,15 +51,21 @@ export default function ProductsTable({
       render: (value, row) => (
         <div className="flex items-center gap-3">
           {/* 🖼️ Image */}
-          <img
-            src={
-              row.image
-                ? `http://api.herbsnglam.com${row.image}`
-                : "/placeholder.png"
-            }
-            alt={value}
-            className="w-10 h-10 rounded-md object-cover border"
-          />
+         <div className="w-10 h-10 rounded-md border border-slate-200 overflow-hidden shrink-0 bg-slate-50">
+            {row.image && !imageErrors[row.id] ? (
+              <img
+                src={row.image}
+                alt={value || "Product"}
+                className="w-full h-full object-cover"
+                onError={() => handleImageError(row.id)}
+                loading="lazy"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-slate-100">
+                <ImageIcon size={18} className="text-slate-400" />
+              </div>
+            )}
+          </div>
 
           {/* 📝 Name */}
           <span className="font-medium text-slate-800 line-clamp-2 wrap-break-word">{value}</span>

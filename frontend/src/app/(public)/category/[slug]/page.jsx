@@ -13,44 +13,69 @@ export default function CategoryPage({ params }) {
   const safeSlug = slug || "";
   const { data: products = [], isLoading } = useProducts();
 
+  // Helper function to get image URL
+  const getImageUrl = (image) => {
+    if (!image) return "/placeholder-product.png";
+    
+    // If image is an object with url/signedUrl
+    if (typeof image === 'object') {
+      if (image.signedUrl) return image.signedUrl;
+      if (image.url) {
+        if (image.url.startsWith('http')) return image.url;
+        const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_IMAGE_URL || "http://localhost:8000";
+        return `${BASE_URL}${image.url.startsWith('/') ? '' : '/'}${image.url}`;
+      }
+    }
+    
+    // If image is a string
+    if (typeof image === 'string') {
+      if (image.startsWith('http')) return image;
+      const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_IMAGE_URL || "http://localhost:8000";
+      return `${BASE_URL}${image.startsWith('/') ? '' : '/'}${image}`;
+    }
+    
+    return "/placeholder-product.png";
+  };
+
   const normalize = (str) =>
-  str?.toLowerCase().replace(/\s+/g, "-");
+    str?.toLowerCase().replace(/\s+/g, "-");
 
-const filteredProducts = products.filter((product) => {
-   if (product.status === "Discontinued") return false;
-  const categorySlug = normalize(product.category?.name);
-  const subCategorySlug = normalize(product.subCategory?.name);
+  const filteredProducts = products.filter((product) => {
+    if (product.status === "Discontinued") return false;
+    
+    const categorySlug = normalize(product.category?.name);
+    const subCategorySlug = normalize(product.subCategory?.name);
+    const query = search.toLowerCase();
 
-  const query = search.toLowerCase();
+    const matchesSearch =
+      !search ||
+      [
+        product.name,
+        product.category?.name,
+        product.subCategory?.name,
+        product.description,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(query);
 
-  const matchesSearch =
-    !search ||
-    [
-      product.name,
-      product.category?.name,
-      product.subCategory?.name,
-    ]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase()
-      .includes(query);
+    // SEARCH ONLY
+    if (!safeSlug && search) {
+      return matchesSearch;
+    }
 
-  // 🔥 SEARCH ONLY
-  if (!safeSlug && search) {
-    return matchesSearch;
-  }
+    // BEST SELLER
+    if (safeSlug === "best-seller") {
+      return product.isBestSeller && matchesSearch;
+    }
 
-  // 🔥 BEST SELLER
-  if (safeSlug === "best-seller") {
-    return product.isBestSeller && matchesSearch;
-  }
+    // CATEGORY FILTER
+    const matchesCategory =
+      categorySlug === safeSlug || subCategorySlug === safeSlug;
 
-  // 🔥 CATEGORY FILTER
-  const matchesCategory =
-    categorySlug === safeSlug || subCategorySlug === safeSlug;
-
-  return matchesCategory && matchesSearch;
-});
+    return matchesCategory && matchesSearch;
+  });
 
   if (isLoading) {
     return (
@@ -65,45 +90,56 @@ const filteredProducts = products.filter((product) => {
 
   return (
     <div className="w-full mx-auto px-4 py-6 md:px-8 lg:px-10 min-h-screen bg-[#fcfcfc]">
+      {/* Header */}
       <div className="mb-8 border-b border-slate-100 pb-5">
         <h1 className="text-2xl md:text-3xl font-black uppercase text-[#2A4150] tracking-tight">
-  {search
-    ? `Search: ${search}`
-    : safeSlug.replace(/-/g, " ")}{" "}
-  <span className="text-slate-400 font-light">
-    {search ? "Results" : "Collection"}
-  </span>
-</h1>
-        {/* <p className="text-sm text-slate-500 mt-1">
-          Showing {filteredProducts.length} items
-        </p> */}
+          {search
+            ? `Search: ${search}`
+            : safeSlug.replace(/-/g, " ")}{" "}
+          <span className="text-slate-400 font-light">
+            {search ? "Results" : "Collection"}
+          </span>
+        </h1>
+        
       </div>
 
+      {/* Products Grid */}
       {filteredProducts.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
-          {filteredProducts.map((product) => (
-            <ProductCard
-              key={product.id}
-              className="w-full"
-              id={product.id}
-              image={
-                product.images?.[0]?.url
-                  ? `http://api.herbsnglam.com${product.images[0].url}`
-                  : "/placeholder-product.png"
-              }
-              title={product.name}
-              description={product.description}
-              price={product.price}
-              rating={4.5}
-              reviews={10}
-              size="Standard"
-              badge={product.status === "Active" ? "New" : ""}
-              stock={product.stock}
-              status={product.status}
-            />
-          ))}
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-6 gap-y-10">
+          {filteredProducts.map((product) => {
+            // Get the best available image
+            const productImage = 
+              getImageUrl(product.images?.[0]) || 
+              getImageUrl(product.image) || 
+              "/placeholder-product.png";
+
+            return (
+              <ProductCard
+                key={product.id}
+                className="w-full"
+                id={product.id}
+                image={productImage}
+                title={product.name}
+                description={product.description}
+                price={product.price}
+                rating={product.rating || 4.5}
+                reviews={product.reviews || 0}
+                badge={
+                  product.isBestSeller 
+                    ? "Best Seller" 
+                    : product.status === "Active" 
+                      ? "New" 
+                      : ""
+                }
+                stock={product.stock}
+                status={product.status}
+                category={product.category}
+              />
+            );
+          })}
         </div>
       ) : (
+        /* Empty State */
         <div className="flex flex-col items-center justify-center py-32 text-center">
           <div className="bg-slate-50 p-6 rounded-full mb-4">
             <BoxIcon className="w-16 h-16 text-slate-300" />
@@ -112,10 +148,18 @@ const filteredProducts = products.filter((product) => {
             No products found
           </h3>
           <p className="text-slate-500 max-w-xs mt-2">
-  {search
-    ? `No results found for "${search}"`
-    : `We couldn't find any products in the "${safeSlug}" category`}
-</p>
+            {search
+              ? `No results found for "${search}"`
+              : `We couldn't find any products in the "${safeSlug.replace(/-/g, " ")}" category`}
+          </p>
+          {search && (
+            <button
+              onClick={() => window.history.back()}
+              className="mt-4 px-6 py-2 bg-[#2A4150] text-white rounded-lg hover:bg-[#1a2b38] transition-colors"
+            >
+              Go Back
+            </button>
+          )}
         </div>
       )}
     </div>

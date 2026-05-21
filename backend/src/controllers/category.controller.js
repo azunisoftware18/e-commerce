@@ -5,8 +5,7 @@ import prisma from "../db/db.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { deleteOldImage } from "../utils/utils.js";
-
+import { upload, deleteByKey, getSignedFileUrl } from "../utils/s3Service.js";
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || "/home/shiv/uploads";
 
@@ -36,19 +35,47 @@ const createCategory = asyncHandler(async (req, res) => {
   });
 
   if (existingCategory) {
+    // Delete uploaded file if SKU already exists
+    if (req.file) {
+      const localFilePath = path.join(UPLOAD_DIR, "thumbnails", req.file.filename);
+      if (fs.existsSync(localFilePath)) {
+        fs.unlinkSync(localFilePath);
+      }
+    }
     return ApiError.send(res, 409, "SKU already exists.");
   }
 
-  const image = req.file
-  ? `/uploads/thumbnails/${req.file.filename}`
-  : null;
+  let imageData = null;
+
+  if (req.file) {
+    try {
+      const localFilePath = path.join(UPLOAD_DIR, "thumbnails", req.file.filename);
+      
+      // Upload to S3 (local file will be deleted automatically in upload function)
+      const s3Result = await upload(localFilePath);
+      
+      // Store as plain object, Prisma will handle JSON serialization
+      imageData = {
+        key: s3Result.key,
+        url: s3Result.url,
+      };
+    } catch (error) {
+      // Cleanup local file on S3 upload error
+      const localFilePath = path.join(UPLOAD_DIR, "thumbnails", req.file.filename);
+      if (fs.existsSync(localFilePath)) {
+        fs.unlinkSync(localFilePath);
+      }
+      console.error("S3 Upload Error:", error);
+      return ApiError.send(res, 500, "Failed to upload image. Please try again.");
+    }
+  }
 
   const category = await prisma.category.create({
     data: {
       name: name.trim(),
       sku: sku.trim(),
       description: description.trim(),
-      image,
+      image: imageData,
       createdby: id,
     },
   });
@@ -58,18 +85,39 @@ const createCategory = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, "Category created successfully", { category }));
 });
 
-// Get all categories
+// Get all categories - WITH SIGNED URLs ✅
 const getAllCategories = asyncHandler(async (req, res) => {
   const categories = await prisma.category.findMany({
     include: { creator: true, products: true, subCategories: true },
   });
 
+  // Generate signed URLs for each category image
+  const categoriesWithSignedUrls = await Promise.all(
+    categories.map(async (category) => {
+      if (category.image?.key) {
+        try {
+          const signedUrl = await getSignedFileUrl(category.image.key);
+          return {
+            ...category,
+            image: {
+              ...category.image,
+              signedUrl, // Temporary accessible URL
+            },
+          };
+        } catch (error) {
+          console.error("Error generating signed URL:", error);
+        }
+      }
+      return category;
+    })
+  );
+
   return res
     .status(200)
-    .json(new ApiResponse(200, "Categories fetched", { categories }));
+    .json(new ApiResponse(200, "Categories fetched", { categories: categoriesWithSignedUrls }));
 });
 
-// Get category by ID
+// Get category by ID - WITH SIGNED URL ✅
 const getCategoryById = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
@@ -84,6 +132,19 @@ const getCategoryById = asyncHandler(async (req, res) => {
 
   if (!category) {
     return ApiError.send(res, 404, "Category not found.");
+  }
+
+  // Generate signed URL for the image
+  if (category.image?.key) {
+    try {
+      const signedUrl = await getSignedFileUrl(category.image.key);
+      category.image = {
+        ...category.image,
+        signedUrl,
+      };
+    } catch (error) {
+      console.error("Error generating signed URL:", error);
+    }
   }
 
   return res
@@ -105,19 +166,42 @@ const updateCategory = asyncHandler(async (req, res) => {
   });
 
   if (!existingCategory) {
+    if (req.file) {
+      const localFilePath = path.join(UPLOAD_DIR, "thumbnails", req.file.filename);
+      if (fs.existsSync(localFilePath)) {
+        fs.unlinkSync(localFilePath);
+      }
+    }
     return ApiError.send(res, 404, "Category not found.");
   }
 
-  let newImageFilename = existingCategory.image;
+  let imageData = existingCategory.image;
 
   if (req.file) {
-    if (existingCategory.image) {
-      const fileName = existingCategory.image.replace("/uploads/", "");
-      const fullPath = path.join(UPLOAD_DIR, fileName);
-      deleteOldImage(fullPath);
-    }
+    try {
+      if (existingCategory.image?.key) {
+        try {
+          await deleteByKey(existingCategory.image.key);
+        } catch (error) {
+          console.error("Failed to delete old S3 image:", error);
+        }
+      }
 
-    newImageFilename = `/uploads/thumbnails/${req.file.filename}`;
+      const localFilePath = path.join(UPLOAD_DIR, "thumbnails", req.file.filename);
+      const s3Result = await upload(localFilePath);
+      
+      imageData = {
+        key: s3Result.key,
+        url: s3Result.url,
+      };
+    } catch (error) {
+      const localFilePath = path.join(UPLOAD_DIR, "thumbnails", req.file.filename);
+      if (fs.existsSync(localFilePath)) {
+        fs.unlinkSync(localFilePath);
+      }
+      console.error("S3 Upload Error:", error);
+      return ApiError.send(res, 500, "Failed to upload image. Please try again.");
+    }
   }
 
   const updatedCategory = await prisma.category.update({
@@ -126,7 +210,7 @@ const updateCategory = asyncHandler(async (req, res) => {
       name: name?.trim() ?? existingCategory.name,
       sku: sku?.trim() ?? existingCategory.sku,
       description: description?.trim() ?? existingCategory.description,
-      image: newImageFilename,
+      image: imageData,
     },
   });
 
@@ -137,55 +221,44 @@ const updateCategory = asyncHandler(async (req, res) => {
   );
 });
 
-
 // Delete category
 const deleteCategory = asyncHandler(async (req, res) => {
-  try {
-    const { id } = req.params;
+  const { id } = req.params;
 
-    if (req.user?.role !== "Admin") {
-      return ApiError.send(res, 403, "Only admins can delete a category.");
-    }
-
-    const existingCategory = await prisma.category.findUnique({
-      where: { id },
-      include: { products: true },
-    });
-
-    if (!existingCategory) {
-      return ApiError.send(res, 404, "Category not found.");
-    }
-
-    // ❌ BLOCK DELETE (Recommended)
-    if (existingCategory.products.length > 0) {
-      return ApiError.send(
-        res,
-        400,
-        "Cannot delete category. Please delete its subcategories   first."
-      );
-    }
-
-    // ✅ DELETE IMAGE
-    if (existingCategory.image) {
-      const fileName = existingCategory.image.replace("/uploads/thumbnails/", "");
-const fullPath = path.join(UPLOAD_DIR, "thumbnails", fileName);
-      deleteOldImage(fullPath);
-    }
-
-    // ✅ DELETE CATEGORY
-    await prisma.category.delete({ where: { id } });
-
-    return res.status(200).json(
-      new ApiResponse(200, "Category deleted successfully")
-    );
-  } catch (error) {
-    console.log("DELETE CATEGORY ERROR:", error.message);
-
-    return res.status(500).json({
-      success: false,
-      message: "Something went wrong while deleting category",
-    });
+  if (req.user?.role !== "Admin") {
+    return ApiError.send(res, 403, "Only admins can delete a category.");
   }
+
+  const existingCategory = await prisma.category.findUnique({
+    where: { id },
+    include: { products: true },
+  });
+
+  if (!existingCategory) {
+    return ApiError.send(res, 404, "Category not found.");
+  }
+
+  if (existingCategory.products.length > 0) {
+    return ApiError.send(
+      res,
+      400,
+      "Cannot delete category. Please delete its products and subcategories first."
+    );
+  }
+
+  if (existingCategory.image?.key) {
+    try {
+      await deleteByKey(existingCategory.image.key);
+    } catch (error) {
+      console.error("Failed to delete S3 image:", error);
+    }
+  }
+
+  await prisma.category.delete({ where: { id } });
+
+  return res.status(200).json(
+    new ApiResponse(200, "Category deleted successfully")
+  );
 });
 
 export {

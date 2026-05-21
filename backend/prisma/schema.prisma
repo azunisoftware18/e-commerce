@@ -36,7 +36,7 @@ model Category {
   name        String
   sku         String    @unique(map: "Category_sku_key")
   description String?   @db.LongText
-  image       String?
+  image       Json?     // Store as JSON object: { key: "s3-key", url: "s3-url" }
   createdby   String
   creator     User      @relation("CreatedCategories", fields: [createdby], references: [id], map: "Category_createdby_fkey")
   products    Product[]
@@ -51,7 +51,7 @@ model SubCategory {
   name        String
   sku         String    @unique
   description String?
-  image       String?
+  image       Json?     // Store as { key: "s3-key", url: "s3-url" }
 
   categoryId  String
   category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
@@ -86,6 +86,7 @@ model Product {
 model ProductImage {
   id        String  @id @default(uuid())
   url       String
+  key       String?  // S3 object key for the image
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade, map: "ProductImage_productId_fkey")
 
@@ -155,14 +156,17 @@ model OrderItem {
 }
 
 model DietPlan {
-  id          String   @id @default(uuid())
-  name        String
-  description String
-  price       Float
-  type        PlanType
-  pdfUrl      String
-  thumbnail   String
-  createdAt   DateTime @default(now())
+  id            String         @id @default(uuid())
+  name          String
+  description   String
+  price         Float
+  type          PlanType
+  pdfUrl        String
+  pdfKey        String?
+  thumbnail     String
+  thumbnailKey  String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @default(now()) @updatedAt
   consultations Consultation[]
 }
 
@@ -185,17 +189,16 @@ model Consultation {
 }
 
 model Setting {
-  id            String   @id @default(uuid())
-  companyName   String
-  logo          String?
-  phone         String?
-  email         String?
-  address       String?   @db.LongText
-
-  socialLinks   Json?     
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id          String  @id @default("global-setting")
+  companyName String?
+  phone       String?
+  email       String?
+  address     String?
+  logo        String?  // S3 URL or local path
+  logoKey     String?  // S3 object key for logo
+  socialLinks Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@map("setting")
 }

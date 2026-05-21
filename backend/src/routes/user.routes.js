@@ -18,7 +18,7 @@ router.post("/signup", signup);
 router.post("/update-admin", authMiddleware, updateAdmin);
 router.get("/get-users", authMiddleware, getAllUsers);
 router.post("/logout", authMiddleware, logout);
-router.post("/forgot-password", authMiddleware, forgotPassword);
+router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", authMiddleware, resetPassword);
 router.get("/me", authMiddleware, getMe);
 
