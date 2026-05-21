@@ -42,6 +42,13 @@ export const useResetPassword = () => {
   });
 };
 
+export const useResetForgotPassword = () => {
+  return useMutation({
+    mutationFn: (data) =>
+      api.post("/auth/reset-forgot-password", data),
+  });
+};
+
 export const useUpdateProfile = () => {
   return useMutation({
     mutationFn: (data) => api.post("/auth/update-admin", data),

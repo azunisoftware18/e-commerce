@@ -209,9 +209,9 @@ const logoUrl = getLogoUrl();
               Stay Updated
             </h3>
             <p className="text-xs text-slate-400 mb-3 leading-relaxed">
-              Subscribe to get special offers, free giveaways, and updates.
+              Follow to get special offers, free giveaways, and updates.
             </p>
-            <form onSubmit={handleSubscribe} className="flex gap-2">
+            {/* <form onSubmit={handleSubscribe} className="flex gap-2">
               <input
                 type="email"
                 placeholder="Your email address"
@@ -227,7 +227,7 @@ const logoUrl = getLogoUrl();
               >
                 <Send size={14} />
               </button>
-            </form>
+            </form> */}
           </div>
 
           <div>

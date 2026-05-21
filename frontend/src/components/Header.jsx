@@ -119,8 +119,7 @@ export default function Header() {
       <header className="sticky top-0 z-50 w-full border-b border-slate-100 bg-white/95 backdrop-blur-md shadow-sm">
         {/* Main Header - Reduced padding */}
         <div className="mx-auto max-w-full px-3 sm:px-4 lg:px-8">
-          <div className="flex h-14 md:h-16 items-center justify-between gap-3">
-            
+          <div className="flex h-16 md:h-20 items-center justify-between gap-3">
             {/* LEFT SECTION: Menu + Logo */}
             <div className="flex items-center gap-1">
               {/* Mobile Menu Toggle */}
@@ -137,7 +136,16 @@ export default function Header() {
                   <img
                     src={logoUrl}
                     alt="Logo"
-                    className="h-8 sm:h-10 md:h-12 w-auto object-contain"
+                    className="
+                                h-10
+                                sm:h-12
+                                md:h-14
+                                lg:h-16
+                                w-auto
+                                max-w-45
+                                object-contain
+                                scale-110
+                              "
                     onError={(e) => {
                       e.target.style.display = "none";
                     }}
@@ -274,7 +282,7 @@ export default function Header() {
         >
           <div className="flex items-center justify-between p-4 border-b border-slate-100">
             <span className="font-bold text-lg text-[#2A4150]">Menu</span>
-            <button 
+            <button
               onClick={() => setIsMobileMenuOpen(false)}
               className="p-1 hover:bg-slate-100 rounded-lg transition-colors"
             >
@@ -328,7 +336,11 @@ function NavLink({ item }) {
   const hasSubCategories = !isString && item.subCategories?.length > 0;
 
   // Short display name
-  const displayName = isString ? name : name.length > 15 ? name.substring(0, 15) + "..." : name;
+  const displayName = isString
+    ? name
+    : name.length > 15
+      ? name.substring(0, 15) + "..."
+      : name;
 
   let href;
 
@@ -380,7 +392,9 @@ function NavLink({ item }) {
       {hasSubCategories && (
         <div
           className={`absolute left-0 top-full z-100 min-w-50 pt-2 transition-all duration-200 ${
-            hover ? "translate-y-0 opacity-100 visible" : "translate-y-2 opacity-0 invisible"
+            hover
+              ? "translate-y-0 opacity-100 visible"
+              : "translate-y-2 opacity-0 invisible"
           }`}
         >
           <div className="overflow-hidden rounded-lg border border-slate-100 bg-white py-1 shadow-xl">

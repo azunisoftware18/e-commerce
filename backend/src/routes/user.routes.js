@@ -6,6 +6,7 @@ import {
   login,
   logout,
   resetPassword,
+  resetForgotPassword,
   signup,
   updateAdmin,
 } from "../controllers/user.controller.js";
@@ -21,5 +22,6 @@ router.post("/logout", authMiddleware, logout);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", authMiddleware, resetPassword);
 router.get("/me", authMiddleware, getMe);
+router.post("/reset-forgot-password", resetForgotPassword);
 
 export default router;

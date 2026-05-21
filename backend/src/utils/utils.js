@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import fs from "fs";
+import nodemailer from "nodemailer";
 
 // export const cookieOptions = {
 //   httpOnly: true,
@@ -43,7 +44,7 @@ export const generateAccessToken = (id, email, role) => {
 
 export const sendEmail = async ({ to, subject, text }) => {
   const transporter = nodemailer.createTransport({
-    service: "Gmail", // or use SMTP config
+    service: "gmail",
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
@@ -51,10 +52,10 @@ export const sendEmail = async ({ to, subject, text }) => {
   });
 
   await transporter.sendMail({
-    from: process.env.EMAIL_USER,
+    from: `"HerbsNglam" <${process.env.EMAIL_USER}>`,
     to,
     subject,
-    text,
+    html: text,
   });
 };
 

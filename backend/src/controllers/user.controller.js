@@ -259,10 +259,34 @@ const forgotPassword = asyncHandler(async (req, res) => {
   const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
 
   await sendEmail({
-    to: email,
-    subject: "Password Reset Request",
-    text: `You requested a password reset. Click the link to reset your password: ${resetUrl}`,
-  });
+  to: email,
+  subject: "Password Reset Request",
+  text: `
+    <div style="font-family:sans-serif;padding:20px">
+      <h2>Password Reset</h2>
+      <p>You requested a password reset.</p>
+
+      <a 
+        href="${resetUrl}" 
+        style="
+          background:#2A4150;
+          color:white;
+          padding:12px 20px;
+          text-decoration:none;
+          border-radius:8px;
+          display:inline-block;
+          margin-top:10px;
+        "
+      >
+        Reset Password
+      </a>
+
+      <p style="margin-top:20px">
+        This link expires in 15 minutes.
+      </p>
+    </div>
+  `,
+});
 
   return res
     .status(200)
@@ -364,12 +388,55 @@ const getMe = asyncHandler(async (req, res) => {
   );
 });
 
+const resetForgotPassword = asyncHandler(async (req, res) => {
+  const { token, email, password } = req.body;
+
+  if (!token || !email || !password) {
+    return ApiError.send(res, 400, "All fields are required");
+  }
+
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(token)
+    .digest("hex");
+
+  const user = await prisma.user.findFirst({
+    where: {
+      email,
+      token: hashedToken,
+      resetTokenExpiry: {
+        gt: new Date(),
+      },
+    },
+  });
+
+  if (!user) {
+    return ApiError.send(res, 400, "Invalid or expired token");
+  }
+
+  const hashedPassword = await hashPassword(password);
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      password: hashedPassword,
+      token: null,
+      resetTokenExpiry: null,
+    },
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Password reset successful"));
+});
+
 export {
   signup,
   login,
   logout,
   forgotPassword,
   resetPassword,
+  resetForgotPassword,
   updateAdmin,
   getAllUsers,
   getMe,
