@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ShoppingCart,
   User,
@@ -24,6 +25,97 @@ import { useCategories } from "@/lib/queries/useCategories";
 import { useProducts } from "@/lib/queries/useProducts";
 import { useSettings } from "@/lib/queries/useSettings";
 
+// Animated Hamburger Icon Component
+function AnimatedMenuIcon({ isOpen, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className="relative w-8 h-8 flex items-center justify-center focus:outline-none lg:hidden"
+      aria-label={isOpen ? "Close menu" : "Open menu"}
+    >
+      <div className="relative w-5 h-5">
+        <motion.span
+          className="absolute left-0 top-0 h-0.5 bg-slate-600 rounded-full"
+          style={{ width: "100%" }}
+          animate={{
+            rotate: isOpen ? 45 : 0,
+            y: isOpen ? 8 : 0,
+          }}
+          transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+        />
+        <motion.span
+          className="absolute left-0 top-1/2 h-0.5 bg-slate-600 rounded-full"
+          style={{ width: "100%", y: "-50%" }}
+          animate={{
+            opacity: isOpen ? 0 : 1,
+            x: isOpen ? -20 : 0,
+          }}
+          transition={{ duration: 0.2 }}
+        />
+        <motion.span
+          className="absolute left-0 bottom-0 h-0.5 bg-slate-600 rounded-full"
+          style={{ width: "100%" }}
+          animate={{
+            rotate: isOpen ? -45 : 0,
+            y: isOpen ? -8 : 0,
+          }}
+          transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+        />
+      </div>
+    </button>
+  );
+}
+
+// Animated Cart Icon Component
+function AnimatedCartIcon({ quantity }) {
+  const [previousQuantity, setPreviousQuantity] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  useEffect(() => {
+    if (quantity > 0 && quantity > previousQuantity) {
+      setIsAnimating(true);
+      const timer = setTimeout(() => setIsAnimating(false), 500);
+      return () => clearTimeout(timer);
+    }
+    setPreviousQuantity(quantity);
+  }, [quantity, previousQuantity]);
+
+  return (
+    <Link
+      href="/cart"
+      className="relative flex items-center gap-1.5 text-slate-600 hover:text-[#2A4150] p-2 transition-colors"
+    >
+      <motion.div
+        className="relative"
+        animate={isAnimating ? {
+          scale: [1, 1.2, 0.9, 1.1, 1],
+        } : {}}
+        transition={{ duration: 0.5, ease: "easeInOut" }}
+      >
+        <ShoppingCart size={22} className="md:w-6 md:h-6" />
+        <AnimatePresence mode="wait">
+          {quantity > 0 && (
+            <motion.span
+              key={quantity}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ 
+                scale: 1, 
+                opacity: 1,
+                transition: { type: "spring", stiffness: 500, damping: 15 }
+              }}
+              exit={{ scale: 0, opacity: 0 }}
+              className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#2A4150] text-[10px] font-bold text-white ring-2 ring-white"
+            >
+              {quantity}
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </motion.div>
+      <span className="hidden lg:inline text-sm font-medium">Cart</span>
+    </Link>
+  );
+}
+
 export default function Header() {
   const router = useRouter();
   const dispatch = useDispatch();
@@ -32,7 +124,11 @@ export default function Header() {
   const { data: settings } = useSettings();
   const [openMenu, setOpenMenu] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [showMobileSearch, setShowMobileSearch] = useState(true);
+  const lastScrollY = useRef(0);
+  const isSearchManuallyOpened = useRef(false);
   const { user, isAuthenticated, openLoginModal } = useSelector(
     (state) => state.auth,
   );
@@ -54,11 +150,31 @@ export default function Header() {
     )
     .slice(0, 5);
 
+  // Handle scroll behavior for mobile search
   useEffect(() => {
-    const close = () => {
-      setOpenMenu(false);
-      setIsMobileMenuOpen(false);
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      if (isSearchManuallyOpened.current) {
+        lastScrollY.current = currentScrollY;
+        return;
+      }
+      
+      if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
+        setShowMobileSearch(false);
+        setIsMobileSearchOpen(false);
+      } else if (currentScrollY < lastScrollY.current) {
+        setShowMobileSearch(true);
+      }
+      
+      lastScrollY.current = currentScrollY;
     };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
     function handleClickOutside(e) {
       if (menuRef.current && !menuRef.current.contains(e.target))
         setOpenMenu(false);
@@ -76,6 +192,21 @@ export default function Header() {
     dispatch(logout());
     setOpenMenu(false);
     router.push("/");
+  };
+
+  const toggleMobileSearch = () => {
+    const newState = !isMobileSearchOpen;
+    setIsMobileSearchOpen(newState);
+    
+    if (newState) {
+      setShowMobileSearch(true);
+      isSearchManuallyOpened.current = true;
+    } else {
+      isSearchManuallyOpened.current = false;
+      if (window.scrollY > 100) {
+        setShowMobileSearch(false);
+      }
+    }
   };
 
   const getLogoUrl = () => {
@@ -102,50 +233,30 @@ export default function Header() {
 
   const logoUrl = getLogoUrl();
 
-  // Short category names for menu
-  const getShortName = (name) => {
-    const shortNames = {
-      "BEAUTY HAIR CARE SKIN CARE": "Beauty",
-      "HEALTH & WELLNESS": "Health",
-      "PERSONAL CARE": "Personal Care",
-      "FOOD & NUTRITION": "Nutrition",
-      // Add more mappings as needed
-    };
-    return shortNames[name] || name;
-  };
-
   return (
     <>
       <header className="sticky top-0 z-50 w-full border-b border-slate-100 bg-white/95 backdrop-blur-md shadow-sm">
-        {/* Main Header - Reduced padding */}
         <div className="mx-auto max-w-full px-3 sm:px-4 lg:px-8">
           <div className="flex h-16 md:h-20 items-center justify-between gap-3">
-            {/* LEFT SECTION: Menu + Logo */}
             <div className="flex items-center gap-1">
-              {/* Mobile Menu Toggle */}
-              <button
-                className="lg:hidden p-2 -ml-1 text-slate-600 hover:text-[#2A4150] transition-colors"
-                onClick={() => setIsMobileMenuOpen(true)}
+              <Link
+                href="/"
+                className="flex items-center gap-2 flex-shrink-0 min-w-fit"
               >
-                <Menu size={22} />
-              </button>
-
-              {/* Logo - Always on left */}
-              <Link href="/" className="shrink-0 flex items-center gap-2">
                 {logoUrl ? (
                   <img
                     src={logoUrl}
                     alt="Logo"
                     className="
-                                h-10
-                                sm:h-12
-                                md:h-14
-                                lg:h-16
-                                w-auto
-                                max-w-45
-                                object-contain
-                                scale-110
-                              "
+                      h-[55px]
+                      sm:h-[65px]
+                      md:h-[75px]
+                      lg:h-[85px]
+                      w-auto
+                      min-w-fit
+                      object-contain
+                      flex-shrink-0
+                    "
                     onError={(e) => {
                       e.target.style.display = "none";
                     }}
@@ -159,7 +270,6 @@ export default function Header() {
               </Link>
             </div>
 
-            {/* Desktop Search - Centered (hidden on mobile) */}
             <div className="hidden lg:block flex-1 max-w-2xl mx-4 xl:mx-8">
               <SearchField
                 value={search}
@@ -177,32 +287,16 @@ export default function Header() {
               />
             </div>
 
-            {/* RIGHT SECTION: Search Icon + Cart + User */}
             <div className="flex items-center gap-0.5 sm:gap-1 md:gap-2">
-              {/* Mobile Search Icon */}
-              <button className="lg:hidden p-2 text-slate-600 hover:text-[#2A4150] transition-colors">
-                <Search size={22} />
+              <button 
+                className="lg:hidden p-2 text-slate-600 hover:text-[#2A4150] transition-colors"
+                onClick={toggleMobileSearch}
+              >
+                {isMobileSearchOpen ? <X size={22} /> : <Search size={22} />}
               </button>
 
-              {/* Cart */}
-              <Link
-                href="/cart"
-                className="relative flex items-center gap-1.5 text-slate-600 hover:text-[#2A4150] p-2 transition-colors"
-              >
-                <div className="relative">
-                  <ShoppingCart size={22} className="md:w-6 md:h-6" />
-                  {totalQuantity > 0 && (
-                    <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#2A4150] text-[10px] font-bold text-white ring-2 ring-white">
-                      {totalQuantity}
-                    </span>
-                  )}
-                </div>
-                <span className="hidden lg:inline text-sm font-medium">
-                  Cart
-                </span>
-              </Link>
+              <AnimatedCartIcon quantity={totalQuantity} />
 
-              {/* User Section */}
               <div className="relative" ref={menuRef}>
                 {isAuthenticated ? (
                   <UserDropdown
@@ -219,29 +313,42 @@ export default function Header() {
                   />
                 )}
               </div>
+
+              <AnimatedMenuIcon
+                isOpen={isMobileMenuOpen}
+                onClick={() => setIsMobileMenuOpen(true)}
+              />
             </div>
           </div>
         </div>
 
-        {/* Mobile Search - Below header */}
-        <div className="px-3 pb-2 lg:hidden">
-          <SearchField
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            results={searchResults}
-            showResults
-            onResultClick={(item) => {
-              router.push(
-                `/category/${item.category?.name
-                  ?.toLowerCase()
-                  .replace(/\s+/g, "-")}?search=${item.name}`,
-              );
-            }}
-            placeholder="Search products..."
-          />
+        <div
+          className={`lg:hidden transition-all duration-300 ease-in-out overflow-hidden ${
+            isMobileSearchOpen && showMobileSearch
+              ? "max-h-20 opacity-100"
+              : "max-h-0 opacity-0"
+          }`}
+        >
+          <div className="px-3 pb-2">
+            <SearchField
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              results={searchResults}
+              showResults
+              onResultClick={(item) => {
+                router.push(
+                  `/category/${item.category?.name
+                    ?.toLowerCase()
+                    .replace(/\s+/g, "-")}?search=${item.name}`,
+                );
+                setIsMobileSearchOpen(false);
+                isSearchManuallyOpened.current = false;
+              }}
+              placeholder="Search products..."
+            />
+          </div>
         </div>
 
-        {/* Desktop Navigation - Compact & Balanced */}
         <nav className="hidden lg:block border-t border-slate-50 bg-white">
           <div className="mx-auto max-w-7xl px-4">
             <ul className="flex items-center justify-center gap-2 xl:gap-4 py-2">
@@ -269,55 +376,68 @@ export default function Header() {
         </nav>
       </header>
 
-      {/* MOBILE SIDEBAR MENU */}
-      <div
-        className={`fixed inset-0 z-100 transition-visibility duration-300 ${isMobileMenuOpen ? "visible" : "invisible"}`}
-      >
-        <div
-          className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${isMobileMenuOpen ? "opacity-100" : "opacity-0"}`}
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-        <aside
-          className={`absolute left-0 top-0 h-full w-72 bg-white shadow-2xl transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
-        >
-          <div className="flex items-center justify-between p-4 border-b border-slate-100">
-            <span className="font-bold text-lg text-[#2A4150]">Menu</span>
-            <button
+      {/* MOBILE SIDEBAR MENU - Animated */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="fixed inset-0 bg-black/40 z-40 lg:hidden"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="p-1 hover:bg-slate-100 rounded-lg transition-colors"
+            />
+            <motion.aside
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+              className="fixed right-0 top-0 h-full w-72 bg-white shadow-2xl z-50 lg:hidden"
             >
-              <X size={22} />
-            </button>
-          </div>
+              <div className="flex items-center justify-between p-4 border-b border-slate-100">
+                <span className="font-bold text-lg text-[#2A4150]">Menu</span>
+                <motion.button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-1 hover:bg-slate-100 rounded-lg transition-colors"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <X size={22} />
+                </motion.button>
+              </div>
 
-          <div className="overflow-y-auto h-[calc(100%-60px)] py-2">
-            <MobileNavLink
-              item="HOME"
-              onClose={() => setIsMobileMenuOpen(false)}
-            />
-            {categories.map((cat) => (
-              <MobileNavLink
-                key={cat.id}
-                item={cat}
-                onClose={() => setIsMobileMenuOpen(false)}
-              />
-            ))}
-            <div className="border-t border-slate-100 my-2" />
-            <MobileNavLink
-              item="DIET PLANS"
-              onClose={() => setIsMobileMenuOpen(false)}
-            />
-            <MobileNavLink
-              item="EXPERTS"
-              onClose={() => setIsMobileMenuOpen(false)}
-            />
-            <MobileNavLink
-              item="ABOUT US"
-              onClose={() => setIsMobileMenuOpen(false)}
-            />
-          </div>
-        </aside>
-      </div>
+              <div className="overflow-y-auto h-[calc(100%-60px)] py-2">
+                <MobileNavLink
+                  item="HOME"
+                  onClose={() => setIsMobileMenuOpen(false)}
+                />
+                {categories.map((cat, idx) => (
+                  <MobileNavLink
+                    key={cat.id}
+                    item={cat}
+                    onClose={() => setIsMobileMenuOpen(false)}
+                    index={idx}
+                  />
+                ))}
+                <div className="border-t border-slate-100 my-2" />
+                <MobileNavLink
+                  item="DIET PLANS"
+                  onClose={() => setIsMobileMenuOpen(false)}
+                />
+                <MobileNavLink
+                  item="EXPERTS"
+                  onClose={() => setIsMobileMenuOpen(false)}
+                />
+                <MobileNavLink
+                  item="ABOUT US"
+                  onClose={() => setIsMobileMenuOpen(false)}
+                />
+              </div>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
 
       <LoginModal
         isOpen={openLoginModal}
@@ -335,7 +455,6 @@ function NavLink({ item }) {
   const name = isString ? item : item.name;
   const hasSubCategories = !isString && item.subCategories?.length > 0;
 
-  // Short display name
   const displayName = isString
     ? name
     : name.length > 15
@@ -414,7 +533,7 @@ function NavLink({ item }) {
   );
 }
 
-function MobileNavLink({ item, onClose }) {
+function MobileNavLink({ item, onClose, index = 0 }) {
   const [isOpen, setIsOpen] = useState(false);
   const isString = typeof item === "string";
   const name = isString ? item : item.name;
@@ -437,7 +556,12 @@ function MobileNavLink({ item, onClose }) {
   }
 
   return (
-    <div className="border-b border-slate-50 last:border-0">
+    <motion.div 
+      className="border-b border-slate-50 last:border-0"
+      initial={{ opacity: 0, x: 50 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.03 }}
+    >
       <div className="flex items-center justify-between">
         <Link
           href={href}
@@ -457,28 +581,46 @@ function MobileNavLink({ item, onClose }) {
             onClick={() => setIsOpen(!isOpen)}
             className="p-4 text-slate-400 hover:text-[#2A4150] transition-colors"
           >
-            <ChevronDown
-              size={18}
-              className={`transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
-            />
+            <motion.div
+              animate={{ rotate: isOpen ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ChevronDown size={18} />
+            </motion.div>
           </button>
         )}
       </div>
-      {hasSub && isOpen && (
-        <div className="bg-slate-50/50 py-1">
-          {item.subCategories.map((sub) => (
-            <Link
-              key={sub.id}
-              href={`/category/${sub.name.toLowerCase().replace(/\s+/g, "-")}`}
-              onClick={onClose}
-              className="block px-10 py-3 text-sm text-slate-600 hover:text-[#2A4150] hover:bg-white transition-colors"
-            >
-              {sub.name}
-            </Link>
-          ))}
-        </div>
-      )}
-    </div>
+      <AnimatePresence>
+        {hasSub && isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="bg-slate-50/50 overflow-hidden"
+          >
+            <div className="py-1">
+              {item.subCategories.map((sub, subIdx) => (
+                <motion.div
+                  key={sub.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: subIdx * 0.05 }}
+                >
+                  <Link
+                    href={`/category/${sub.name.toLowerCase().replace(/\s+/g, "-")}`}
+                    onClick={onClose}
+                    className="block px-10 py-3 text-sm text-slate-600 hover:text-[#2A4150] hover:bg-white transition-colors"
+                  >
+                    {sub.name}
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
 

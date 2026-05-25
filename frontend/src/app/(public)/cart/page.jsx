@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ShoppingBag,
   ArrowLeft,
@@ -12,6 +13,9 @@ import {
   MapPin,
   CheckCircle2,
   AlertCircle,
+  Trash2,
+  Minus,
+  Plus,
 } from "lucide-react";
 import Link from "next/link";
 import { useSelector, useDispatch } from "react-redux";
@@ -30,6 +34,21 @@ import {
   useCreatePaymentOrder,
   useVerifyPayment,
 } from "@/lib/mutations/usePayment";
+
+// Animation variants
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -20 },
+};
+
+const staggerContainer = {
+  animate: {
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
 
 export default function CartPage() {
   const dispatch = useDispatch();
@@ -60,7 +79,6 @@ export default function CartPage() {
   }, [dispatch]);
 
   const FREE_SHIPPING_MIN = 500;
-  
 
   const { subtotal, shipping, discount, total, progress } = useMemo(() => {
     const sub = reduxItems.reduce(
@@ -82,7 +100,16 @@ export default function CartPage() {
     (addr) => addr.id === selectedAddressId,
   );
 
-  if (!isHydrated) return <div className="min-h-screen bg-[#F8FAFC]" />;
+  if (!isHydrated)
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          className="w-8 h-8 border-2 border-[#2A4150] border-t-transparent rounded-full"
+        />
+      </div>
+    );
 
   if (reduxItems.length === 0 && !showSuccessDialog) {
     return <EmptyCartView />;
@@ -109,7 +136,6 @@ export default function CartPage() {
       return;
     }
 
-    // agar sab sahi ho
     setErrorMsg("");
 
     const payload = {
@@ -121,7 +147,7 @@ export default function CartPage() {
       shipping: {
         firstName: selectedAddress.firstName || "User",
         lastName: selectedAddress.lastName || "",
-        email: selectedAddress.email || "test@example.com", // ✅ FIX
+        email: selectedAddress.email || "test@example.com",
         address: selectedAddress.address,
         state: selectedAddress.state,
         city: selectedAddress.city,
@@ -129,36 +155,25 @@ export default function CartPage() {
       },
     };
 
-    // ===============================
-    // 💰 COD FLOW
-    // ===============================
     if (paymentMethod === "COD") {
       createOrder(payload, {
         onSuccess: (res) => {
           const orderId = res?.data?.data?.id;
-
           setCreatedOrderId(orderId);
           setShowSuccessDialog(true);
-
           dispatch(setCart([]));
           localStorage.removeItem("cart");
         },
         onError: () => alert("Order failed"),
       });
-
-      return; // 👈 stop here
+      return;
     }
 
-    // ===============================
-    // 💳 ONLINE (RAZORPAY FLOW)
-    // ===============================
     if (paymentMethod === "ONLINE") {
       createOrder(payload, {
         onSuccess: async (res) => {
           try {
             const orderId = res?.data?.data?.id;
-
-            // ✅ create razorpay order (React Query)
             const paymentData = await createPaymentOrder({ orderId });
 
             if (!paymentData?.success) {
@@ -173,14 +188,10 @@ export default function CartPage() {
               amount: razorpayOrder.amount,
               currency: "INR",
               order_id: razorpayOrder.id,
-
               handler: async function (response) {
-                // ✅ verify payment (React Query)
                 await verifyPayment(response);
-
                 setCreatedOrderId(orderId);
                 setShowSuccessDialog(true);
-
                 dispatch(setCart([]));
                 localStorage.removeItem("cart");
               },
@@ -189,13 +200,10 @@ export default function CartPage() {
             const rzp = new window.Razorpay(options);
             rzp.open();
           } catch (error) {
-            console.log(error);
-
             console.error(error);
             alert("Payment failed");
           }
         },
-
         onError: () => alert("Order failed"),
       });
     }
@@ -203,13 +211,18 @@ export default function CartPage() {
 
   return (
     <>
-      <div className="min-h-screen bg-[#F8FAFC] py-8 md:py-12 px-4 animate-in fade-in duration-500">
-        <div className="max-w-6xl mx-auto">
+      <div className="min-h-screen bg-gradient-to-br from-[#F8FAFC] to-[#F1F5F9] py-6 sm:py-8 md:py-12 px-3 sm:px-4">
+        <div className="max-w-7xl mx-auto">
           {/* Breadcrumb & Title */}
-          <header className="mb-8">
+          <motion.header
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+            className="mb-6 sm:mb-8"
+          >
             <Link
               href="/"
-              className="group inline-flex items-center gap-2 text-slate-500 hover:text-[#2A4150] transition-colors mb-4 text-sm font-semibold"
+              className="group inline-flex items-center gap-2 text-slate-500 hover:text-[#2A4150] transition-colors mb-3 sm:mb-4 text-xs sm:text-sm font-semibold"
             >
               <ArrowLeft
                 size={16}
@@ -217,32 +230,45 @@ export default function CartPage() {
               />
               Back to Shop
             </Link>
-            <h1 className="text-4xl font-black text-slate-900 tracking-tight">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
               Your Cart{" "}
               <span className="text-slate-400 font-normal">
                 ({reduxItems.length})
               </span>
             </h1>
-          </header>
+          </motion.header>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
             {/* Main Content: Left Column */}
-            <div className="lg:col-span-8 space-y-6">
+            <motion.div
+              className="lg:col-span-8 space-y-4 md:space-y-6"
+              variants={staggerContainer}
+              initial="initial"
+              animate="animate"
+            >
               {/* Shipping Promo */}
-              <section className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                <div className="flex items-center gap-4 mb-3">
-                  <div
-                    className={`p-2 rounded-xl ${shipping === 0 ? "bg-emerald-100 text-emerald-600" : "bg-blue-100 text-[#2A4150]"}`}
+              <motion.section
+                variants={fadeInUp}
+                className="bg-white p-4 sm:p-5 rounded-xl md:rounded-2xl border border-slate-200 shadow-sm"
+              >
+                <div className="flex items-center gap-3 sm:gap-4 mb-3">
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    className={`p-2 rounded-xl ${
+                      shipping === 0
+                        ? "bg-emerald-100 text-emerald-600"
+                        : "bg-blue-100 text-[#2A4150]"
+                    }`}
                   >
-                    <Truck size={22} />
-                  </div>
+                    <Truck size={18} className="sm:w-5 sm:h-5" />
+                  </motion.div>
                   <div>
-                    <h4 className="font-bold text-slate-900 leading-none">
+                    <h4 className="font-bold text-slate-900 leading-none text-sm sm:text-base">
                       {shipping === 0
                         ? "Free Shipping Unlocked"
                         : "Almost there!"}
                     </h4>
-                    <p className="text-xs text-slate-500 mt-1 uppercase font-black tracking-wider">
+                    <p className="text-[11px] sm:text-xs text-slate-500 mt-1 uppercase font-black tracking-wider">
                       {shipping === 0
                         ? "Your order ships for free"
                         : `Add ₹${FREE_SHIPPING_MIN - subtotal} for free delivery`}
@@ -250,162 +276,184 @@ export default function CartPage() {
                   </div>
                 </div>
                 <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                  {/* <div
-                    className={`h-full transition-all duration-1000 ease-out ${shipping === 0 ? "bg-emerald-500" : "bg-[#2A4150]"}`}
-                    style={{ width: `${progress}%` }}
-                  /> */}
+                  <motion.div
+                    className={`h-full ${shipping === 0 ? "bg-emerald-500" : "bg-[#2A4150]"}`}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progress}%` }}
+                    transition={{ duration: 1, ease: "easeOut" }}
+                  />
                 </div>
-              </section>
+              </motion.section>
 
               {/* Cart Items */}
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm divide-y divide-slate-100">
-                {reduxItems.map((item) => (
-                  <CartItem
-                    key={item.id}
-                    item={item}
-                    onUpdate={(delta) => {
-                      const newQty = item.quantity + delta;
-
-                      // ❌ STOCK LIMIT BLOCK
-                      if (newQty > item.stock) {
-                        alert(`Only ${item.stock} items available`);
-                        return;
-                      }
-
-                      // ❌ ZERO STOCK BLOCK
-                      if (item.stock === 0) {
-                        alert("This product is out of stock");
-                        return;
-                      }
-
-                      dispatch(updateQty({ id: item.id, delta }));
-                    }}
-                    onRemove={() => dispatch(removeFromCart(item.id))}
-                  />
-                ))}
-              </div>
+              <motion.div
+                variants={fadeInUp}
+                className="bg-white rounded-xl md:rounded-2xl border border-slate-200 shadow-sm divide-y divide-slate-100"
+              >
+                <AnimatePresence mode="popLayout">
+                  {reduxItems.map((item, index) => (
+                    <motion.div
+                      key={item.id}
+                      initial={{ opacity: 0, x: -50 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 50 }}
+                      transition={{ delay: index * 0.05 }}
+                      layout
+                    >
+                      <CartItem
+                        item={item}
+                        onUpdate={(delta) => {
+                          const newQty = item.quantity + delta;
+                          if (newQty > item.stock) {
+                            alert(`Only ${item.stock} items available`);
+                            return;
+                          }
+                          if (item.stock === 0) {
+                            alert("This product is out of stock");
+                            return;
+                          }
+                          dispatch(updateQty({ id: item.id, delta }));
+                        }}
+                        onRemove={() => dispatch(removeFromCart(item.id))}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </motion.div>
 
               {/* Address & Payment Selection */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <SelectionCard
-                  title="Shipping To"
-                  icon={<MapPin size={18} />}
-                  isError={!selectedAddress}
-                  link="/customer/address"
-                >
-                  {selectedAddress ? (
-                    <div className="text-sm">
-                      <p className="font-bold text-slate-800">
-                        {selectedAddress.firstName} {selectedAddress.lastName}
-                      </p>
-                      <p className="text-slate-600">
-                        {selectedAddress.address}
-                      </p>
-                      <p className="text-slate-500">
-                        {selectedAddress.city}, {selectedAddress.state} -{" "}
-                        {selectedAddress.pinCode}
-                      </p>
-                    </div>
-                  ) : (
-                    "Select an address to proceed"
-                  )}
-                </SelectionCard>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <motion.div variants={fadeInUp}>
+                  <SelectionCard
+                    title="Shipping To"
+                    icon={<MapPin size={18} />}
+                    isError={!selectedAddress}
+                    link="/customer/address"
+                  >
+                    {selectedAddress ? (
+                      <div className="text-xs sm:text-sm">
+                        <p className="font-bold text-slate-800">
+                          {selectedAddress.firstName} {selectedAddress.lastName}
+                        </p>
+                        <p className="text-slate-600">
+                          {selectedAddress.address}
+                        </p>
+                        <p className="text-slate-500">
+                          {selectedAddress.city}, {selectedAddress.state} -{" "}
+                          {selectedAddress.pinCode}
+                        </p>
+                      </div>
+                    ) : (
+                      "Select an address to proceed"
+                    )}
+                  </SelectionCard>
+                </motion.div>
 
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                  <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <CreditCard size={18} /> Payment
-                  </h3>
-                  <div className="flex gap-3">
-                    {["ONLINE", "COD"].map((method) => (
-                      <button
-                        key={method}
-                        onClick={() => setPaymentMethod(method)}
-                        className={`flex-1 py-3 rounded-xl border-2 transition-all font-bold text-sm ${
-                          paymentMethod === method
-                            ? "border-[#2A4150] bg-[#2A4150]/5 text-[#2A4150]"
-                            : "border-slate-100 text-slate-400 hover:border-slate-200"
-                        }`}
-                      >
-                        {method === "COD" ? "Cash" : "Online"}
-                      </button>
-                    ))}
+                <motion.div variants={fadeInUp}>
+                  <div className="bg-white p-4 sm:p-5 rounded-xl md:rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 className="text-xs sm:text-sm font-black text-slate-400 uppercase tracking-widest mb-3 sm:mb-4 flex items-center gap-2">
+                      <CreditCard size={16} /> Payment
+                    </h3>
+                    <div className="flex gap-3">
+                      {["ONLINE", "COD"].map((method) => (
+                        <motion.button
+                          key={method}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => setPaymentMethod(method)}
+                          className={`flex-1 py-2.5 sm:py-3 rounded-xl border-2 transition-all font-bold text-xs sm:text-sm ${
+                            paymentMethod === method
+                              ? "border-[#2A4150] bg-[#2A4150]/5 text-[#2A4150]"
+                              : "border-slate-100 text-slate-400 hover:border-slate-200"
+                          }`}
+                        >
+                          {method === "COD" ? "Cash on Delivery" : "Online"}
+                        </motion.button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                </motion.div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Sidebar: Right Column */}
-            <aside className="lg:col-span-4 lg:sticky lg:top-8 space-y-4">
-              <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50">
-                <h2 className="text-xl font-black text-slate-900 mb-6">
+            <motion.aside
+              className="lg:col-span-4 space-y-4"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <div className="bg-white p-5 sm:p-6 md:p-8 rounded-2xl md:rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 sticky top-20">
+                <h2 className="text-lg sm:text-xl font-black text-slate-900 mb-4 sm:mb-6">
                   Order Summary
                 </h2>
 
-                <div className="space-y-4 mb-6">
+                <div className="space-y-3 sm:space-y-4 mb-5 sm:mb-6">
                   <PriceRow label="Subtotal" value={subtotal} />
                   <PriceRow
                     label="Shipping"
                     value={shipping}
                     isFree={shipping === 0}
                   />
-                  {/* {discount > 0 && (
-                    <PriceRow
-                      label="Bag Discount"
-                      value={-discount}
-                      isDiscount
-                    />
-                  )} */}
 
-                  <div className="pt-4 border-t border-dashed border-slate-200 flex justify-between items-end">
-                    <span className="font-bold text-slate-900">
+                  <motion.div
+                    className="pt-3 sm:pt-4 border-t border-dashed border-slate-200 flex justify-between items-end"
+                    initial={{ scale: 0.95 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <span className="font-bold text-slate-900 text-sm sm:text-base">
                       Total Amount
                     </span>
-                    <span className="text-3xl font-black text-[#2A4150] tracking-tighter italic">
+                    <motion.span
+                      key={total}
+                      initial={{ scale: 1.1 }}
+                      animate={{ scale: 1 }}
+                      transition={{ duration: 0.3 }}
+                      className="text-2xl sm:text-3xl font-black text-[#2A4150] tracking-tighter"
+                    >
                       ₹{total}
-                    </span>
-                  </div>
+                    </motion.span>
+                  </motion.div>
                 </div>
 
                 <div className="space-y-3">
-                  {/* <InputField
-                  buttonText="Apply"
-                  showButton={true}
-                  placeholder="Coupon Code"
-                  value={coupon}
-                  onChange={(e) => setCoupon(e.target.value)}
-                  className="h-12 rounded-xl"
-                />
-                 */}
-
                   {errorMsg && (
-                    <div className="mb-3 text-red-600 text-sm font-semibold flex items-center gap-2">
-                      <AlertCircle size={16} /> {errorMsg}
-                    </div>
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-red-600 text-xs sm:text-sm font-semibold flex items-center gap-2"
+                    >
+                      <AlertCircle size={14} /> {errorMsg}
+                    </motion.div>
                   )}
-                  <Button
-                    disabled={isPending}
-                    onClick={handlePlaceOrder}
-                    className="w-full py-4 text-lg font-black uppercase tracking-wider"
-                    text="Place Order"
-                    icon={<ChevronRight size={20} />}
-                  />
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Button
+                      disabled={isPending}
+                      onClick={handlePlaceOrder}
+                      className="w-full py-3 sm:py-4 text-base sm:text-lg font-black uppercase tracking-wider"
+                      text={isPending ? "Processing..." : "Place Order"}
+                      icon={<ChevronRight size={18} className="sm:w-5 sm:h-5" />}
+                    />
+                  </motion.div>
                 </div>
 
                 {/* Security Badges */}
-                <div className="mt-6 pt-6 border-t border-slate-50 flex justify-around opacity-40 grayscale">
-                  <ShieldCheck size={20} />
-                  <RotateCcw size={20} />
-                  <CreditCard size={20} />
+                <div className="mt-5 sm:mt-6 pt-5 sm:pt-6 border-t border-slate-50 flex justify-around opacity-40 grayscale">
+                  <ShieldCheck size={18} className="sm:w-5 sm:h-5" />
+                  <RotateCcw size={18} className="sm:w-5 sm:h-5" />
+                  <CreditCard size={18} className="sm:w-5 sm:h-5" />
                 </div>
               </div>
-            </aside>
+            </motion.aside>
           </div>
         </div>
       </div>
+
       <ConfirmationDialog
         open={showSuccessDialog}
         variant="success"
-        title="Order Placed Successfully "
+        title="Order Placed Successfully!"
         description="Your order has been placed successfully. You can track your order status anytime."
         showCancelButton={false}
         confirmText="Track Order"
@@ -425,73 +473,133 @@ export default function CartPage() {
   );
 }
 
-// --- Sub-Components for Cleanliness ---
-
+// --- Updated CartItem with Quantity on Right Side ---
 const CartItem = ({ item, onUpdate, onRemove }) => (
-  <div className="p-5 flex gap-4 group">
-    <div className="w-24 h-24 bg-slate-50 rounded-2xl overflow-hidden border border-slate-100 shrink-0">
+  <motion.div
+    layout
+    className="p-4 sm:p-5 flex gap-3 sm:gap-4 group"
+    whileHover={{ backgroundColor: "rgba(0,0,0,0.01)" }}
+  >
+    {/* Product Image */}
+    <motion.div
+      className="w-20 h-20 sm:w-24 sm:h-24 bg-slate-50 rounded-xl md:rounded-2xl overflow-hidden border border-slate-100 shrink-0"
+      whileHover={{ scale: 1.05 }}
+      transition={{ duration: 0.2 }}
+    >
       <img
         src={item.image}
-        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+        className="w-full h-full object-cover"
         alt={item.name}
       />
-    </div>
-    <div className="flex-1 min-w-0 flex flex-col justify-between">
-      <div className="flex justify-between">
-        <div>
-          <h3 className="font-bold text-slate-900">{item.name}</h3>
+    </motion.div>
 
-          <div
-  className="text-xs text-slate-400 mt-1 leading-relaxed w-full overflow-hidden line-clamp-2"
-  style={{
-    wordBreak: "break-word",
-    overflowWrap: "anywhere",
-  }}
-  dangerouslySetInnerHTML={{
-    __html: item.description || "No description",
-  }}
-/>
+    {/* Product Info & Actions */}
+    <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      {/* Left Side - Product Details */}
+      <div className="flex-1">
+        <h3 className="font-bold text-slate-900 text-sm sm:text-base">
+          {item.name}
+        </h3>
+        <div
+          className="text-xs text-slate-400 mt-1 leading-relaxed line-clamp-2"
+          style={{
+            wordBreak: "break-word",
+            overflowWrap: "anywhere",
+          }}
+          dangerouslySetInnerHTML={{
+            __html: item.description || "No description",
+          }}
+        />
+        {/* Mobile Price */}
+        <motion.span
+          className="font-black text-slate-900 text-base block sm:hidden mt-2"
+          key={item.price * item.quantity}
+          initial={{ scale: 1.1 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 0.2 }}
+        >
+          ₹{item.price * item.quantity}
+        </motion.span>
+      </div>
+
+      {/* Right Side - Price (Desktop) + Quantity + Remove */}
+      <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4">
+        {/* Desktop Price */}
+        <motion.span
+          className="font-black text-slate-900 text-sm sm:text-base hidden sm:block min-w-[70px] text-right"
+          key={item.price * item.quantity}
+          initial={{ scale: 1.1 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 0.2 }}
+        >
+          ₹{item.price * item.quantity}
+        </motion.span>
+
+        {/* Quantity Selector */}
+        <div className="flex items-center gap-2">
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => onUpdate(-1)}
+            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors flex items-center justify-center font-bold text-base"
+          >
+            <Minus size={14} />
+          </motion.button>
+          <span className="w-6 text-center font-semibold text-slate-800 text-sm sm:text-base">
+            {item.quantity}
+          </span>
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => onUpdate(1)}
+            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors flex items-center justify-center font-bold text-base"
+          >
+            <Plus size={14} />
+          </motion.button>
         </div>
 
-        <span className="font-black text-slate-900">
-          ₹{item.price * item.quantity}
-        </span>
-      </div>
-      <div className="mt-6 sm:mt-0">
-        <QuantitySelector
-          quantity={item.quantity}
-          onIncrease={() => onUpdate(1)}
-          onDecrease={() => {
-            if (item.quantity === 1) {
-              onRemove(); // ✅ remove item
-            } else {
-              onUpdate(-1); // ✅ decrease
-            }
-          }}
-          onRemove={onRemove}
-        />
+        {/* Remove Button */}
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          whileHover={{ scale: 1.05 }}
+          onClick={onRemove}
+          className="p-1.5 sm:p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+          aria-label="Remove item"
+        >
+          <Trash2 size={16} className="sm:w-[18px] sm:h-[18px]" />
+        </motion.button>
       </div>
     </div>
-  </div>
+  </motion.div>
 );
 
 const PriceRow = ({ label, value, isFree, isDiscount }) => (
-  <div
-    className={`flex justify-between text-sm font-bold ${isDiscount ? "text-emerald-600" : "text-slate-500"}`}
+  <motion.div
+    className={`flex justify-between text-xs sm:text-sm font-bold ${
+      isDiscount ? "text-emerald-600" : "text-slate-500"
+    }`}
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 0.3 }}
   >
     <span>{label}</span>
-    <span className={isFree ? "text-emerald-600" : ""}>
+    <motion.span
+      className={isFree ? "text-emerald-600" : ""}
+      whileHover={{ scale: 1.05 }}
+    >
       {isFree ? "FREE" : `₹${value}`}
-    </span>
-  </div>
+    </motion.span>
+  </motion.div>
 );
 
 const SelectionCard = ({ title, icon, isError, children, link }) => (
-  <div
-    className={`bg-white p-5 rounded-2xl border shadow-sm transition-all ${isError ? "border-red-100 bg-red-50/20" : "border-slate-200"}`}
+  <motion.div
+    className={`bg-white p-4 sm:p-5 rounded-xl md:rounded-2xl border shadow-sm transition-all h-full ${
+      isError ? "border-red-100 bg-red-50/20" : "border-slate-200"
+    }`}
+    whileHover={{ y: -2 }}
+    transition={{ duration: 0.2 }}
   >
-    <div className="flex justify-between items-start mb-3">
-      <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+    <div className="flex justify-between items-start mb-2 sm:mb-3">
+      <h3 className="text-[11px] sm:text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
         {icon} {title}
       </h3>
       <Link
@@ -502,31 +610,63 @@ const SelectionCard = ({ title, icon, isError, children, link }) => (
       </Link>
     </div>
     <div
-      className={`text-sm ${isError ? "text-red-500 font-bold flex items-center gap-1" : "text-slate-600 font-medium"}`}
+      className={`text-xs sm:text-sm ${
+        isError
+          ? "text-red-500 font-bold flex items-center gap-1"
+          : "text-slate-600 font-medium"
+      }`}
     >
-      {isError && <AlertCircle size={14} />} {children}
+      {isError && <AlertCircle size={12} />} {children}
     </div>
-  </div>
+  </motion.div>
 );
 
 const EmptyCartView = () => (
-  <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 text-center animate-in zoom-in duration-300 ">
-    <div className="bg-slate-100 p-10 rounded-full mb-8 ">
-      <ShoppingBag className="w-16 h-16 text-slate-300" />
-      <div className="absolute top-0 right-0 w-6 h-6 bg-[#2A4150] rounded-full border-4 border-white" />
-    </div>
-    <h2 className="text-4xl font-black text-slate-900 mb-2 tracking-tighter">
+  <motion.div
+    className="min-h-[80vh] flex flex-col items-center justify-center p-6 text-center"
+    initial={{ opacity: 0, scale: 0.9 }}
+    animate={{ opacity: 1, scale: 1 }}
+    transition={{ duration: 0.5, type: "spring" }}
+  >
+    <motion.div
+      className="relative mb-6 sm:mb-8"
+      animate={{ rotate: [0, -5, 5, -5, 0] }}
+      transition={{ duration: 0.5, delay: 0.2 }}
+    >
+      <div className="bg-slate-100 p-8 sm:p-10 rounded-full">
+        <ShoppingBag className="w-12 h-12 sm:w-16 sm:h-16 text-slate-300" />
+      </div>
+    </motion.div>
+    <motion.h2
+      className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 mb-2 tracking-tighter"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.3 }}
+    >
       YOUR CART IS EMPTY
-    </h2>
-    <p className="text-slate-500 mb-8 max-w-xs font-medium italic">
+    </motion.h2>
+    <motion.p
+      className="text-slate-500 mb-6 sm:mb-8 max-w-xs font-medium italic text-sm sm:text-base"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.4 }}
+    >
       Looks like you haven't decided yet. Our new collection is waiting!
-    </p>
-    <Link href="/">
-      <Button
-        className="px-12 py-4 rounded-full shadow-lg shadow-slate-200"
-        text="Start Exploring"
-        icon={<ArrowLeft size={20} />}
-      />
-    </Link>
-  </div>
+    </motion.p>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.5 }}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+    >
+      <Link href="/">
+        <Button
+          className="px-8 sm:px-12 py-3 sm:py-4 rounded-full shadow-lg shadow-slate-200 text-sm sm:text-base"
+          text="Start Exploring"
+          icon={<ArrowLeft size={18} className="sm:w-5 sm:h-5" />}
+        />
+      </Link>
+    </motion.div>
+  </motion.div>
 );
