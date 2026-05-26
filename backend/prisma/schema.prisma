@@ -27,6 +27,7 @@ model User {
   createdOrders     Order[]    @relation("CreatedOrders")
   customerOrders    Order[]    @relation("CustomerOrders")
   createdProducts   Product[]  @relation("CreatedProducts")
+  couponUsages CouponUsage[]
 
   @@map("user")
 }
@@ -112,6 +113,8 @@ model Order {
   shipping        ShippingAddress @relation(fields: [shippingId], references: [id], map: "Order_shippingId_fkey")
   items           OrderItem[]
   paymentMode     String          @default("COD") @map("payment_mode")
+  couponCode      String?
+  discount        Float @default(0)
 
   // Razorpay fields
   razorpayOrderId   String?
@@ -201,6 +204,37 @@ model Setting {
   updatedAt   DateTime @updatedAt
 
   @@map("setting")
+}
+
+model Coupon {
+  id                String   @id @default(uuid())
+  code              String   @unique
+  discountType      DiscountType
+  discountValue     Float
+  minOrderAmount    Float    @default(0)
+  maxDiscountAmount Float?
+  usageLimit        Int      @default(1)
+  usedCount         Int      @default(0)
+  isActive          Boolean  @default(true)
+  expiryDate        DateTime
+  usages CouponUsage[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model CouponUsage {
+  id        String   @id @default(uuid())
+  userId    String
+  couponId  String
+  usedAt    DateTime @default(now())
+  user       User    @relation(fields: [userId], references: [id])
+  coupon     Coupon  @relation(fields: [couponId], references: [id])
+  @@unique([userId, couponId])
+}
+
+enum DiscountType {
+  percentage
+  flat
 }
 
 enum PlanType {

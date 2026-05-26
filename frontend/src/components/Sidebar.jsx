@@ -12,15 +12,18 @@ import {
   X,
   Salad,
   ClipboardPlus,
+  TicketPercent,
 } from "lucide-react";
 
 export const MENU_ITEMS = [
   { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
   { name: "Ledger", icon: Notebook, path: "/dashboard/ledger" },
   { name: "Categories", icon: Layers, path: "/dashboard/categories" },
-  { name: "Customers", icon: Users, path: "/dashboard/customers" },
-  { name: "Orders", icon: ShoppingCart, path: "/dashboard/orders" },
   { name: "Products", icon: Box, path: "/dashboard/products" },
+  { name: "Customers", icon: Users, path: "/dashboard/customers" },
+  { name: "Coupons", icon: TicketPercent, path: "/dashboard/coupons" },
+  { name: "Orders", icon: ShoppingCart, path: "/dashboard/orders" },
+  
   { name: "Diet Plans", icon: Salad , path: "/dashboard/diet-plans" },
   { name: "Consultations", icon: ClipboardPlus, path: "/dashboard/consultations" },
 ];

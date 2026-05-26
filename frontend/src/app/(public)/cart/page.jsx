@@ -16,13 +16,12 @@ import {
   Trash2,
   Minus,
   Plus,
+  TicketPercent,
 } from "lucide-react";
 import Link from "next/link";
 import { useSelector, useDispatch } from "react-redux";
 
 import Button from "@/components/ui/Button";
-import InputField from "@/components/ui/InputField";
-import QuantitySelector from "@/components/common/QuantitySelector";
 
 import { removeFromCart, updateQty, setCart } from "@/store/slices/cartSlice";
 import { setAddress } from "@/store/slices/addressSlice";
@@ -34,6 +33,8 @@ import {
   useCreatePaymentOrder,
   useVerifyPayment,
 } from "@/lib/mutations/usePayment";
+import { useCoupons } from "@/lib/queries/useCoupon";
+import { useApplyCoupon } from "@/lib/mutations/useCoupon";
 
 // Animation variants
 const fadeInUp = {
@@ -58,6 +59,8 @@ export default function CartPage() {
   );
   const router = useRouter();
   const { mutate: createOrder, isPending } = useCreateOrder();
+  const { mutateAsync: applyCouponMutation } = useApplyCoupon();
+  const { data: couponsData = [] } = useCoupons();
   const { isAuthenticated } = useSelector((state) => state.auth);
   const [coupon, setCoupon] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
@@ -67,6 +70,11 @@ export default function CartPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const { mutateAsync: createPaymentOrder } = useCreatePaymentOrder();
   const { mutateAsync: verifyPayment } = useVerifyPayment();
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [couponError, setCouponError] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [availableCoupons, setAvailableCoupons] = useState([]);
 
   useEffect(() => {
     const cartData = localStorage.getItem("cart");
@@ -77,6 +85,45 @@ export default function CartPage() {
 
     setIsHydrated(true);
   }, [dispatch]);
+  useEffect(() => {
+    if (couponsData?.length) {
+      setAvailableCoupons(couponsData.filter((coupon) => coupon.isActive));
+    }
+  }, [couponsData]);
+
+  const handleQuickApplyCoupon = async (code) => {
+    setCoupon(code);
+
+    try {
+      setCouponLoading(true);
+      setCouponError("");
+
+      const data = await applyCouponMutation({
+        couponCode: code,
+        cartTotal: subtotal,
+      });
+
+      if (!data.success) {
+        setCouponError(data.message);
+        return;
+      }
+
+      setAppliedCoupon(data.couponCode);
+      setCouponDiscount(data.discount);
+      setCouponError("");
+    } catch (error) {
+      console.log(error);
+
+      setCouponError(
+        error?.response?.data?.message || "Failed to apply coupon",
+      );
+
+      setAppliedCoupon(null);
+      setCouponDiscount(0);
+    } finally {
+      setCouponLoading(false);
+    }
+  };
 
   const FREE_SHIPPING_MIN = 500;
 
@@ -85,8 +132,11 @@ export default function CartPage() {
       (acc, item) => acc + item.price * item.quantity,
       0,
     );
+
     const ship = sub >= FREE_SHIPPING_MIN || sub === 0 ? 0 : 0;
-    const disc = 0;
+
+    const disc = couponDiscount;
+
     return {
       subtotal: sub,
       shipping: ship,
@@ -94,8 +144,7 @@ export default function CartPage() {
       total: sub - disc + ship,
       progress: Math.min((sub / FREE_SHIPPING_MIN) * 100, 100),
     };
-  }, [reduxItems]);
-
+  }, [reduxItems, couponDiscount]);
   const selectedAddress = addresses.find(
     (addr) => addr.id === selectedAddressId,
   );
@@ -114,6 +163,41 @@ export default function CartPage() {
   if (reduxItems.length === 0 && !showSuccessDialog) {
     return <EmptyCartView />;
   }
+
+  const handleApplyCoupon = async () => {
+    try {
+      setCouponLoading(true);
+      setCouponError("");
+
+      const data = await applyCouponMutation({
+        couponCode: coupon,
+        cartTotal: subtotal,
+      });
+
+      if (!data.success) {
+        setCouponError(data.message);
+        setAppliedCoupon(null);
+        setCouponDiscount(0);
+        return;
+      }
+
+      setAppliedCoupon(data.couponCode);
+      setCouponDiscount(data.discount);
+
+      setCouponError("");
+    } catch (error) {
+      console.log(error);
+
+      setCouponError(
+        error?.response?.data?.message || "Failed to apply coupon",
+      );
+
+      setAppliedCoupon(null);
+      setCouponDiscount(0);
+    } finally {
+      setCouponLoading(false);
+    }
+  };
 
   const handlePlaceOrder = () => {
     if (!isAuthenticated) {
@@ -144,6 +228,8 @@ export default function CartPage() {
         quantity: item.quantity,
         price: item.price,
       })),
+      couponCode: appliedCoupon,
+      discount: couponDiscount,
       shipping: {
         firstName: selectedAddress.firstName || "User",
         lastName: selectedAddress.lastName || "",
@@ -246,6 +332,106 @@ export default function CartPage() {
               initial="initial"
               animate="animate"
             >
+              {/* Available Coupons */}
+              <motion.section
+                variants={fadeInUp}
+                className="bg-white p-4 sm:p-5 rounded-xl md:rounded-2xl border border-slate-200 shadow-sm"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="
+      w-10
+      h-10
+      rounded-2xl
+      bg-[#2A4150]
+      text-white
+      flex
+      items-center
+      justify-center
+      shadow-lg
+    "
+                    >
+                      <TicketPercent size={20} />
+                    </div>
+
+                    <div>
+                      <h3 className="text-base sm:text-lg font-black text-slate-900">
+                        Available Coupons
+                      </h3>
+
+                      <p className="text-xs text-slate-400 font-semibold">
+                        Apply & Save More
+                      </p>
+                    </div>
+                  </div>
+
+                  <span className="text-xs font-bold text-slate-400 uppercase">
+                    Save More
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  {availableCoupons.map((couponItem) => (
+                    <div
+                      key={couponItem.id}
+                      className="
+          border
+          border-dashed
+          border-[#2A4150]/20
+          rounded-2xl
+          p-4
+          flex
+          items-center
+          justify-between
+          gap-4
+          bg-[#2A4150]/[0.02]
+        "
+                    >
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-black text-[#2A4150] text-sm sm:text-base">
+                            {couponItem.code}
+                          </span>
+
+                          <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full font-bold uppercase">
+                            Active
+                          </span>
+                        </div>
+
+                        <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                          {couponItem.discountType === "percentage"
+                            ? `${couponItem.discountValue}% OFF`
+                            : `₹${couponItem.discountValue} OFF`}
+                        </p>
+
+                        <p className="text-[11px] text-slate-400 mt-1">
+                          Min Order ₹{couponItem.minOrderAmount}
+                        </p>
+                      </div>
+
+                      <button
+                        onClick={() => handleQuickApplyCoupon(couponItem.code)}
+                        className="
+                                    px-4
+                                    py-2
+                                    rounded-xl
+                                    bg-[#2A4150]
+                                    text-white
+                                    text-xs
+                                    sm:text-sm
+                                    font-bold
+                                    hover:opacity-90
+                                    transition
+                                  "
+                      >
+                        APPLY
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </motion.section>
+
               {/* Shipping Promo */}
               <motion.section
                 variants={fadeInUp}
@@ -274,14 +460,6 @@ export default function CartPage() {
                         : `Add ₹${FREE_SHIPPING_MIN - subtotal} for free delivery`}
                     </p>
                   </div>
-                </div>
-                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                  <motion.div
-                    className={`h-full ${shipping === 0 ? "bg-emerald-500" : "bg-[#2A4150]"}`}
-                    initial={{ width: 0 }}
-                    animate={{ width: `${progress}%` }}
-                    transition={{ duration: 1, ease: "easeOut" }}
-                  />
                 </div>
               </motion.section>
 
@@ -383,7 +561,7 @@ export default function CartPage() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              <div className="bg-white p-5 sm:p-6 md:p-8 rounded-2xl md:rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 sticky top-20">
+              <div className="bg-white p-5 sm:p-6 md:p-8 rounded-2xl md:rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 sticky top-36">
                 <h2 className="text-lg sm:text-xl font-black text-slate-900 mb-4 sm:mb-6">
                   Order Summary
                 </h2>
@@ -395,6 +573,13 @@ export default function CartPage() {
                     value={shipping}
                     isFree={shipping === 0}
                   />
+                  {discount > 0 && (
+                    <PriceRow
+                      label="Discount"
+                      value={`-₹${discount}`}
+                      isDiscount
+                    />
+                  )}
 
                   <motion.div
                     className="pt-3 sm:pt-4 border-t border-dashed border-slate-200 flex justify-between items-end"
@@ -416,6 +601,62 @@ export default function CartPage() {
                     </motion.span>
                   </motion.div>
                 </div>
+                {/* Coupon Section */}
+                <div className="mb-5">
+                  <h3 className="text-sm font-bold text-slate-800 mb-3">
+                    Apply Coupon
+                  </h3>
+
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Enter coupon code"
+                      value={coupon}
+                      onChange={(e) => setCoupon(e.target.value.toUpperCase())}
+                      className="
+        flex-1
+        border
+        border-slate-200
+        rounded-xl
+        px-4
+        py-3
+        text-sm
+        outline-none
+        focus:border-[#2A4150]
+      "
+                    />
+
+                    <button
+                      onClick={handleApplyCoupon}
+                      disabled={couponLoading}
+                      className="
+        px-4
+        py-3
+        rounded-xl
+        bg-[#2A4150]
+        text-white
+        text-sm
+        font-bold
+        hover:opacity-90
+        transition
+      "
+                    >
+                      {couponLoading ? "Applying..." : "Apply"}
+                    </button>
+                  </div>
+
+                  {appliedCoupon && (
+                    <div className="mt-3 text-sm text-green-600 font-semibold">
+                      Coupon Applied: {appliedCoupon}
+                    </div>
+                  )}
+
+                  {couponError && (
+                    <div className="mt-3 text-sm text-red-500 font-semibold">
+                      {couponError}
+                    </div>
+                  )}
+                </div>
 
                 <div className="space-y-3">
                   {errorMsg && (
@@ -427,13 +668,18 @@ export default function CartPage() {
                       <AlertCircle size={14} /> {errorMsg}
                     </motion.div>
                   )}
-                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
                     <Button
                       disabled={isPending}
                       onClick={handlePlaceOrder}
                       className="w-full py-3 sm:py-4 text-base sm:text-lg font-black uppercase tracking-wider"
                       text={isPending ? "Processing..." : "Place Order"}
-                      icon={<ChevronRight size={18} className="sm:w-5 sm:h-5" />}
+                      icon={
+                        <ChevronRight size={18} className="sm:w-5 sm:h-5" />
+                      }
                     />
                   </motion.div>
                 </div>
@@ -606,7 +852,7 @@ const SelectionCard = ({ title, icon, isError, children, link }) => (
         href={link}
         className="text-[10px] font-black text-blue-600 uppercase border-b border-blue-600"
       >
-        Edit
+        change address
       </Link>
     </div>
     <div

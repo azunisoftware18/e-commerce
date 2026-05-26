@@ -36,6 +36,7 @@ import consultationRoutes from "./routes/consultation.routes.js";
 import locationRoutes from "./routes/location.routes.js";
 import settingRoutes from "./routes/setting.routes.js";
 import userRoutes from "./routes/user.routes.js";
+import couponRoutes from "./routes/coupon.routes.js";
 
 // routes declaration
 app.use("/api/v1/auth", userRouter);
@@ -51,6 +52,7 @@ app.use("/api/v1/consultation", consultationRoutes);
 app.use("/api/v1/location", locationRoutes);
 app.use("/api/v1/settings", settingRoutes);
 app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/coupons", couponRoutes);
 
 app.use((err, req, res, next) => {
   console.error("ERROR 💥", err);
