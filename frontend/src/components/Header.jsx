@@ -83,35 +83,47 @@ function AnimatedCartIcon({ quantity }) {
   return (
     <Link
       href="/cart"
-      className="relative flex items-center gap-1.5 text-slate-600 hover:text-[#2A4150] p-2 transition-colors"
+      className="relative flex items-center gap-2 px-3 py-1.5 rounded-xl  
+              bg-[#2A4150] text-white font-medium text-xs 
+             hover:scale-105 transition-all duration-300"
     >
       <motion.div
         className="relative"
-        animate={isAnimating ? {
-          scale: [1, 1.2, 0.9, 1.1, 1],
-        } : {}}
+        animate={
+          isAnimating
+            ? {
+                scale: [1, 1.2, 0.9, 1.1, 1],
+              }
+            : {}
+        }
         transition={{ duration: 0.5, ease: "easeInOut" }}
       >
-        <ShoppingCart size={22} className="md:w-6 md:h-6" />
+        <ShoppingCart size={22} className="md:w-4 md:h-6" />
+
         <AnimatePresence mode="wait">
           {quantity > 0 && (
             <motion.span
               key={quantity}
               initial={{ scale: 0, opacity: 0 }}
-              animate={{ 
-                scale: 1, 
+              animate={{
+                scale: 1,
                 opacity: 1,
-                transition: { type: "spring", stiffness: 500, damping: 15 }
+                transition: {
+                  type: "spring",
+                  stiffness: 500,
+                  damping: 15,
+                },
               }}
               exit={{ scale: 0, opacity: 0 }}
-              className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#2A4150] text-[10px] font-bold text-white ring-2 ring-white"
+              className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white"
             >
               {quantity}
             </motion.span>
           )}
         </AnimatePresence>
       </motion.div>
-      <span className="hidden lg:inline text-sm font-medium">Cart</span>
+
+      <span className="hidden lg:inline text-sm font-semibold">Cart</span>
     </Link>
   );
 }
@@ -154,19 +166,19 @@ export default function Header() {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      
+
       if (isSearchManuallyOpened.current) {
         lastScrollY.current = currentScrollY;
         return;
       }
-      
+
       if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
         setShowMobileSearch(false);
         setIsMobileSearchOpen(false);
       } else if (currentScrollY < lastScrollY.current) {
         setShowMobileSearch(true);
       }
-      
+
       lastScrollY.current = currentScrollY;
     };
 
@@ -197,7 +209,7 @@ export default function Header() {
   const toggleMobileSearch = () => {
     const newState = !isMobileSearchOpen;
     setIsMobileSearchOpen(newState);
-    
+
     if (newState) {
       setShowMobileSearch(true);
       isSearchManuallyOpened.current = true;
@@ -288,7 +300,7 @@ export default function Header() {
             </div>
 
             <div className="flex items-center gap-0.5 sm:gap-1 md:gap-2">
-              <button 
+              <button
                 className="lg:hidden p-2 text-slate-600 hover:text-[#2A4150] transition-colors"
                 onClick={toggleMobileSearch}
               >
@@ -309,7 +321,7 @@ export default function Header() {
                   <Button
                     text="Login"
                     onClick={() => dispatch(openLogin())}
-                    className="px-3 py-1.5 text-xs sm:text-sm md:px-5 md:py-2 font-medium rounded-lg"
+                    className="px-3 py-1.5 text-xs sm:text-sm md:px-5 md:py-2 font-medium rounded-lg hover:scale-105 transition-all duration-300 cursor-pointer"
                   />
                 )}
               </div>
@@ -556,7 +568,7 @@ function MobileNavLink({ item, onClose, index = 0 }) {
   }
 
   return (
-    <motion.div 
+    <motion.div
       className="border-b border-slate-50 last:border-0"
       initial={{ opacity: 0, x: 50 }}
       animate={{ opacity: 1, x: 0 }}
