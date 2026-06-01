@@ -892,7 +892,7 @@ const EmptyCartView = () => (
       YOUR CART IS EMPTY
     </motion.h2>
     <motion.p
-      className="text-slate-500 mb-6 sm:mb-8 max-w-xs font-medium italic text-sm sm:text-base"
+      className="text-slate-500 mb-6 sm:mb-8 max-w-xs font-medium text-sm sm:text-base"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.4 }}

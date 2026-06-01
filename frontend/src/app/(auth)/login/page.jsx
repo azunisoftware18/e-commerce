@@ -239,7 +239,7 @@ export default function Login({ title, onSuccess, isModal = false }) {
           <div className="space-y-4">
             {/* Email Field */}
             <div className="space-y-1.5">
-              <label className="text-sm font-semibold text-slate-700 ml-1">
+              <label className="text-sm font-semibold text-slate-900 ml-1">
                 Email Address
               </label>
               <div className="relative">
@@ -256,7 +256,7 @@ export default function Login({ title, onSuccess, isModal = false }) {
 
             {/* Password Field */}
             <div className="space-y-1.5">
-              <label className="text-sm font-semibold text-slate-700 ml-1">
+              <label className="text-sm font-semibold text-slate-900 ml-1">
                 Password
               </label>
               <div className="relative">

@@ -26,7 +26,8 @@ export default function DietPlans() {
   const getPlanImageUrl = (plan) => {
     // Priority: thumbnailSignedUrl > thumbnail > thumbnailKey
     if (plan.thumbnailSignedUrl) return plan.thumbnailSignedUrl;
-    if (plan.thumbnail && plan.thumbnail.startsWith('http')) return plan.thumbnail;
+    if (plan.thumbnail && plan.thumbnail.startsWith("http"))
+      return plan.thumbnail;
     if (plan.thumbnailKey) {
       return `https://azzunique-fintech-node.s3.ap-south-1.amazonaws.com/${plan.thumbnailKey}`;
     }
@@ -35,10 +36,12 @@ export default function DietPlans() {
 
   // Format plan name for display
   const formatPlanName = (name) => {
-    return name
-      ?.replace(/[-_]/g, " ")
-      ?.toLowerCase()
-      ?.replace(/\b\w/g, (char) => char.toUpperCase()) || "Untitled Plan";
+    return (
+      name
+        ?.replace(/[-_]/g, " ")
+        ?.toLowerCase()
+        ?.replace(/\b\w/g, (char) => char.toUpperCase()) || "Untitled Plan"
+    );
   };
 
   const handleImageError = (planId) => {
@@ -85,7 +88,7 @@ export default function DietPlans() {
           <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {plans.map((plan) => {
               const imageUrl = getPlanImageUrl(plan);
-              
+
               return (
                 <div
                   key={plan.id}
@@ -116,7 +119,7 @@ export default function DietPlans() {
                         className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider backdrop-blur-md ${
                           plan.type === "FREE"
                             ? "bg-green-500/90 text-white"
-                            : "bg-blue-500/90 text-white"
+                            : "bg-gray-500/90 text-white"
                         }`}
                       >
                         {plan.type}
@@ -145,17 +148,18 @@ export default function DietPlans() {
                     <div className="flex items-center gap-2 mb-3">
                       <div
                         className={`h-2 w-2 rounded-full ${
-                          plan.type === "FREE" ? "bg-green-500" : "bg-blue-500"
+                          plan.type === "FREE"
+                            ? "bg-green-500"
+                            : "bg-gray-500"
                         }`}
                       />
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                         {plan.type} PLAN
                       </span>
-                      
                     </div>
 
                     {/* Title */}
-                    <h3 className="text-xl font-bold text-[#2A4150] leading-tight mb-3 group-hover:text-blue-900 transition-colors">
+                    <h3 className="text-xl font-bold text-[#2A4150] leading-tight mb-3 group-hover:text-gray-900 transition-colors">
                       {formatPlanName(plan.name)}
                     </h3>
 
@@ -171,9 +175,11 @@ export default function DietPlans() {
                         text="Download Plan"
                         icon={<Download size={16} />}
                         onClick={() =>
-                          router.push(`/diet-plans/diet-plan-checkout/${plan.id}`)
+                          router.push(
+                            `/diet-plans/diet-plan-checkout/${plan.id}`,
+                          )
                         }
-                        className="group/btn relative flex w-full items-center justify-center gap-3 rounded-[1.25rem] bg-[#2A4150] py-4 text-[11px] font-bold uppercase tracking-[0.15em] text-white transition-all hover:bg-[#1a2b36] active:scale-95 shadow-lg shadow-blue-900/10"
+                        className="group/btn relative flex w-full items-center justify-center gap-3 rounded-[1.25rem] bg-[#2A4150] py-4 text-[11px] font-bold uppercase tracking-[0.15em] text-white transition-all hover:bg-[#1a2b36] active:scale-95 shadow-lg shadow-gray-900/10"
                       />
                     </div>
                   </div>

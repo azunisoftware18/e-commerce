@@ -34,7 +34,7 @@ export default function ProductCard({
       <div
         className={`
           relative bg-white border border-slate-100 rounded-lg sm:rounded-xl 
-          overflow-hidden shadow-sm
+          overflow-hidden shadow-xl
           transition-all duration-500 ease-out flex flex-col 
           w-full h-full
           
@@ -43,8 +43,8 @@ export default function ProductCard({
           
           /* Tablet and Desktop Hover Animations */
           md:hover:-translate-y-2
-          md:hover:shadow-[0_20px_40px_rgba(16,185,129,0.14)] 
-          md:hover:border-emerald-500/20 
+          md:hover:shadow-[#2A4150] 
+          md:hover:border-[#2A4150] 
           
           will-change-transform ${className}
         `}
@@ -180,8 +180,7 @@ export default function ProductCard({
               </span>
               <span
                 className="
-                text-base sm:text-lg md:text-xl 
-                font-black 
+                font-semibold md:font-bold
                 text-slate-900 
                 leading-none 
                 transition-transform duration-300 

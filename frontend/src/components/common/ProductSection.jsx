@@ -83,7 +83,7 @@ export default function ProductSection({
   }
 
   return (
-    <section className="w-full px-4 md:px-8 lg:px-12 py-10">
+    <section className="w-full px-4 md:px-8 lg:px-12 py-10 ">
       {/* Header */}
       <div className="flex justify-between items-start mb-6">
         <div>
@@ -114,7 +114,7 @@ export default function ProductSection({
         {finalProducts.length > 3 && (
           <button
             onClick={scrollLeft}
-            className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-lg p-2 rounded-full hover:bg-gray-100 transition-all"
+            className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-black/20 shadow-lg p-2 rounded-full hover:bg-gray-100 transition-all"
             aria-label="Scroll left"
           >
             <ChevronLeft size={20} />
@@ -125,7 +125,7 @@ export default function ProductSection({
         {finalProducts.length > 3 && (
           <button
             onClick={scrollRight}
-            className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-lg p-2 rounded-full hover:bg-gray-100 transition-all"
+            className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-black/20 shadow-lg p-2 rounded-full hover:bg-gray-100 transition-all"
             aria-label="Scroll right"
           >
             <ChevronRight size={20} />
@@ -135,7 +135,7 @@ export default function ProductSection({
         {/* Products Scroll */}
         <div
           ref={scrollRef}
-          className="flex gap-4 sm:gap-5 md:gap-6 overflow-x-auto scroll-smooth scrollbar-hide px-2 md:px-0 snap-x snap-mandatory"
+          className="flex gap-4 sm:gap-5 md:gap-6 overflow-x-auto scroll-smooth scrollbar-hide px-2 md:px-0 snap-x snap-mandatory py-8 mx-12"
         >
           {finalProducts.map((product) => {
             // Get the best available image

@@ -18,15 +18,15 @@ export default function Home() {
   }));
 
   // Add proper image URLs to products
-  const productsWithImages = products.map(product => ({
+  const productsWithImages = products.map((product) => ({
     ...product,
-    displayImage: getImageUrl(product.image || product.images?.[0])
+    displayImage: getImageUrl(product.image || product.images?.[0]),
   }));
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen ">
       <HeroSlider images={sliderImages} />
-      <div className="space-y-10 py-10">
+      <div className="space-y-10 py-10 ">
         <ProductSection
           title="Best Sellers"
           description="Explore best-selling safe, natural products"
