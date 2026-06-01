@@ -2,37 +2,31 @@ import jwt from "jsonwebtoken";
 import { ApiError } from "../utils/ApiError.js";
 
 const authMiddleware = async (req, res, next) => {
-  console.log("req.cookies");
-  console.log(req.cookies?.accessToken);
+  try {
+    const accessToken =
+      req.cookies?.accessToken ||
+      req.header("Authorization")?.replace("Bearer ", "");
 
-  // try {
-  const accessToken =
-    req.cookies?.accessToken ||
-    req.header("Authorization")?.replace("Bearer ", "");
+    if (!accessToken) {
+      return ApiError.send(res, 401, "Access token is missing or invalid.");
+    }
 
-  if (!accessToken) {
-    return ApiError.send(res, "Access token is missing or invalid.", 401);
+    const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
+
+    if (!decoded) {
+      return ApiError.send(res, 401, "Invalid token. Unauthorized access.");
+    }
+
+    const { password, ...userWithoutPassword } = decoded;
+
+    req.user = userWithoutPassword;
+
+    next();
+  } catch (error) {
+    console.log("JWT ERROR:", error.message);
+
+    return ApiError.send(res, 401, error.message || "Unauthorized access.");
   }
-
-  const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
-
-  if (!decoded) {
-    return ApiError.send(res, "Invalid token. Unauthorized access.", 401);
-  }
-
-  const { password, ...userWithoutPassword } = decoded;
-  req.user = userWithoutPassword;
-
-  next();
-  // } catch (error) {
-  //   console.log({ error });
-
-  //   if (error.name === "TokenExpiredError") {
-  //     return next(new ApiError("Access token has expired.", 401));
-  //   }
-
-  //   return next(new ApiError("Unauthorized access.", 401));
-  // }
 };
 
 export { authMiddleware };

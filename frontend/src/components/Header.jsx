@@ -309,7 +309,7 @@ export default function Header() {
                   <Button
                     text="Login"
                     onClick={() => dispatch(openLogin())}
-                    className="px-3 py-1.5 text-xs sm:text-sm md:px-5 md:py-2 font-medium"
+                    className="px-3 py-1.5 text-xs sm:text-sm md:px-5 md:py-2 font-medium rounded-lg"
                   />
                 )}
               </div>
