@@ -287,7 +287,7 @@ export default function SettingPage() {
               variant="outline"
               size="sm"
               style={{ borderColor: "#2A4150", color: "#2A4150" }}
-              className="h-9 px-4 rounded-xl hover:bg-[#2A4150] hover:text-white transition-colors"
+              className="h-9 px-4 rounded-xl hover:bg-[#2A4150] hover:text-white! transition-colors"
               icon={<Plus size={14} />}
               onClick={() => append({ platform: "", url: "" })}
             />
