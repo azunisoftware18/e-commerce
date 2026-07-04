@@ -26,7 +26,7 @@ export default function Home() {
   return (
     <main className="min-h-screen ">
       <HeroSlider images={sliderImages} />
-      <div className="space-y-10 py-10 ">
+      <div className=" py-10 ">
         <ProductSection
           title="Best Sellers"
           description="Explore best-selling safe, natural products"

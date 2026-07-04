@@ -37,7 +37,7 @@ function buildS3Key(uniqueName) {
 }
 
 // ================= UPLOAD FUNCTION =================
-async function upload(localFilePath) {
+async function upload(localFilePath, customFileName = null) {
   if (!localFilePath) {
     throw new Error("File path is required");
   }
@@ -46,8 +46,10 @@ async function upload(localFilePath) {
   const ext = path.extname(localFilePath);
   const mimeType = mime.lookup(localFilePath) || "application/octet-stream";
 
-  const uniqueName = generateUniqueName(ext);
-  const s3Key = buildS3Key(uniqueName);
+  const uniqueName =
+  customFileName || generateUniqueName(ext);
+
+const s3Key = buildS3Key(uniqueName);
 
   try {
     await s3.send(

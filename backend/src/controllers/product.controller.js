@@ -16,12 +16,17 @@ const createProduct = asyncHandler(async (req, res) => {
   if (role !== "Admin") {
     // Clean up uploaded files if user is not admin
     if (req.files?.length > 0) {
-      req.files.forEach((file) => {
-        const localFilePath = path.join(UPLOAD_DIR, "images", file.filename);
-        if (fs.existsSync(localFilePath)) {
-          fs.unlinkSync(localFilePath);
-        }
-      });
+      files.forEach((file) => {
+  const localFilePath = path.join(
+    UPLOAD_DIR,
+    "images",
+    file.filename
+  );
+
+  if (fs.existsSync(localFilePath)) {
+    fs.unlinkSync(localFilePath);
+  }
+});
     }
     return ApiError.send(res, 403, "Only admins can create a product.");
   }
@@ -37,43 +42,69 @@ const createProduct = asyncHandler(async (req, res) => {
   ) {
     // Clean up uploaded files on validation error
     if (req.files?.length > 0) {
-      req.files.forEach((file) => {
-        const localFilePath = path.join(UPLOAD_DIR, "images", file.filename);
-        if (fs.existsSync(localFilePath)) {
-          fs.unlinkSync(localFilePath);
-        }
-      });
+      files.forEach((file) => {
+  const localFilePath = path.join(
+    UPLOAD_DIR,
+    "images",
+    file.filename
+  );
+
+  if (fs.existsSync(localFilePath)) {
+    fs.unlinkSync(localFilePath);
+  }
+});
     }
     return ApiError.send(res, 400, "All required fields must be provided.");
   }
 
-  if (!req.files || req.files.length === 0) {
-    return ApiError.send(res, 400, "Please upload at least one product image.");
-  }
+  const files = [
+  req.files?.frontImage?.[0],
+  req.files?.backImage?.[0],
+  req.files?.leftImage?.[0],
+  req.files?.rightImage?.[0],
+].filter(Boolean);
+
+if (files.length !== 4) {
+  return ApiError.send(
+    res,
+    400,
+    "Please upload Front, Back, Left and Right images."
+  );
+}
 
   const numericPrice = parseFloat(
     typeof price === "string" ? price.replace(/[^0-9.]/g, "") : price,
   );
   if (isNaN(numericPrice)) {
     // Clean up uploaded files
-    req.files.forEach((file) => {
-      const localFilePath = path.join(UPLOAD_DIR, "images", file.filename);
-      if (fs.existsSync(localFilePath)) {
-        fs.unlinkSync(localFilePath);
-      }
-    });
+    files.forEach((file) => {
+  const localFilePath = path.join(
+    UPLOAD_DIR,
+    "images",
+    file.filename
+  );
+
+  if (fs.existsSync(localFilePath)) {
+    fs.unlinkSync(localFilePath);
+  }
+});
     return ApiError.send(res, 400, "Invalid price format.");
   }
 
   const numericStock = parseInt(stock);
   if (isNaN(numericStock)) {
     // Clean up uploaded files
-    req.files.forEach((file) => {
-      const localFilePath = path.join(UPLOAD_DIR, "images", file.filename);
-      if (fs.existsSync(localFilePath)) {
-        fs.unlinkSync(localFilePath);
-      }
-    });
+    files.forEach((file) => {
+  const localFilePath = path.join(
+    UPLOAD_DIR,
+    "images",
+    file.filename
+  );
+
+  if (fs.existsSync(localFilePath)) {
+    fs.unlinkSync(localFilePath);
+  }
+});
     return ApiError.send(res, 400, "Invalid stock value.");
   }
 
@@ -83,36 +114,64 @@ const createProduct = asyncHandler(async (req, res) => {
 
   if (!category) {
     // Clean up uploaded files
-    req.files.forEach((file) => {
-      const localFilePath = path.join(UPLOAD_DIR, "images", file.filename);
-      if (fs.existsSync(localFilePath)) {
-        fs.unlinkSync(localFilePath);
-      }
-    });
+    files.forEach((file) => {
+  const localFilePath = path.join(
+    UPLOAD_DIR,
+    "images",
+    file.filename
+  );
+
+  if (fs.existsSync(localFilePath)) {
+    fs.unlinkSync(localFilePath);
+  }
+});
     return ApiError.send(res, 404, "Category not found.");
   }
 
   // Upload images to S3
   let uploadedImages = [];
   try {
-    uploadedImages = await Promise.all(
-      req.files.map(async (file) => {
-        const localFilePath = path.join(UPLOAD_DIR, "images", file.filename);
-        const s3Result = await upload(localFilePath);
-        return {
-          key: s3Result.key,
-          url: s3Result.url,
-        };
-      })
+    const imageTypes = [
+  "1_front",
+  "2_back",
+  "3_left",
+  "4_right",
+];
+
+
+
+uploadedImages = await Promise.all(
+  files.map(async (file, index) => {
+    const localFilePath = path.join(
+      UPLOAD_DIR,
+      "images",
+      file.filename
     );
+
+    const fileName =
+      `${imageTypes[index]}_${Date.now()}_${file.originalname}`;
+
+    const s3Result = await upload(localFilePath, fileName);
+
+    return {
+      key: s3Result.key,
+      url: s3Result.url,
+    };
+  })
+);
   } catch (error) {
     // Clean up any remaining files on S3 upload error
-    req.files.forEach((file) => {
-      const localFilePath = path.join(UPLOAD_DIR, "images", file.filename);
-      if (fs.existsSync(localFilePath)) {
-        fs.unlinkSync(localFilePath);
-      }
-    });
+    files.forEach((file) => {
+  const localFilePath = path.join(
+    UPLOAD_DIR,
+    "images",
+    file.filename
+  );
+
+  if (fs.existsSync(localFilePath)) {
+    fs.unlinkSync(localFilePath);
+  }
+});
     console.error("S3 Upload Error:", error);
     return ApiError.send(res, 500, "Failed to upload images. Please try again.");
   }
@@ -167,7 +226,19 @@ const getAllProducts = asyncHandler(async (req, res) => {
           return image;
         })
       );
+const imageOrder = [
+  "front",
+  "back",
+  "left",
+  "right",
+];
 
+imagesWithSignedUrls.sort((a, b) => {
+  const aIndex = imageOrder.findIndex((x) => a.key.includes(x));
+  const bIndex = imageOrder.findIndex((x) => b.key.includes(x));
+
+  return aIndex - bIndex;
+});
       return {
         ...product,
         images: imagesWithSignedUrls,
@@ -215,7 +286,19 @@ const getProductById = asyncHandler(async (req, res) => {
 
     product.images = imagesWithSignedUrls;
   }
+const imageOrder = [
+  "front",
+  "back",
+  "left",
+  "right",
+];
 
+product.images.sort((a, b) => {
+  const aIndex = imageOrder.findIndex((x) => a.key.includes(x));
+  const bIndex = imageOrder.findIndex((x) => b.key.includes(x));
+
+  return aIndex - bIndex;
+});
   return res
     .status(200)
     .json(new ApiResponse(200, "Product fetched successfully.", { product }));
@@ -229,12 +312,17 @@ const updateProduct = asyncHandler(async (req, res) => {
   if (req.user?.role !== "Admin") {
     // Clean up uploaded files if user is not admin
     if (req.files?.length > 0) {
-      req.files.forEach((file) => {
-        const localFilePath = path.join(UPLOAD_DIR, "images", file.filename);
-        if (fs.existsSync(localFilePath)) {
-          fs.unlinkSync(localFilePath);
-        }
-      });
+     files.forEach((file) => {
+  const localFilePath = path.join(
+    UPLOAD_DIR,
+    "images",
+    file.filename
+  );
+
+  if (fs.existsSync(localFilePath)) {
+    fs.unlinkSync(localFilePath);
+  }
+});
     }
     return ApiError.send(res, 403, "Only admins can update products.");
   }
@@ -247,12 +335,17 @@ const updateProduct = asyncHandler(async (req, res) => {
   if (!existingProduct) {
     // Clean up uploaded files if product not found
     if (req.files?.length > 0) {
-      req.files.forEach((file) => {
-        const localFilePath = path.join(UPLOAD_DIR, "images", file.filename);
-        if (fs.existsSync(localFilePath)) {
-          fs.unlinkSync(localFilePath);
-        }
-      });
+     files.forEach((file) => {
+  const localFilePath = path.join(
+    UPLOAD_DIR,
+    "images",
+    file.filename
+  );
+
+  if (fs.existsSync(localFilePath)) {
+    fs.unlinkSync(localFilePath);
+  }
+});
     }
     return ApiError.send(res, 404, "Product not found.");
   }
@@ -264,12 +357,17 @@ const updateProduct = asyncHandler(async (req, res) => {
     if (!categoryExists) {
       // Clean up uploaded files if category doesn't exist
       if (req.files?.length > 0) {
-        req.files.forEach((file) => {
-          const localFilePath = path.join(UPLOAD_DIR, "images", file.filename);
-          if (fs.existsSync(localFilePath)) {
-            fs.unlinkSync(localFilePath);
-          }
-        });
+        files.forEach((file) => {
+  const localFilePath = path.join(
+    UPLOAD_DIR,
+    "images",
+    file.filename
+  );
+
+  if (fs.existsSync(localFilePath)) {
+    fs.unlinkSync(localFilePath);
+  }
+});
       }
       return ApiError.send(res, 404, "Category not found.");
     }
@@ -278,7 +376,14 @@ const updateProduct = asyncHandler(async (req, res) => {
   /* ---------- IMAGE REPLACEMENT WITH S3 ---------- */
   let imageUpdateData = undefined;
 
-  if (req.files?.length > 0) {
+  const files = [
+  req.files?.frontImage?.[0],
+  req.files?.backImage?.[0],
+  req.files?.leftImage?.[0],
+  req.files?.rightImage?.[0],
+].filter(Boolean);
+
+if (files.length > 0) {
     try {
       // Delete old images from S3
       for (const img of existingProduct.images) {
@@ -291,17 +396,41 @@ const updateProduct = asyncHandler(async (req, res) => {
         }
       }
 
-      // Upload new images to S3
-      const uploadedImages = await Promise.all(
-        req.files.map(async (file) => {
-          const localFilePath = path.join(UPLOAD_DIR, "images", file.filename);
-          const s3Result = await upload(localFilePath);
-          return {
-            key: s3Result.key,
-            url: s3Result.url,
-          };
-        })
-      );
+      
+
+const files = [
+  req.files.frontImage?.[0],
+  req.files.backImage?.[0],
+  req.files.leftImage?.[0],
+  req.files.rightImage?.[0],
+].filter(Boolean);
+
+const imageTypes = [
+  "1_front",
+  "2_back",
+  "3_left",
+  "4_right",
+];
+
+const uploadedImages = await Promise.all(
+  files.map(async (file, index) => {
+    const localFilePath = path.join(
+      UPLOAD_DIR,
+      "images",
+      file.filename
+    );
+
+    const fileName =
+      `${imageTypes[index]}_${Date.now()}_${file.originalname}`;
+
+    const s3Result = await upload(localFilePath, fileName);
+
+    return {
+      key: s3Result.key,
+      url: s3Result.url,
+    };
+  })
+);
 
       // Delete old image records from database
       await prisma.productImage.deleteMany({
@@ -316,12 +445,17 @@ const updateProduct = asyncHandler(async (req, res) => {
       };
     } catch (error) {
       // Clean up new files on error
-      req.files.forEach((file) => {
-        const localFilePath = path.join(UPLOAD_DIR, "images", file.filename);
-        if (fs.existsSync(localFilePath)) {
-          fs.unlinkSync(localFilePath);
-        }
-      });
+      files.forEach((file) => {
+  const localFilePath = path.join(
+    UPLOAD_DIR,
+    "images",
+    file.filename
+  );
+
+  if (fs.existsSync(localFilePath)) {
+    fs.unlinkSync(localFilePath);
+  }
+});
       console.error("S3 Upload Error:", error);
       return ApiError.send(res, 500, "Failed to upload images. Please try again.");
     }

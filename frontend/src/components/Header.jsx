@@ -81,50 +81,50 @@ function AnimatedCartIcon({ quantity }) {
   }, [quantity, previousQuantity]);
 
   return (
-    <Link
-      href="/cart"
-      className="relative flex items-center gap-2 px-3 py-1.5 rounded-xl  
-              bg-[#2A4150] text-white font-medium text-xs 
-             hover:scale-105 transition-all duration-300"
-    >
-      <motion.div
-        className="relative"
-        animate={
-          isAnimating
-            ? {
-                scale: [1, 1.2, 0.9, 1.1, 1],
-              }
-            : {}
-        }
-        transition={{ duration: 0.5, ease: "easeInOut" }}
+    <div id="header-cart">
+      <Link
+        href="/cart"
+        className="relative flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#2A4150] text-white font-medium text-xs hover:scale-105 transition-all duration-300"
       >
-        <ShoppingCart size={22} className="md:w-4 md:h-6" />
+        <motion.div
+          className="relative"
+          animate={
+            isAnimating
+              ? {
+                  scale: [1, 1.2, 0.9, 1.1, 1],
+                }
+              : {}
+          }
+          transition={{ duration: 0.5, ease: "easeInOut" }}
+        >
+          <ShoppingCart size={22} className="md:w-4 md:h-6" />
 
-        <AnimatePresence mode="wait">
-          {quantity > 0 && (
-            <motion.span
-              key={quantity}
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{
-                scale: 1,
-                opacity: 1,
-                transition: {
-                  type: "spring",
-                  stiffness: 500,
-                  damping: 15,
-                },
-              }}
-              exit={{ scale: 0, opacity: 0 }}
-              className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white"
-            >
-              {quantity}
-            </motion.span>
-          )}
-        </AnimatePresence>
-      </motion.div>
+          <AnimatePresence mode="wait">
+            {quantity > 0 && (
+              <motion.span
+                key={quantity}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{
+                  scale: 1,
+                  opacity: 1,
+                  transition: {
+                    type: "spring",
+                    stiffness: 500,
+                    damping: 15,
+                  },
+                }}
+                exit={{ scale: 0, opacity: 0 }}
+                className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white"
+              >
+                {quantity}
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </motion.div>
 
-      <span className="hidden lg:inline text-sm font-semibold">Cart</span>
-    </Link>
+        <span className="hidden lg:inline text-sm font-semibold">Cart</span>
+      </Link>
+    </div>
   );
 }
 
@@ -203,6 +203,7 @@ export default function Header() {
   const handleLogout = () => {
     dispatch(logout());
     setOpenMenu(false);
+    setIsMobileMenuOpen(false);
     router.push("/");
   };
 
@@ -245,39 +246,40 @@ export default function Header() {
 
   const logoUrl = getLogoUrl();
 
+  const words = (settings?.companyName || "").trim().split(" ");
+
   return (
     <>
       <header className="sticky top-0 z-50 w-full border-b border-slate-100 bg-white/95 backdrop-blur-md shadow-sm">
         <div className="mx-auto max-w-full px-3 sm:px-4 lg:px-8">
           <div className="flex h-16 md:h-20 items-center justify-between gap-3">
-            <div className="flex items-center gap-1">
-              <Link
-                href="/"
-                className="flex items-center gap-2 flex-shrink-0 min-w-fit"
-              >
-                {logoUrl ? (
-                  <img
-                    src={logoUrl}
-                    alt="Logo"
-                    className="
-                      h-[55px]
-                      sm:h-[65px]
-                      md:h-[75px]
-                      lg:h-[85px]
-                      w-auto
-                      min-w-fit
-                      object-contain
-                      flex-shrink-0
-                    "
-                    onError={(e) => {
-                      e.target.style.display = "none";
-                    }}
-                  />
-                ) : (
-                  <span className="text-lg sm:text-xl md:text-2xl font-black tracking-tighter">
-                    <span className="text-[#2A4150]">G</span>
-                    <span className="text-[#9ca0a3]">LAM</span>
-                  </span>
+            <div className="flex items-center">
+              <Link href="/" className="flex items-center gap-3 flex-shrink-0">
+                <img
+                  src={logoUrl}
+                  alt="Logo"
+                  className="h-[60px] sm:h-[68px] md:h-[75px] lg:h-[85px] w-auto object-contain"
+                />
+
+                {settings?.companyName && (
+                  <div className="flex flex-col items-start sm:items-center antialiased -ml-2 sm:ml-0">
+                    {/* --- MOBILE VIEW ME COMPANY NAME THODA CHOTA KIYA GAYA HAI (text-[15px] sm:text-[18px]) --- */}
+                    <span className="relative inline-block text-[15px] sm:text-[18px] md:text-[22px] lg:text-[32px] font-serif leading-[0.9] whitespace-nowrap tracking-[0.02em] select-none capitalize">
+                      <span className="text-[#2D5138] font-medium tracking-normal">
+                        {words[0].toLowerCase()}
+                      </span>{" "}
+                      <span className="text-[#C29D6B] italic font-normal tracking-[0.01em]">
+                        {words.slice(1).join(" ").toLowerCase()}
+                      </span>
+                      <span className="absolute -top-1 -right-4 text-[9px] sm:text-[11px] md:text-[13px] text-[#2D5138] font-sans font-normal normal-case">
+                        &trade;
+                      </span>
+                    </span>
+
+                    <span className="mt-2 text-center text-[8px] sm:text-[9px] md:text-[11px] font-sans font-semibold tracking-[0.3em] uppercase text-[#2D5138]">
+                      Glam Your Beauty
+                    </span>
+                  </div>
                 )}
               </Link>
             </div>
@@ -309,7 +311,7 @@ export default function Header() {
 
               <AnimatedCartIcon quantity={totalQuantity} />
 
-              <div className="relative" ref={menuRef}>
+              <div className="relative hidden lg:block" ref={menuRef}>
                 {isAuthenticated ? (
                   <UserDropdown
                     user={user}
@@ -367,13 +369,13 @@ export default function Header() {
               <li>
                 <NavLink item="HOME" />
               </li>
-              <li className="text-slate-300 select-none">|</li>
+              <li className="text-slate-300 select-none"></li>
               {categories.slice(0, 6).map((cat) => (
                 <li key={cat.id}>
                   <NavLink item={cat} />
                 </li>
               ))}
-              <li className="text-slate-300 select-none">|</li>
+              <li className="text-slate-300 select-none"></li>
               <li>
                 <NavLink item="DIET PLANS" />
               </li>
@@ -419,32 +421,112 @@ export default function Header() {
                 </motion.button>
               </div>
 
-              <div className="overflow-y-auto h-[calc(100%-60px)] py-2">
-                <MobileNavLink
-                  item="HOME"
-                  onClose={() => setIsMobileMenuOpen(false)}
-                />
-                {categories.map((cat, idx) => (
+              <div className="overflow-y-auto h-[calc(100%-60px)]">
+                <div className="p-4 border-b border-slate-100 bg-slate-50/70">
+                  {isAuthenticated ? (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-full bg-[#2A4150] text-white p-2.5">
+                          <User size={20} />
+                        </div>
+                        <div className="overflow-hidden">
+                          <p className="text-sm font-bold text-[#2A4150] truncate capitalize">
+                            {user?.name || "Customer"}
+                          </p>
+                          <p className="text-xs text-slate-500 truncate">
+                            {user?.email || "Account & Orders"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 pt-1">
+                        <Link
+                          href="/customer/profile"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="text-center py-2 px-3 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:border-[#2A4150] hover:text-[#2A4150] transition-colors"
+                        >
+                          Profile
+                        </Link>
+                        <Link
+                          href="/customer/orders"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="text-center py-2 px-3 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:border-[#2A4150] hover:text-[#2A4150] transition-colors"
+                        >
+                          Orders
+                        </Link>
+                      </div>
+
+                      <div className="flex flex-col gap-1 pt-1 border-t border-slate-200/60">
+                        <Link
+                          href="/customer/address"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="py-1.5 text-xs font-medium text-slate-600 hover:text-[#2A4150]"
+                        >
+                          Manage Address
+                        </Link>
+                        {user?.role?.toLowerCase() === "admin" && (
+                          <Link
+                            href="/dashboard"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="py-1.5 text-xs font-medium text-blue-600 hover:underline"
+                          >
+                            Admin Dashboard
+                          </Link>
+                        )}
+                        <button
+                          onClick={handleLogout}
+                          className="flex items-center gap-1.5 py-1.5 text-xs font-semibold text-red-500 hover:text-red-600 text-left"
+                        >
+                          <LogOut size={14} /> Logout
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-bold text-[#2A4150]">Welcome!</p>
+                        <p className="text-xs text-slate-500">Login to manage orders</p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          dispatch(openLogin());
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="px-4 py-2 bg-[#2A4150] text-white text-xs font-semibold rounded-lg shadow-sm hover:bg-[#1a2b36] transition-colors"
+                      >
+                        Login
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="py-2">
                   <MobileNavLink
-                    key={cat.id}
-                    item={cat}
+                    item="HOME"
                     onClose={() => setIsMobileMenuOpen(false)}
-                    index={idx}
                   />
-                ))}
-                <div className="border-t border-slate-100 my-2" />
-                <MobileNavLink
-                  item="DIET PLANS"
-                  onClose={() => setIsMobileMenuOpen(false)}
-                />
-                <MobileNavLink
-                  item="EXPERTS"
-                  onClose={() => setIsMobileMenuOpen(false)}
-                />
-                <MobileNavLink
-                  item="ABOUT US"
-                  onClose={() => setIsMobileMenuOpen(false)}
-                />
+                  {categories.map((cat, idx) => (
+                    <MobileNavLink
+                      key={cat.id}
+                      item={cat}
+                      onClose={() => setIsMobileMenuOpen(false)}
+                      index={idx}
+                    />
+                  ))}
+                  <div className="border-t border-slate-100 my-2" />
+                  <MobileNavLink
+                    item="DIET PLANS"
+                    onClose={() => setIsMobileMenuOpen(false)}
+                  />
+                  <MobileNavLink
+                    item="EXPERTS"
+                    onClose={() => setIsMobileMenuOpen(false)}
+                  />
+                  <MobileNavLink
+                    item="ABOUT US"
+                    onClose={() => setIsMobileMenuOpen(false)}
+                  />
+                </div>
               </div>
             </motion.aside>
           </>

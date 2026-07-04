@@ -6,6 +6,14 @@ import QuantitySelector from "@/components/common/QuantitySelector";
 import { useProduct } from "@/lib/queries/useProducts";
 import { useDispatch, useSelector } from "react-redux";
 import { addToCart, removeFromCart, updateQty } from "@/store/slices/cartSlice";
+import { useState } from "react";
+import { Poppins } from "next/font/google";
+
+// 1. Poppins font configured only for this page
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+});
 
 export default function ViewProductPage() {
   const { id } = useParams();
@@ -16,6 +24,16 @@ export default function ViewProductPage() {
 
   const isOutOfStock =
     product?.status === "Out_of_Stock" || product?.stock === 0;
+  const [selectedImage, setSelectedImage] = useState(0);
+  const imageOrder = ["1_front", "2_back", "3_left", "4_right"];
+
+  const sortedImages = [...(product?.images || [])].sort((a, b) => {
+    const aIndex = imageOrder.findIndex((item) => (a.key || "").includes(item));
+
+    const bIndex = imageOrder.findIndex((item) => (b.key || "").includes(item));
+
+    return aIndex - bIndex;
+  });
 
   if (isLoading)
     return (
@@ -61,19 +79,38 @@ export default function ViewProductPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start">
           {/* --- 🖼️ LEFT: Image Section (Sticky on Desktop) --- */}
           <div className="lg:sticky lg:top-36">
-            <div className="aspect-4/5 rounded-[2.5rem] border border-slate-200 overflow-hidden bg-slate-50 shadow-sm">
+            {/* Main Image */}
+            <div className="aspect-[4/5] rounded-[2rem] border border-slate-200 overflow-hidden bg-slate-50">
               <img
                 src={
-                  product?.images?.[0]?.signedUrl ||
-                  product?.images?.[0]?.url ||
+                  sortedImages?.[selectedImage]?.signedUrl ||
+                  sortedImages?.[selectedImage]?.url ||
                   "/placeholder-image.png"
                 }
-                alt={product?.title || product?.name}
+                alt={product?.name}
                 className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.target.src = "/placeholder-image.png";
-                }}
               />
+            </div>
+
+            {/* Thumbnails */}
+            <div className="grid grid-cols-4 gap-4 mt-5">
+              {sortedImages.map((img, index) => (
+                <div
+                  key={img.id}
+                  onClick={() => setSelectedImage(index)}
+                  className={`aspect-square rounded-xl overflow-hidden border-2 cursor-pointer transition-all ${
+                    selectedImage === index
+                      ? "border-blue-600"
+                      : "border-slate-200 hover:border-slate-400"
+                  }`}
+                >
+                  <img
+                    src={img.signedUrl || img.url}
+                    alt={`Product ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
             </div>
           </div>
 
@@ -92,87 +129,102 @@ export default function ViewProductPage() {
                   {isOutOfStock ? "• Out of Stock" : "• In Stock"}
                 </span>
               </div>
-              <h1 className="text-3xl md:text-5xl font-black text-slate-900 leading-[1.1] tracking-tight">
+
+              {/* --- EXACT POPPINS STYLE APPLIED TO PRODUCT NAME (H1) --- */}
+              <h1
+                className={`text-[32px] font-semibold text-[#141516] leading-[38.4px] tracking-[0.6px] text-left ${poppins.className}`}
+              >
                 {product.name || product.title}
               </h1>
             </div>
 
             {/* 2. Price Section - Order 2 */}
-            <div className="pt-8 order-2">
+            <div className="pt-8 order-2 flex flex-col">
               <div className="flex items-baseline gap-4">
-                <span className="text-5xl font-black text-blue-600">
-                  ₹{product.price}
+                {/* --- EXACT POPPINS STYLE WITHOUT .00 FORMATTING --- */}
+                <span
+                  className={`text-[28px] font-semibold text-[#141516] leading-[42px] tracking-[0.6px] text-left ${poppins.className}`}
+                >
+                  Rs.{Number(product?.price || 0).toLocaleString("en-IN")}
                 </span>
-                
               </div>
+              {/* --- SUBTEXT: Price Inclusive of All Taxes --- */}
+              <p
+                className={`text-sm text-slate-500 font-normal mt-0.5 ${poppins.className}`}
+              >
+                Price Inclusive of All Taxes
+              </p>
             </div>
-
 
             <div className="py-8 order-4 lg:order-3">
               <div className="bg-slate-50/50 rounded-3xl p-6 md:p-8 border border-slate-100 relative">
-                <div className="flex flex-col gap-4 mt-8 order-3 lg:order-4">
-                  {!cartItem ? (
-                    <button
-                      disabled={isOutOfStock}
-                      onClick={() => {
-                        if (isOutOfStock) {
-                          alert("This product is out of stock");
-                          return;
-                        }
-
-                        dispatch(
-                          addToCart({
-                            id: product.id,
-                            name: product.title,
-                            price: product.price,
-                            image:
-                              product?.images?.[0]?.signedUrl ||
-                              product?.images?.[0]?.url ||
-                              "/placeholder-image.png",
-                            stock: product.stock,
-                          }),
-                        );
-                      }}
-                      className={`w-full py-4 rounded-xl font-black text-lg transition-all active:scale-95 ${
-                        isOutOfStock
-                          ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-                          : "bg-[#2A4150] text-white hover:bg-[#1a2b36]"
-                      }`}
-                    >
-                      {isOutOfStock ? "OUT OF STOCK" : "ADD TO CART"}
-                    </button>
-                  ) : (
-                    <div className="w-full h-full bg-[#2A4150] rounded-xl overflow-hidden shadow-lg">
-                      <QuantitySelector
-                        variant="button"
-                        quantity={cartItem.quantity}
-                        onIncrease={() => {
-                          if (cartItem.quantity >= product.stock)
-                            return alert("Out of stock!");
-                          dispatch(updateQty({ id: product.id, delta: 1 }));
-                        }}
-                        onDecrease={() => {
-                          if (cartItem.quantity === 1)
-                            dispatch(removeFromCart(product.id));
-                          else
-                            dispatch(updateQty({ id: product.id, delta: -1 }));
-                        }}
-                      />
-                    </div>
-                  )}
-                </div>
                 <div className="absolute -top-3 left-8 bg-white px-4 py-1 border border-slate-100 rounded-full flex items-center gap-2 shadow-sm">
                   <Zap size={14} className="text-amber-500 fill-amber-500" />
                   <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
                     Product Highlights
                   </span>
                 </div>
+
+                {/* --- EXACT POPPINS STYLE APPLIED TO DESCRIPTION --- */}
                 <div
-                  className="product-description mt-2"
+                  className={`product-description mt-2 ${poppins.className} text-[22px] font-semibold text-[#141516] leading-[33px] tracking-[0.6px] text-left [&_h1]:text-[22px] [&_h1]:font-semibold [&_h1]:leading-[33px] [&_h2]:text-[22px] [&_h2]:font-semibold [&_h2]:leading-[33px] [&_h3]:text-[22px] [&_h3]:font-semibold [&_h3]:leading-[33px] [&_p]:text-[22px] [&_p]:font-semibold [&_p]:leading-[33px]`}
                   dangerouslySetInnerHTML={{
                     __html: product.description || "",
                   }}
                 />
+              </div>
+
+              <div className="flex flex-col gap-4 mt-8 order-3 lg:order-4">
+                {!cartItem ? (
+                  <button
+                    disabled={isOutOfStock}
+                    onClick={() => {
+                      if (isOutOfStock) {
+                        alert("This product is out of stock");
+                        return;
+                      }
+
+                      // --- FIXED ADD TO CART LOGIC (Name & sortedImages) ---
+                      dispatch(
+                        addToCart({
+                          id: product.id,
+                          name: product.name || product.title,
+                          price: product.price,
+                          description: product.description || "", // <--- YE ADD KIYA HAI
+                          image:
+                            sortedImages?.[0]?.signedUrl ||
+                            sortedImages?.[0]?.url ||
+                            "/placeholder-image.png",
+                          stock: product.stock,
+                        }),
+                      );
+                    }}
+                    className={`w-full py-4 rounded-xl font-black text-lg transition-all active:scale-95 ${
+                      isOutOfStock
+                        ? "bg-slate-200 text-slate-400 cursor-not-allowed"
+                        : "bg-[#2A4150] text-white hover:bg-[#1a2b36]"
+                    }`}
+                  >
+                    {isOutOfStock ? "OUT OF STOCK" : "ADD TO CART"}
+                  </button>
+                ) : (
+                  <div className="w-full h-full bg-[#2A4150] rounded-xl overflow-hidden shadow-lg">
+                    <QuantitySelector
+                      variant="button"
+                      quantity={cartItem.quantity}
+                      onIncrease={() => {
+                        if (cartItem.quantity >= product.stock)
+                          return alert("Out of stock!");
+                        dispatch(updateQty({ id: product.id, delta: 1 }));
+                      }}
+                      onDecrease={() => {
+                        if (cartItem.quantity === 1)
+                          dispatch(removeFromCart(product.id));
+                        else dispatch(updateQty({ id: product.id, delta: -1 }));
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             </div>
 

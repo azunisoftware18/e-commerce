@@ -103,7 +103,7 @@ export default function Products() {
       price: product.price,
       stock: product.stock,
       status: product.status,
-      categoryId: product.categoryid || product.category?.id,
+      categoryid: product.categoryid || product.category?.id,
       subCategoryId: product.subCategoryId,
       images: product.originalImages || product.images,
     };

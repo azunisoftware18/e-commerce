@@ -22,6 +22,8 @@ import { useSettings } from "@/lib/queries/useSettings";
 export default function Footer() {
   const { data: settings, isLoading: settingsLoading } = useSettings();
   const [email, setEmail] = useState("");
+  const companyName = settings?.companyName || "Herbs n Glam";
+const words = companyName.split(" ");
 
   const legalLinks = [
     { name: "Terms & Conditions", href: "/terms-conditions" },
@@ -142,8 +144,13 @@ export default function Footer() {
               </div>
             )} */}
             <h2 className="text-white font-extrabold text-xl tracking-tight leading-none self-center">
-              {settings?.companyName?.toLowerCase() || "Herbs & Glam"}
-            </h2>
+  <span style={{ color: "#35583D" }}>
+    {words[0]}
+  </span>{" "}
+  <span style={{ color: "#B8925A" }}>
+    {words.slice(1).join(" ")}
+  </span>
+</h2>
           </div>
 
           <p className="text-sm text-slate-400 max-w-sm leading-relaxed">

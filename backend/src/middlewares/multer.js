@@ -20,9 +20,14 @@ const storage = multer.diskStorage({
   destination: function (req, file, cb) {
   if (file.fieldname === "pdf") {
     cb(null, pdfDir);
-  } else if (file.fieldname === "images") {
-    cb(null, imageDir); // ✅ images folder
   } else if (
+  file.fieldname === "frontImage" ||
+  file.fieldname === "backImage" ||
+  file.fieldname === "leftImage" ||
+  file.fieldname === "rightImage"
+) {
+  cb(null, imageDir);
+} else if (
     file.fieldname === "thumbnail" ||
     file.fieldname === "image"
   ) {
@@ -47,10 +52,13 @@ const fileFilter = (req, file, cb) => {
   }
 
   if (
-    file.fieldname === "thumbnail" ||
-    file.fieldname === "image" ||
-    file.fieldname === "images"   // ✅ ADD THIS
-  ) {
+  file.fieldname === "thumbnail" ||
+  file.fieldname === "image" ||
+  file.fieldname === "frontImage" ||
+  file.fieldname === "backImage" ||
+  file.fieldname === "leftImage" ||
+  file.fieldname === "rightImage"
+) {
     if (file.mimetype.startsWith("image/")) {
       return cb(null, true);
     }
