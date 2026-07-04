@@ -6,6 +6,7 @@ import {
   deleteProduct,
   getAllProducts,
   getProductById,
+  getRecommendedProducts,
   updateProduct,
 } from "../controllers/product.controller.js";
 
@@ -37,5 +38,10 @@ router.put(
   updateProduct,
 );
 router.delete("/delete-product/:id", authMiddleware, deleteProduct);
+router.get(
+  "/recommendations",
+  authMiddleware,
+  getRecommendedProducts
+);
 
 export default router;

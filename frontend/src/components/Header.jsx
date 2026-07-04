@@ -24,6 +24,7 @@ import { closeLogin, logout, openLogin } from "@/store/slices/authSlice";
 import { useCategories } from "@/lib/queries/useCategories";
 import { useProducts } from "@/lib/queries/useProducts";
 import { useSettings } from "@/lib/queries/useSettings";
+import { useCart } from "@/lib/queries/useCart";
 
 // Animated Hamburger Icon Component
 function AnimatedMenuIcon({ isOpen, onClick }) {
@@ -144,12 +145,13 @@ export default function Header() {
   const { user, isAuthenticated, openLoginModal } = useSelector(
     (state) => state.auth,
   );
-  const cartItems = useSelector((state) => state.cart.items);
-  const totalQuantity = cartItems.reduce(
-    (total, item) => total + item.quantity,
-    0,
-  );
+  const { data: cart, isLoading: isCartLoading } = useCart();
 
+const cartItems = cart?.items || [];
+const totalQuantity = cartItems.reduce(
+  (total, item) => total + item.quantity,
+  0
+);
   const { data: products = [] } = useProducts();
 
   const searchResults = products

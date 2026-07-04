@@ -1,14 +1,23 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { ShoppingCart } from "lucide-react";
+import { Heart, ShoppingCart } from "lucide-react";
 import Button from "../ui/Button";
 import Link from "next/link";
-import { useDispatch, useSelector } from "react-redux";
-import { addToCart, removeFromCart, updateQty } from "@/store/slices/cartSlice";
 import QuantitySelector from "./QuantitySelector";
 import { motion, AnimatePresence } from "framer-motion";
 import { Poppins } from "next/font/google";
+import {
+  useAddToCart,
+  useRemoveCartItem,
+  useUpdateCart,
+} from "@/lib/mutations/useCart";
+import { useCart } from "@/lib/queries/useCart";
+import { useWishlist } from "@/lib/queries/useWishlist";
+import {
+  useAddToWishlist,
+  useRemoveWishlistItem,
+} from "@/lib/mutations/useWishlist";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -26,17 +35,43 @@ export default function ProductCard({
   status,
   className = "",
 }) {
-  const dispatch = useDispatch();
-  const cartItems = useSelector((state) => state.cart.items);
-  const cartItem = cartItems.find((item) => item.id === id);
+  const { data: cart } = useCart();
+
+  const { mutate: addToCart } = useAddToCart();
+  const { mutate: updateCart } = useUpdateCart();
+  const { mutate: removeCartItem } = useRemoveCartItem();
+
+  const cartItems = cart?.items || [];
+  const cartItem = cartItems.find((item) => item.productId === id);
   const isOutOfStock = status === "Out_of_Stock" || stock === 0;
 
-  
   const [isAnimating, setIsAnimating] = useState(false);
   const [coords, setCoords] = useState({ x: 0, y: 0 });
   const buttonContainerRef = useRef(null);
   const cartElement = document.getElementById("header-cart");
   const cartRect = cartElement?.getBoundingClientRect();
+  const { data: wishlist } = useWishlist();
+
+  const { mutate: addToWishlist } = useAddToWishlist();
+  const { mutate: removeWishlistItem } = useRemoveWishlistItem();
+  const handleWishlist = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (isWishlisted) {
+      removeWishlistItem(id);
+    } else {
+      addToWishlist({
+        productId: id,
+      });
+    }
+  };
+
+  const wishlistItems = wishlist?.items || [];
+
+  const isWishlisted = wishlistItems.some(
+    (item) => item.productId === id || item.product?.id === id,
+  );
 
   const handleAddToCart = (e) => {
     e.preventDefault();
@@ -44,29 +79,21 @@ export default function ProductCard({
 
     if (isOutOfStock) return;
 
-    
     if (buttonContainerRef.current) {
       const rect = buttonContainerRef.current.getBoundingClientRect();
       setCoords({
-        x: rect.left + rect.width / 2 - 20, 
-        y: rect.top + rect.height / 2 - 20, 
+        x: rect.left + rect.width / 2 - 20,
+        y: rect.top + rect.height / 2 - 20,
       });
     }
 
     setIsAnimating(true);
 
-    dispatch(
-      addToCart({
-        id,
-        name: title,
-        image,
-        price,
-        description,
-        stock,
-      }),
-    );
+    addToCart({
+      productId: id,
+      quantity: 1,
+    });
 
-    
     setTimeout(() => {
       setIsAnimating(false);
     }, 1400);
@@ -154,7 +181,21 @@ export default function ProductCard({
               `}
               loading="lazy"
             />
-
+            <motion.button
+              whileTap={{ scale: 0.85 }}
+              whileHover={{ scale: 1.1 }}
+              onClick={handleWishlist}
+              className="absolute top-3 right-3 z-20 w-10 h-10 rounded-full   flex items-center justify-center transition-all"
+            >
+              <Heart
+                size={20}
+                className={`transition-all ${
+                  isWishlisted
+                    ? "fill-pink-500 text-pink-500"
+                    : "text-slate-500 hover:text-pink-500"
+                }`}
+              />
+            </motion.button>
             <div className="absolute inset-0 w-[200%] h-full bg-linear-to-r from-transparent via-white/20 to-transparent -skew-x-12 -translate-x-[150%] md:group-hover:translate-x-[150%] transition-transform duration-1000 ease-out pointer-events-none hidden md:block" />
 
             {isOutOfStock && (
@@ -199,10 +240,10 @@ export default function ProductCard({
                   Price
                 </span>
                 <span
-  className={`${poppins.className} text-[18px] md:text-[20px] font-semibold text-[#141516] leading-none tracking-[0.6px] transition-transform duration-300 md:group-hover:translate-x-0.5`}
->
-  Rs.{Number(price || 0).toLocaleString("en-IN")}
-</span>
+                  className={`${poppins.className} text-[18px] md:text-[20px] font-semibold text-[#141516] leading-none tracking-[0.6px] transition-transform duration-300 md:group-hover:translate-x-0.5`}
+                >
+                  Rs.{Number(price || 0).toLocaleString("en-IN")}
+                </span>
               </div>
             </div>
           </div>
@@ -250,13 +291,19 @@ export default function ProductCard({
                       alert(`Only ${stock} items available`);
                       return;
                     }
-                    dispatch(updateQty({ id, delta: 1 }));
+                    updateCart({
+                      productId: id,
+                      quantity: cartItem.quantity + 1,
+                    });
                   }}
                   onDecrease={() => {
                     if (cartItem.quantity === 1) {
-                      dispatch(removeFromCart(id));
+                      removeCartItem(id);
                     } else {
-                      dispatch(updateQty({ id, delta: -1 }));
+                      updateCart({
+                        productId: id,
+                        quantity: cartItem.quantity - 1,
+                      });
                     }
                   }}
                 />

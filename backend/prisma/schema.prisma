@@ -28,6 +28,11 @@ model User {
   customerOrders    Order[]    @relation("CustomerOrders")
   createdProducts   Product[]  @relation("CreatedProducts")
   couponUsages CouponUsage[]
+  cart                Cart?
+  wishlist           Wishlist?
+  rewardTransactions RewardTransaction[]
+  rewardPoints       Int @default(0)
+  lifetimePoints     Int @default(0)
 
   @@map("user")
 }
@@ -73,6 +78,8 @@ model Product {
   status      ProductStatus
   createdby   String
   orderItems  OrderItem[]
+  cartItems     CartItem[]        
+  wishlistItems WishlistItem[]    
   category    Category       @relation(fields: [categoryid], references: [id], map: "Product_categoryid_fkey,")
   creator     User           @relation("CreatedProducts", fields: [createdby], references: [id], map: "Product_createdby_fkey")
   subCategoryId String?
@@ -112,6 +119,7 @@ model Order {
   customer        User            @relation("CustomerOrders", fields: [customerid], references: [id], map: "Order_customerid_fkey")
   shipping        ShippingAddress @relation(fields: [shippingId], references: [id], map: "Order_shippingId_fkey")
   items           OrderItem[]
+  rewardTransactions RewardTransaction[] 
   paymentMode     String          @default("COD") @map("payment_mode")
   couponCode      String?
   discount        Float @default(0)
@@ -230,6 +238,86 @@ model CouponUsage {
   user       User    @relation(fields: [userId], references: [id])
   coupon     Coupon  @relation(fields: [couponId], references: [id])
   @@unique([userId, couponId])
+}
+
+model Cart {
+  id        String   @id @default(uuid())
+
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  items     CartItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CartItem {
+  id        String   @id @default(uuid())
+
+  cartId    String
+  productId String
+
+  quantity  Int @default(1)
+
+  cart       Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product    Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([cartId, productId])
+}
+
+model Wishlist {
+  id        String   @id @default(uuid())
+
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  items     WishlistItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WishlistItem {
+  id          String   @id @default(uuid())
+
+  wishlistId  String
+  productId   String
+
+  wishlist Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
+  product  Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+
+  @@unique([wishlistId, productId])
+}
+
+model RewardTransaction {
+  id          String @id @default(uuid())
+
+  userId      String
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  orderId     String?
+  order       Order? @relation(fields: [orderId], references: [id])
+
+  points      Int
+
+  type        RewardType
+
+  description String?
+
+  createdAt   DateTime @default(now())
+}
+
+enum RewardType {
+  EARNED
+  REDEEMED
+  BONUS
+  REFUND
+  EXPIRED
 }
 
 enum DiscountType {

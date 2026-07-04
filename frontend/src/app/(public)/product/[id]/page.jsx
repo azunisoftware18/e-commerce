@@ -1,13 +1,22 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { ArrowLeft, Truck, Zap, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Truck, Zap, ShieldCheck, Heart } from "lucide-react";
 import QuantitySelector from "@/components/common/QuantitySelector";
 import { useProduct } from "@/lib/queries/useProducts";
-import { useDispatch, useSelector } from "react-redux";
-import { addToCart, removeFromCart, updateQty } from "@/store/slices/cartSlice";
 import { useState } from "react";
 import { Poppins } from "next/font/google";
+import { useCart } from "@/lib/queries/useCart";
+import {
+  useAddToCart,
+  useRemoveCartItem,
+  useUpdateCart,
+} from "@/lib/mutations/useCart";
+import { useWishlist } from "@/lib/queries/useWishlist";
+import {
+  useAddToWishlist,
+  useRemoveWishlistItem,
+} from "@/lib/mutations/useWishlist";
 
 // 1. Poppins font configured only for this page
 const poppins = Poppins({
@@ -18,9 +27,42 @@ const poppins = Poppins({
 export default function ViewProductPage() {
   const { id } = useParams();
   const { data: product, isLoading } = useProduct(id);
-  const dispatch = useDispatch();
-  const cartItems = useSelector((state) => state.cart.items);
-  const cartItem = cartItems.find((item) => item.id === product?.id);
+  // Cart
+  const { data: cart } = useCart();
+
+  const { mutate: addToCart } = useAddToCart();
+
+  const { mutate: updateCart } = useUpdateCart();
+
+  const { mutate: removeCartItem } = useRemoveCartItem();
+
+  // Wishlist
+  const { data: wishlist } = useWishlist();
+
+  const { mutate: addToWishlist } = useAddToWishlist();
+
+  const { mutate: removeWishlistItem } = useRemoveWishlistItem();
+
+  const cartItems = cart?.items || [];
+
+  const wishlistItems = wishlist?.items || [];
+  const cartItem = cartItems.find(
+    (item) =>
+      item.productId === product?.id || item.product?.id === product?.id,
+  );
+  const isWishlisted = wishlistItems.some(
+    (item) =>
+      item.productId === product?.id || item.product?.id === product?.id,
+  );
+  const handleWishlist = () => {
+    if (isWishlisted) {
+      removeWishlistItem(product.id);
+    } else {
+      addToWishlist({
+        productId: product.id,
+      });
+    }
+  };
 
   const isOutOfStock =
     product?.status === "Out_of_Stock" || product?.stock === 0;
@@ -80,7 +122,7 @@ export default function ViewProductPage() {
           {/* --- 🖼️ LEFT: Image Section (Sticky on Desktop) --- */}
           <div className="lg:sticky lg:top-36">
             {/* Main Image */}
-            <div className="aspect-[4/5] rounded-[2rem] border border-slate-200 overflow-hidden bg-slate-50">
+            <div className="relative aspect-[4/5] rounded-[2rem] border border-slate-200 overflow-hidden bg-slate-50">
               <img
                 src={
                   sortedImages?.[selectedImage]?.signedUrl ||
@@ -90,6 +132,19 @@ export default function ViewProductPage() {
                 alt={product?.name}
                 className="w-full h-full object-cover"
               />
+              <button
+                onClick={handleWishlist}
+                className="absolute top-5 right-5 z-20 w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center"
+              >
+                <Heart
+                  size={24}
+                  className={
+                    isWishlisted
+                      ? "fill-pink-500 text-pink-500"
+                      : "text-slate-500"
+                  }
+                />
+              </button>
             </div>
 
             {/* Thumbnails */}
@@ -185,19 +240,10 @@ export default function ViewProductPage() {
                       }
 
                       // --- FIXED ADD TO CART LOGIC (Name & sortedImages) ---
-                      dispatch(
-                        addToCart({
-                          id: product.id,
-                          name: product.name || product.title,
-                          price: product.price,
-                          description: product.description || "", // <--- YE ADD KIYA HAI
-                          image:
-                            sortedImages?.[0]?.signedUrl ||
-                            sortedImages?.[0]?.url ||
-                            "/placeholder-image.png",
-                          stock: product.stock,
-                        }),
-                      );
+                      addToCart({
+                        productId: product.id,
+                        quantity: 1,
+                      });
                     }}
                     className={`w-full py-4 rounded-xl font-black text-lg transition-all active:scale-95 ${
                       isOutOfStock
@@ -215,12 +261,20 @@ export default function ViewProductPage() {
                       onIncrease={() => {
                         if (cartItem.quantity >= product.stock)
                           return alert("Out of stock!");
-                        dispatch(updateQty({ id: product.id, delta: 1 }));
+                        updateCart({
+                          productId: product.id,
+                          quantity: cartItem.quantity + 1,
+                        });
                       }}
                       onDecrease={() => {
-                        if (cartItem.quantity === 1)
-                          dispatch(removeFromCart(product.id));
-                        else dispatch(updateQty({ id: product.id, delta: -1 }));
+                        if (cartItem.quantity === 1) {
+                          removeCartItem(product.id);
+                        } else {
+                          updateCart({
+                            productId: product.id,
+                            quantity: cartItem.quantity - 1,
+                          });
+                        }
                       }}
                     />
                   </div>
