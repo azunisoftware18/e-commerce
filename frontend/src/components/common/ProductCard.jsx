@@ -8,6 +8,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { addToCart, removeFromCart, updateQty } from "@/store/slices/cartSlice";
 import QuantitySelector from "./QuantitySelector";
 import { motion, AnimatePresence } from "framer-motion";
+import { Poppins } from "next/font/google";
+
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+});
 
 export default function ProductCard({
   id,
@@ -192,9 +198,11 @@ export default function ProductCard({
                 <span className="text-[8px] sm:text-[10px] md:text-[10px] uppercase tracking-wider text-slate-400 font-semibold leading-none mb-0.5">
                   Price
                 </span>
-                <span className="font-semibold md:font-bold text-slate-900 leading-none transition-transform duration-300 md:group-hover:translate-x-0.5">
-                  ₹{price}
-                </span>
+                <span
+  className={`${poppins.className} text-[18px] md:text-[20px] font-semibold text-[#141516] leading-none tracking-[0.6px] transition-transform duration-300 md:group-hover:translate-x-0.5`}
+>
+  Rs.{Number(price || 0).toLocaleString("en-IN")}
+</span>
               </div>
             </div>
           </div>
