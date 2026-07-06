@@ -71,6 +71,7 @@ export default function SettingPage() {
       socialLinks: [{ platform: "", url: "" }],
     },
   });
+  const socialLinks = watch("socialLinks");
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -327,14 +328,34 @@ export default function SettingPage() {
                 {/* URL Input */}
                 <div className="w-full flex-1 space-y-1.5">
                   <label className="text-xs font-semibold text-[#2A4150]/70 uppercase tracking-wider">
-                    Link / URL
-                  </label>
-                  <InputField
-                    placeholder="https://facebook.com/your-page"
-                    {...register(`socialLinks.${index}.url`)}
-                    containerClassName="w-full"
-                    className="focus:border-[#2A4150]"
-                  />
+  {socialLinks?.[index]?.platform === "whatsapp"
+    ? "Whatsapp Number"
+    : "Link / URL"}
+</label>
+
+<InputField
+  type="tel"
+  placeholder={
+    socialLinks?.[index]?.platform === "whatsapp"
+      ? "9876543210"
+      : "https://facebook.com/your-page"
+  }
+  maxLength={socialLinks?.[index]?.platform === "whatsapp" ? 10 : undefined}
+  onInput={(e) => {
+    if (socialLinks?.[index]?.platform === "whatsapp") {
+      e.target.value = e.target.value.replace(/\D/g, "").slice(0, 10);
+    }
+  }}
+  {...register(`socialLinks.${index}.url`, {
+    validate: (value) => {
+      if (socialLinks?.[index]?.platform !== "whatsapp") return true;
+
+      return /^\d{10}$/.test(value) || "WhatsApp number must be exactly 10 digits";
+    },
+  })}
+  containerClassName="w-full"
+  className="focus:border-[#2A4150]"
+/>
                 </div>
 
                 {/* Delete Button */}

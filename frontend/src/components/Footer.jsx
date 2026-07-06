@@ -271,20 +271,21 @@ const words = companyName.split(" ");
 
                   return (
                     <a
-                      key={index}
-                      href={
-                        link.url?.startsWith("http")
-                          ? link.url
-                          : `https://${link.url}`
-                      }
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      // Yahan dynamically custom `config.hoverClass` pass ho rhi hai
-                      className={`w-8 h-8 rounded-md bg-slate-800 flex items-center justify-center transition-all transform hover:-translate-y-0.5 border border-slate-700 ${config.hoverClass}`}
-                      title={link.platform}
-                    >
-                      {config.icon}
-                    </a>
+  key={index}
+  href={
+    link.platform?.toLowerCase().includes("whatsapp")
+      ? `https://wa.me/${link.url.replace(/\D/g, "")}`
+      : link.url?.startsWith("http")
+      ? link.url
+      : `https://${link.url}`
+  }
+  target="_blank"
+  rel="noopener noreferrer"
+  className={`w-8 h-8 rounded-md bg-slate-800 flex items-center justify-center transition-all transform hover:-translate-y-0.5 border border-slate-700 ${config.hoverClass}`}
+  title={link.platform}
+>
+  {config.icon}
+</a>
                   );
                 })
               ) : (
