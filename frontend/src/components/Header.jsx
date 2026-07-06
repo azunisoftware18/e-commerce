@@ -725,6 +725,7 @@ function UserDropdown({ user, isOpen, setOpen, onLogout }) {
     { label: "Your Profile", href: "/customer/profile" },
     { label: "Your Orders", href: "/customer/orders" },
     { label: "Manage Address", href: "/customer/address" },
+    { label: "Rewards Points", href: "/customer/reward-points" },
   ];
 
   return (

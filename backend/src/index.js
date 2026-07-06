@@ -1,6 +1,7 @@
 import app from "./app.js";
 import dotenv from "dotenv";
 import prisma from "./db/db.js";
+import "./jobs/rewardCron.js";
 
 dotenv.config({ path: "./.env" });
 

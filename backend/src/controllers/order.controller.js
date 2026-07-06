@@ -89,11 +89,12 @@ export const getOrderById = asyncHandler(async (req, res) => {
 
 export const createOrder = asyncHandler(async (req, res) => {
   const {
-    items,
-    shipping,
-    couponCode,
-    paymentMethod,
-  } = req.body;
+  items,
+  shipping,
+  couponCode,
+  paymentMethod,
+  useReward,
+} = req.body;
   const createdby = req.user?.id;
 
   if (req.user?.role !== "Customer") {
@@ -134,89 +135,132 @@ export const createOrder = asyncHandler(async (req, res) => {
   // FINAL TOTAL AFTER COUPON
   let total = originalTotal;
   // SECURE COUPON VALIDATION
-let finalDiscount = 0;
+  let finalDiscount = 0;
+  let rewardDiscount = 0;
+  let usableRewardPoints = 0;
 
-if (couponCode) {
-  const coupon = await prisma.coupon.findUnique({
-    where: {
-      code: couponCode.toUpperCase(),
-    },
-  });
+  if (couponCode) {
+    const coupon = await prisma.coupon.findUnique({
+      where: {
+        code: couponCode.toUpperCase(),
+      },
+    });
 
-  // invalid coupon
-  if (!coupon) {
-    return ApiError.send(res, 400, "Invalid coupon");
-  }
+    // invalid coupon
+    if (!coupon) {
+      return ApiError.send(res, 400, "Invalid coupon");
+    }
 
-  // inactive coupon
-  if (!coupon.isActive) {
-    return ApiError.send(res, 400, "Coupon inactive");
-  }
+    // inactive coupon
+    if (!coupon.isActive) {
+      return ApiError.send(res, 400, "Coupon inactive");
+    }
 
-  // expired coupon
-  if (new Date() > coupon.expiryDate) {
-    return ApiError.send(res, 400, "Coupon expired");
-  }
+    // expired coupon
+    if (new Date() > coupon.expiryDate) {
+      return ApiError.send(res, 400, "Coupon expired");
+    }
 
-  // usage limit
-  if (coupon.usedCount >= coupon.usageLimit) {
-    return ApiError.send(
-      res,
-      400,
-      "Coupon usage limit exceeded",
-    );
-  }
+    // usage limit
+    if (coupon.usedCount >= coupon.usageLimit) {
+      return ApiError.send(res, 400, "Coupon usage limit exceeded");
+    }
 
-  // already used by user
-  const alreadyUsed =
-    await prisma.couponUsage.findFirst({
+    // already used by user
+    const alreadyUsed = await prisma.couponUsage.findFirst({
       where: {
         userId: createdby,
         couponId: coupon.id,
       },
     });
 
-  if (alreadyUsed) {
-    return ApiError.send(
-      res,
-      400,
-      "You already used this coupon",
-    );
-  }
-
-  // minimum order
-  if (originalTotal < coupon.minOrderAmount) {
-    return ApiError.send(
-      res,
-      400,
-      `Minimum order should be ₹${coupon.minOrderAmount}`,
-    );
-  }
-
-  // percentage discount
-  if (coupon.discountType === "percentage") {
-    finalDiscount =
-      (Number(originalTotal) *
-        coupon.discountValue) /
-      100;
-
-    // max discount check
-    if (
-      coupon.maxDiscountAmount &&
-      finalDiscount > coupon.maxDiscountAmount
-    ) {
-      finalDiscount = coupon.maxDiscountAmount;
+    if (alreadyUsed) {
+      return ApiError.send(res, 400, "You already used this coupon");
     }
+
+    // minimum order
+    if (originalTotal < coupon.minOrderAmount) {
+      return ApiError.send(
+        res,
+        400,
+        `Minimum order should be ₹${coupon.minOrderAmount}`,
+      );
+    }
+
+    // percentage discount
+    if (coupon.discountType === "percentage") {
+      finalDiscount = (Number(originalTotal) * coupon.discountValue) / 100;
+
+      // max discount check
+      if (
+        coupon.maxDiscountAmount &&
+        finalDiscount > coupon.maxDiscountAmount
+      ) {
+        finalDiscount = coupon.maxDiscountAmount;
+      }
+    }
+
+    // flat discount
+    if (coupon.discountType === "flat") {
+      finalDiscount = coupon.discountValue;
+    }
+
+    total = Number(originalTotal) - Number(finalDiscount);
   }
 
-  // flat discount
-  if (coupon.discountType === "flat") {
-    finalDiscount = coupon.discountValue;
+  // ==============================
+// APPLY REWARD POINTS
+// ==============================
+
+if (useReward) {
+
+   
+
+  
+
+  const user = await prisma.user.findUnique({
+    where: {
+      id: createdby,
+    },
+    select: {
+      rewardPoints: true,
+    },
+  });
+  if (!user) {
+    return ApiError.send(res, 404, "User not found.");
   }
 
-  total = Number(originalTotal) - Number(finalDiscount);
+  // Maximum reward points = Order Total ka 10%
+
+const maxRewardPoints =
+  Math.floor((Number(total) * 0.10) / 10) * 10;
+
+// User jitne reward use kar sakta hai
+
+usableRewardPoints = Math.min(
+  user.rewardPoints,
+  maxRewardPoints
+);
+
+// Minimum 10 reward points required
+
+if (usableRewardPoints >= 10) {
+
+  // 10 Points = ₹1
+
+  rewardDiscount = usableRewardPoints / 10;
+
+  total -= rewardDiscount;
+
 }
 
+  
+
+  
+
+
+  total = Math.max(0, Number(total.toFixed(2)));
+}
 
   // extra safety
   if (total < 0) {
@@ -244,7 +288,7 @@ if (couponCode) {
         customerid: createdby,
 
         total,
-        discount: Number(finalDiscount),
+        discount: Number(finalDiscount) + Number(rewardDiscount),
         couponCode: couponCode || null,
 
         createdby,
@@ -287,35 +331,64 @@ if (couponCode) {
     }
     // UPDATE COUPON USAGE
     // UPDATE COUPON USAGE
-if (couponCode && finalDiscount > 0) {
-  // increment usage count
-  await prisma.coupon.update({
+    if (couponCode && finalDiscount > 0) {
+      // increment usage count
+      await prisma.coupon.update({
+        where: {
+          code: couponCode,
+        },
+        data: {
+          usedCount: {
+            increment: 1,
+          },
+        },
+      });
+
+      // find coupon
+      const coupon = await prisma.coupon.findUnique({
+        where: {
+          code: couponCode,
+        },
+      });
+
+      // save coupon usage
+      if (coupon) {
+        await prisma.couponUsage.create({
+          data: {
+            userId: createdby,
+            couponId: coupon.id,
+          },
+        });
+      }
+    }
+    // ==============================
+// REWARD REDEEM
+// ==============================
+
+if (useReward && usableRewardPoints >= 10) {
+
+  await prisma.user.update({
     where: {
-      code: couponCode,
+      id: createdby,
     },
     data: {
-      usedCount: {
-        increment: 1,
+      rewardPoints: {
+              decrement: usableRewardPoints,
+
       },
     },
   });
 
-  // find coupon
-  const coupon = await prisma.coupon.findUnique({
-    where: {
-      code: couponCode,
+  await prisma.rewardTransaction.create({
+    data: {
+      userId: createdby,
+      orderId: orderCreated.id,
+      points: -usableRewardPoints,
+      type: "REDEEMED",
+      description: "Reward redeemed during checkout",
     },
   });
 
-  // save coupon usage
-  if (coupon) {
-    await prisma.couponUsage.create({
-      data: {
-        userId: createdby,
-        couponId: coupon.id,
-      },
-    });
-  }
 }
     return orderCreated;
   });
@@ -348,13 +421,20 @@ export const updateOrder = asyncHandler(async (req, res) => {
   const updatedOrder = await prisma.order.update({
     where: { id },
     data: {
-      status: status || existingOrder.status,
-      payment: payment || existingOrder.payment,
-      duedate: duedate || existingOrder.duedate,
-      cancelReason: cancelReason || existingOrder.cancelReason,
-      trackingId: trackingId ?? existingOrder.trackingId,
-      courierName: courierName ?? existingOrder.courierName,
-    },
+  status: status || existingOrder.status,
+  payment: payment || existingOrder.payment,
+
+  deliveredAt:
+    status === "Delivered" &&
+    !existingOrder.deliveredAt
+      ? new Date()
+      : existingOrder.deliveredAt,
+
+  duedate: duedate || existingOrder.duedate,
+  cancelReason: cancelReason || existingOrder.cancelReason,
+  trackingId: trackingId ?? existingOrder.trackingId,
+  courierName: courierName ?? existingOrder.courierName,
+},
   });
 
   return res

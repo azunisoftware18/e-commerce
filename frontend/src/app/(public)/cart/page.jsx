@@ -21,6 +21,7 @@ import {
   ShoppingCart,
   Sparkles,
   Tag,
+  Coins, 
 } from "lucide-react";
 import Link from "next/link";
 
@@ -53,6 +54,7 @@ import { useDispatch } from "react-redux";
 import { useCart } from "@/lib/queries/useCart";
 import { useWishlist } from "@/lib/queries/useWishlist";
 import YouMightAlsoLike from "@/components/common/YouMightAlsoLike";
+import { useRewardBalance } from "@/lib/queries/useRewards";
 
 // Animation variants
 const fadeInUp = {
@@ -123,7 +125,7 @@ export default function CartPage() {
   const addToWishlist = useAddToWishlist();
   const removeWishlistItem = useRemoveWishlistItem();
   const moveToCart = useMoveToCart();
-
+  const { data: rewardBalance } = useRewardBalance();
   const router = useRouter();
   const dispatch = useDispatch();
   const { mutate: createOrder, isPending } = useCreateOrder();
@@ -135,6 +137,9 @@ export default function CartPage() {
   const { selectedAddressId, addresses } = useSelector(
     (state) => state.address,
   );
+  const selectedAddress = addresses?.find(
+  (addr) => addr.id === selectedAddressId
+);
 
   const [coupon, setCoupon] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
@@ -150,7 +155,8 @@ export default function CartPage() {
   const [couponLoading, setCouponLoading] = useState(false);
   const [availableCoupons, setAvailableCoupons] = useState([]);
   const [activeTab, setActiveTab] = useState("cart");
-
+  const [useReward, setUseReward] = useState(false);
+  const [rewardDiscount, setRewardDiscount] = useState(0);
   // Extract items from API response
   const cartItems = cart?.items || [];
   const wishlistItems = wishlist?.items || [];
@@ -165,6 +171,7 @@ export default function CartPage() {
     }
   }, [couponsData]);
 
+  
   const handleQuickApplyCoupon = async (code) => {
     setCoupon(code);
 
@@ -205,15 +212,17 @@ export default function CartPage() {
   };
 
   const handleMoveToCartFromWishlist = (item) => {
-  if (item.product.stock <= 0) {
-    alert("This product is currently Out of Stock and cannot be moved to Cart.");
-    return;
-  }
+    if (item.product.stock <= 0) {
+      alert(
+        "This product is currently Out of Stock and cannot be moved to Cart.",
+      );
+      return;
+    }
 
-  moveToCart.mutate({
-    productId: item.product.id,
-  });
-};
+    moveToCart.mutate({
+      productId: item.product.id,
+    });
+  };
 
   const FREE_SHIPPING_MIN = 500;
 
@@ -230,14 +239,37 @@ export default function CartPage() {
       subtotal: sub,
       shipping: ship,
       discount: disc,
-      total: sub - disc + ship,
+      total: sub - disc - rewardDiscount + ship,
       progress: Math.min((sub / FREE_SHIPPING_MIN) * 100, 100),
     };
-  }, [cartItems, couponDiscount]);
+  }, [cartItems, couponDiscount, rewardDiscount]);
 
-  const selectedAddress = addresses.find(
-    (addr) => addr.id === selectedAddressId,
+  const maxRewardDiscount = subtotal * 0.1;
+
+  const maxRewardPoints =
+  Math.floor(maxRewardDiscount / 10) * 10;
+  
+  const availableRewardPoints = rewardBalance?.rewardPoints || 0;
+
+  useEffect(() => {
+  if (!useReward) {
+    setRewardDiscount(0);
+    return;
+  }
+
+  if (availableRewardPoints < 10) {
+    setRewardDiscount(0);
+    return;
+  }
+
+  const usablePoints = Math.min(
+    availableRewardPoints,
+    maxRewardPoints
   );
+
+  setRewardDiscount(usablePoints / 10);
+
+}, [useReward, availableRewardPoints, maxRewardPoints]);
 
   if (!isHydrated || isCartLoading || isWishlistLoading)
     return (
@@ -321,6 +353,7 @@ export default function CartPage() {
       })),
       couponCode: appliedCoupon,
       discount: couponDiscount,
+      useReward,
       shipping: {
         firstName: selectedAddress.firstName || "User",
         lastName: selectedAddress.lastName || "",
@@ -796,128 +829,205 @@ export default function CartPage() {
             </motion.div>
 
             {/* Sidebar: Right Column - Only show when in cart view with items */}
-            {activeTab === "cart" && cartItems.length > 0 && (
-              <motion.aside
-                className="lg:col-span-4 space-y-4"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-              >
-                <div className="bg-white p-5 sm:p-6 md:p-8 rounded-2xl md:rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 sticky top-36">
-                  <h2 className="text-lg sm:text-xl font-black text-slate-900 mb-4 sm:mb-6">
-                    Order Summary
-                  </h2>
+           {activeTab === "cart" && cartItems.length > 0 && (
+  <motion.aside
+    className="lg:col-span-4 space-y-6"
+    initial={{ opacity: 0, x: 20 }}
+    animate={{ opacity: 1, x: 0 }}
+    transition={{ duration: 0.5, delay: 0.2 }}
+  >
+    <div className="bg-white p-6 sm:p-8 rounded-2xl md:rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/40 sticky top-36">
+      <h2 className="text-xl font-black text-slate-900 tracking-tight mb-6 pb-4 border-b border-slate-100">
+        Order Summary
+      </h2>
 
-                  <div className="space-y-3 sm:space-y-4 mb-5 sm:mb-6">
-                    <PriceRow label="Subtotal" value={subtotal} />
-                    <PriceRow
-                      label="Shipping"
-                      value={shipping}
-                      isFree={shipping === 0}
-                    />
-                    {discount > 0 && (
-                      <PriceRow
-                        label="Discount"
-                        value={`-₹${discount}`}
-                        isDiscount
-                      />
-                    )}
+      {/* --- REWARDS SECTION --- */}
+      <div className="mb-6 p-4 rounded-2xl border border-dashed border-[#2A4150]/20 bg-[#2A4150]/[0.02]">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex gap-3">
+            <Coins 
+              size={20} 
+              className={useReward && availableRewardPoints >= 10 ? "text-emerald-600 mt-0.5" : "text-[#2A4150] mt-0.5"} 
+            />
+            <div>
+              <h4 className="font-bold text-slate-800 text-sm sm:text-base">
+                Use Reward Points
+              </h4>
+              <p className="text-xs text-slate-500 mt-0.5 font-medium">
+                Available: <span className="font-bold text-[#2A4150]">{availableRewardPoints} pts</span>
+              </p>
+              <p className="text-[11px] text-slate-400 mt-2 font-medium">
+                Min: 10 pts • Max: {maxRewardPoints} pts <span className="text-slate-400/80">(10% of order)</span>
+              </p>
+            </div>
+          </div>
 
-                    <motion.div
-                      className="pt-3 sm:pt-4 border-t border-dashed border-slate-200 flex justify-between items-end"
-                      initial={{ scale: 0.95 }}
-                      animate={{ scale: 1 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <span className="font-bold text-slate-900 text-sm sm:text-base">
-                        Total Amount
-                      </span>
-                      <motion.span
-                        key={total}
-                        initial={{ scale: 1.1 }}
-                        animate={{ scale: 1 }}
-                        transition={{ duration: 0.3 }}
-                        className="text-2xl sm:text-3xl font-black text-[#2A4150] tracking-tighter"
-                      >
-                        ₹{total}
-                      </motion.span>
-                    </motion.div>
-                  </div>
+          <input
+            type="checkbox"
+            checked={useReward}
+            disabled={availableRewardPoints < 10}
+            onChange={(e) => setUseReward(e.target.checked)}
+            className="w-4 h-4 rounded border-slate-300 text-[#2A4150] focus:ring-[#2A4150] cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 mt-1"
+          />
+        </div>
 
-                  {/* Coupon Section */}
-                  <div className="mb-5">
-                    <h3 className="text-sm font-bold text-slate-800 mb-3">
-                      Apply Coupon
-                    </h3>
+        {/* Validation Errors */}
+        {availableRewardPoints < 10 && (
+          <div className="mt-3 pt-3 border-t border-slate-100 flex items-center gap-1.5 text-xs text-rose-500 font-semibold">
+            <AlertCircle size={14} className="shrink-0" />
+            Minimum 10 reward points required.
+          </div>
+        )}
 
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        placeholder="Enter coupon code"
-                        value={coupon}
-                        onChange={(e) =>
-                          setCoupon(e.target.value.toUpperCase())
-                        }
-                        className="flex-1 border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#2A4150]"
-                      />
+        {/* Success Active State Banner */}
+        {useReward && availableRewardPoints >= 10 && (
+          <div className="mt-3 pt-3 border-t border-slate-200/60 flex justify-between items-center text-xs sm:text-sm">
+            <div className="flex items-center gap-1.5 text-emerald-600 font-bold">
+              <CheckCircle2 size={14} className="shrink-0" />
+              <span>Applied {Math.min(availableRewardPoints, maxRewardPoints)} points</span>
+            </div>
+            <div className="font-bold text-slate-800 text-xs">
+              Saved <span className="text-emerald-600 font-extrabold">-₹{rewardDiscount}</span>
+            </div>
+          </div>
+        )}
+      </div>
 
-                      <button
-                        onClick={handleApplyCoupon}
-                        disabled={couponLoading}
-                        className="px-4 py-3 rounded-xl bg-[#2A4150] text-white text-sm font-bold hover:opacity-90 transition"
-                      >
-                        {couponLoading ? "Applying..." : "Apply"}
-                      </button>
-                    </div>
+      {/* --- PRICE BREAKDOWN PANEL --- */}
+      <div className="space-y-4 mb-6">
+        <PriceRow label="Subtotal" value={subtotal} />
+        <PriceRow 
+          label="Shipping" 
+          value={shipping} 
+          isFree={shipping === 0} 
+        />
+        
+        {discount > 0 && (
+          <PriceRow 
+            label="Coupon Discount" 
+            value={discount} 
+            isDiscount 
+          />
+        )}
+        
+        {rewardDiscount > 0 && (
+          <PriceRow 
+            label="Reward Discount" 
+            value={rewardDiscount} 
+            isDiscount 
+          />
+        )}
 
-                    {appliedCoupon && (
-                      <div className="mt-3 text-sm text-green-600 font-semibold">
-                        ✓ Coupon Applied: {appliedCoupon}
-                      </div>
-                    )}
+        {/* Total Metric Display */}
+        <motion.div
+          className="pt-4 border-t border-dashed border-slate-200 flex justify-between items-end"
+          initial={{ scale: 0.95 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <div className="flex flex-col">
+            <span className="font-black text-slate-900 text-sm sm:text-base tracking-tight">
+              Total Amount
+            </span>
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
+              Inclusive of all taxes
+            </span>
+          </div>
+          <motion.span
+            key={total}
+            initial={{ scale: 1.1 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.3 }}
+            className="text-2xl sm:text-3xl font-black text-[#2A4150] tracking-tighter"
+          >
+            ₹{total}
+          </motion.span>
+        </motion.div>
+      </div>
 
-                    {couponError && (
-                      <div className="mt-3 text-sm text-red-500 font-semibold">
-                        {couponError}
-                      </div>
-                    )}
-                  </div>
+      {/* --- MANUAL COUPON PANEL --- */}
+      <div className="mb-6 pt-4 border-t border-slate-100">
+        <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">
+          Apply Promo Code
+        </h3>
 
-                  <div className="space-y-3">
-                    {errorMsg && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="text-red-600 text-xs sm:text-sm font-semibold flex items-center gap-2"
-                      >
-                        <AlertCircle size={14} /> {errorMsg}
-                      </motion.div>
-                    )}
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <Button
-                        disabled={isPending}
-                        onClick={handlePlaceOrder}
-                        className="w-full py-3 sm:py-4 text-base sm:text-lg font-black uppercase tracking-wider"
-                        text={isPending ? "Processing..." : "Place Order"}
-                        icon={
-                          <ChevronRight size={18} className="sm:w-5 sm:h-5" />
-                        }
-                      />
-                    </motion.div>
-                  </div>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            placeholder="Enter coupon code"
+            value={coupon}
+            onChange={(e) => setCoupon(e.target.value.toUpperCase())}
+            className="flex-1 border border-slate-200 bg-slate-50/50 rounded-xl px-4 py-3 text-sm font-semibold uppercase placeholder:normal-case tracking-wider outline-none transition focus:bg-white focus:border-[#2A4150] focus:ring-1 focus:ring-[#2A4150]"
+          />
 
-                  {/* Security Badges */}
-                  <div className="mt-5 sm:mt-6 pt-5 sm:pt-6 border-t border-slate-50 flex justify-around opacity-40 grayscale">
-                    <ShieldCheck size={18} className="sm:w-5 sm:h-5" />
-                    <RotateCcw size={18} className="sm:w-5 sm:h-5" />
-                    <CreditCard size={18} className="sm:w-5 sm:h-5" />
-                  </div>
-                </div>
-              </motion.aside>
-            )}
+          <button
+            onClick={handleApplyCoupon}
+            disabled={couponLoading}
+            className="px-5 py-3 rounded-xl bg-[#2A4150] text-white text-xs sm:text-sm font-black tracking-wider hover:bg-[#1E303C] disabled:opacity-50 transition shrink-0"
+          >
+            {couponLoading ? "APPLYING..." : "APPLY"}
+          </button>
+        </div>
+
+        {appliedCoupon && (
+          <div className="mt-3 flex items-center gap-1.5 text-xs text-emerald-600 font-bold">
+            <CheckCircle2 size={14} className="shrink-0" />
+            Code active: {appliedCoupon}
+          </div>
+        )}
+
+        {couponError && (
+          <div className="mt-3 flex items-center gap-1.5 text-xs text-rose-500 font-bold">
+            <AlertCircle size={14} className="shrink-0" />
+            {couponError}
+          </div>
+        )}
+      </div>
+
+      {/* --- ERROR MESSAGE & ACTION BUTTON --- */}
+      <div className="space-y-3">
+        {errorMsg && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-rose-600 text-xs sm:text-sm font-bold flex items-center gap-2 p-3 bg-rose-50 rounded-xl border border-rose-100"
+          >
+            <AlertCircle size={16} className="shrink-0" /> {errorMsg}
+          </motion.div>
+        )}
+        
+        <motion.div
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.99 }}
+        >
+          <Button
+            disabled={isPending}
+            onClick={handlePlaceOrder}
+            className="w-full py-4 bg-[#2A4150] hover:bg-[#1E303C] text-white text-base font-black uppercase tracking-widest rounded-xl transition shadow-lg shadow-[#2A4150]/10 flex items-center justify-center gap-2"
+            text={isPending ? "Processing..." : "Place Order"}
+            icon={<ChevronRight size={18} className="shrink-0" />}
+          />
+        </motion.div>
+      </div>
+
+      {/* --- TRUST BADGES --- */}
+      <div className="mt-6 pt-5 border-t border-slate-100 flex justify-around items-center text-slate-400 opacity-60">
+        <div className="flex flex-col items-center gap-1 hover:text-[#2A4150] transition-colors cursor-default">
+          <ShieldCheck size={20} />
+          <span className="text-[9px] font-bold uppercase tracking-wider">Secure</span>
+        </div>
+        <div className="flex flex-col items-center gap-1 hover:text-[#2A4150] transition-colors cursor-default">
+          <RotateCcw size={20} />
+          <span className="text-[9px] font-bold uppercase tracking-wider">Returns</span>
+        </div>
+        <div className="flex flex-col items-center gap-1 hover:text-[#2A4150] transition-colors cursor-default">
+          <CreditCard size={20} />
+          <span className="text-[9px] font-bold uppercase tracking-wider">Verified</span>
+        </div>
+      </div>
+    </div>
+  </motion.aside>
+)}
           </div>
 
           {/* You Might Also Like Section - Grouped by Sub-Category */}

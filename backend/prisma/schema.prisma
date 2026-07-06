@@ -109,6 +109,8 @@ model Order {
   status          OrderStatus?    @default(Pending)
   payment         PaymentStatus?  @default(Pending)
   date            DateTime        @default(now())
+  deliveredAt     DateTime?
+  rewardCredited  Boolean         @default(false)
   duedate         DateTime?
   cancelReason    String?
   createdby       String
