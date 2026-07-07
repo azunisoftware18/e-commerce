@@ -371,13 +371,12 @@ const totalQuantity = cartItems.reduce(
               <li>
                 <NavLink item="HOME" />
               </li>
-              <li className="text-slate-300 select-none"></li>
+              
               {categories.slice(0, 6).map((cat) => (
                 <li key={cat.id}>
                   <NavLink item={cat} />
                 </li>
               ))}
-              <li className="text-slate-300 select-none"></li>
               <li>
                 <NavLink item="DIET PLANS" />
               </li>
