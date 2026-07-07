@@ -887,7 +887,7 @@ export default function CartPage() {
               <span>Applied {Math.min(availableRewardPoints, maxRewardPoints)} points</span>
             </div>
             <div className="font-bold text-slate-800 text-xs">
-              Saved <span className="text-emerald-600 font-extrabold">-₹{rewardDiscount}</span>
+              Saved <span className="text-emerald-600 font-extrabold">₹{rewardDiscount}</span>
             </div>
           </div>
         )}
@@ -1265,7 +1265,7 @@ const PriceRow = ({ label, value, isFree, isDiscount }) => (
       className={isFree ? "text-emerald-600" : ""}
       whileHover={{ scale: 1.05 }}
     >
-      {isFree ? "FREE" : `₹${value}`}
+      {isFree ? "FREE" : `${isDiscount ? "- " : ""}₹${value}`}
     </motion.span>
   </motion.div>
 );
