@@ -141,9 +141,9 @@ const AboutUs = () => {
       </section>
 
       {/* --- Footer / Extra Text --- */}
-      <footer className="py-12 text-center text-sm opacity-50">
+      {/* <footer className="py-12 text-center text-sm opacity-50">
         <p>© 2024 Your Brand Name. All rights reserved.</p>
-      </footer>
+      </footer> */}
     </div>
   );
 };
