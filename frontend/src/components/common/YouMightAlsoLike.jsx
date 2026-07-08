@@ -1,20 +1,49 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
 
 import ProductCard from "@/components/common/ProductCard";
-import { useRecommendations } from "@/lib/queries/useRecommendations";
+import { useProducts } from "@/lib/queries/useProducts";
+import { useCart } from "@/lib/queries/useCart";
+import Button from "../ui/Button";
+import { useRouter } from "next/navigation";
 
-export default function YouMightAlsoLike() {
+export default function YouMightAlsoLike({
+  showAll = false,
+  showHeaderButton = true,
+}) {
   const {
-    data: recommendations = [],
+    data: products = [],
     isLoading,
-  } = useRecommendations();
+  } = useProducts();
+const router = useRouter();
+  const { data: cart } = useCart();
 
-  const hasRecommendations = recommendations.length > 0;
-  const totalRecommendations = recommendations.length;
+  const cartItems = cart?.items || [];
+
+  // Cart product ids
+  const cartProductIds = new Set(
+    cartItems.map((item) => item.product.id)
+  );
+
+  // Remove cart products + sort latest first
+  const sortedProducts = products
+    .filter((product) => !cartProductIds.has(product.id))
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt) - new Date(a.createdAt)
+    );
+
+  // Show only first 15 products
+  const recommendedProducts = showAll
+  ? sortedProducts
+  : sortedProducts.slice(0, 15);
+
+  const hasRecommendations = recommendedProducts.length > 0;
+  const totalRecommendations = sortedProducts.length;
 
   return (
     <motion.section
@@ -38,10 +67,17 @@ export default function YouMightAlsoLike() {
           </div>
 
           <p className="text-sm text-slate-400 mt-1">
-            Based on items in your cart •{" "}
-            {totalRecommendations} recommended products
+            Based on items in your cart {" "}
+            {/* {totalRecommendations} recommended products */}
           </p>
         </div>
+
+        {showHeaderButton && !showAll && totalRecommendations > 15 && (
+  <Button
+    text="View All"
+    onClick={() => router.push("/product")}
+  />
+)}
       </div>
 
       {/* Loading */}
@@ -56,7 +92,7 @@ export default function YouMightAlsoLike() {
         </div>
       ) : hasRecommendations ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {recommendations.map((product) => (
+          {recommendedProducts.map((product) => (
             <div
               key={product.id}
               className="mx-auto w-full max-w-[220px]"

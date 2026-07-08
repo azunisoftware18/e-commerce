@@ -5,6 +5,7 @@ import { Toaster } from "react-hot-toast";
 import ReactQueryProvider from "@/providers/ReactQueryProvider";
 import AuthInitializer from "@/providers/AuthInitializer";
 import Script from "next/script";
+import WebsiteTracker from "@/components/common/WebsiteTracker";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,7 +34,7 @@ export default function RootLayout({ children }) {
         />
         <ReduxProvider>
           <ReactQueryProvider>
-            <AuthInitializer>{children}</AuthInitializer>
+            <AuthInitializer> <WebsiteTracker />{children}</AuthInitializer>
             <Toaster position="top-right" />
           </ReactQueryProvider>
         </ReduxProvider>

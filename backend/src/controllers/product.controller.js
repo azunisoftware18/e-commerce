@@ -550,30 +550,101 @@ const getRecommendedProducts = asyncHandler(async (req, res) => {
       userId,
     },
     include: {
-      items: true,
+      items: {
+        include: {
+          product: true,
+        },
+      },
     },
   });
 
-  // Get Product IDs already in cart
-  const cartProductIds =
-    cart?.items?.map((item) => item.productId) || [];
+  // Empty cart
+  if (!cart || cart.items.length === 0) {
+    const products = await prisma.product.findMany({
+      where: {
+        status: "Active",
+        stock: {
+          gt: 0,
+        },
+      },
+      include: {
+        images: true,
+        category: true,
+        subCategory: true,
+      },
+      take: 8,
+    });
 
-  // Get all products except cart products
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        "Recommended products fetched successfully.",
+        {
+          products,
+        }
+      )
+    );
+  }
+
+  // Cart Product IDs
+  const cartProductIds = cart.items.map(
+    (item) => item.productId
+  );
+
+  // Categories
+  const categoryIds = [
+    ...new Set(
+      cart.items.map(
+        (item) => item.product.categoryid
+      )
+    ),
+  ];
+
+  // Sub Categories
+  const subCategoryIds = [
+    ...new Set(
+      cart.items
+        .map(
+          (item) => item.product.subCategoryId
+        )
+        .filter(Boolean)
+    ),
+  ];
+
   const products = await prisma.product.findMany({
     where: {
       id: {
         notIn: cartProductIds,
       },
+
       status: "Active",
+
       stock: {
         gt: 0,
       },
+
+      OR: [
+        {
+          categoryid: {
+            in: categoryIds,
+          },
+        },
+
+        {
+          subCategoryId: {
+            in: subCategoryIds,
+          },
+        },
+      ],
     },
+
     include: {
       images: true,
       category: true,
       subCategory: true,
     },
+
+    take: 8,
   });
 
   return res.status(200).json(

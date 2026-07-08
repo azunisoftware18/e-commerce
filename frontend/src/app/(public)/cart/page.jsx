@@ -831,33 +831,34 @@ export default function CartPage() {
             {/* Sidebar: Right Column - Only show when in cart view with items */}
            {activeTab === "cart" && cartItems.length > 0 && (
   <motion.aside
-    className="lg:col-span-4 space-y-6"
-    initial={{ opacity: 0, x: 20 }}
-    animate={{ opacity: 1, x: 0 }}
+    className="w-full col-span-1 md:col-span-12 lg:col-span-4 space-y-4 sm:space-y-6"
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5, delay: 0.2 }}
   >
-    <div className="bg-white p-6 sm:p-8 rounded-2xl md:rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/40 sticky top-36">
-      <h2 className="text-xl font-black text-slate-900 tracking-tight mb-6 pb-4 border-b border-slate-100">
+    {/* Main Container: Absolute sticky position restricted only to desktop monitors (lg and up) */}
+    <div className="w-full bg-white p-4 sm:p-6 md:p-8 rounded-2xl md:rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/40 static lg:sticky lg:top-36 transition-all duration-300">
+      <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight mb-5 pb-4 border-b border-slate-100">
         Order Summary
       </h2>
 
       {/* --- REWARDS SECTION --- */}
-      <div className="mb-6 p-4 rounded-2xl border border-dashed border-[#2A4150]/20 bg-[#2A4150]/[0.02]">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex gap-3">
+      <div className="mb-5 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-dashed border-[#2A4150]/20 bg-[#2A4150]/[0.02]">
+        <div className="flex items-start justify-between gap-3 sm:gap-4">
+          <div className="flex gap-2.5 sm:gap-3">
             <Coins 
               size={20} 
-              className={useReward && availableRewardPoints >= 10 ? "text-emerald-600 mt-0.5" : "text-[#2A4150] mt-0.5"} 
+              className={useReward && availableRewardPoints >= 10 ? "text-emerald-600 mt-0.5 shrink-0" : "text-[#2A4150] mt-0.5 shrink-0"} 
             />
             <div>
-              <h4 className="font-bold text-slate-800 text-sm sm:text-base">
+              <h4 className="font-bold text-slate-800 text-xs sm:text-sm md:text-base">
                 Use Reward Points
               </h4>
-              <p className="text-xs text-slate-500 mt-0.5 font-medium">
+              <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 font-medium">
                 Available: <span className="font-bold text-[#2A4150]">{availableRewardPoints} pts</span>
               </p>
-              <p className="text-[11px] text-slate-400 mt-2 font-medium">
-                Min: 10 pts • Max: {maxRewardPoints} pts <span className="text-slate-400/80">(10% of order)</span>
+              <p className="text-[10px] sm:text-[11px] text-slate-400 mt-1.5 font-medium leading-tight">
+                Min: 10 pts • Max: {maxRewardPoints} pts <span className="block sm:inline sm:text-slate-400/80">(10% of order)</span>
               </p>
             </div>
           </div>
@@ -867,13 +868,13 @@ export default function CartPage() {
             checked={useReward}
             disabled={availableRewardPoints < 10}
             onChange={(e) => setUseReward(e.target.checked)}
-            className="w-4 h-4 rounded border-slate-300 text-[#2A4150] focus:ring-[#2A4150] cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 mt-1"
+            className="w-4 h-4 rounded border-slate-300 text-[#2A4150] focus:ring-[#2A4150] cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 mt-1 shrink-0"
           />
         </div>
 
         {/* Validation Errors */}
         {availableRewardPoints < 10 && (
-          <div className="mt-3 pt-3 border-t border-slate-100 flex items-center gap-1.5 text-xs text-rose-500 font-semibold">
+          <div className="mt-3 pt-3 border-t border-slate-100 flex items-center gap-1.5 text-[11px] sm:text-xs text-rose-500 font-semibold">
             <AlertCircle size={14} className="shrink-0" />
             Minimum 10 reward points required.
           </div>
@@ -881,12 +882,12 @@ export default function CartPage() {
 
         {/* Success Active State Banner */}
         {useReward && availableRewardPoints >= 10 && (
-          <div className="mt-3 pt-3 border-t border-slate-200/60 flex justify-between items-center text-xs sm:text-sm">
+          <div className="mt-3 pt-3 border-t border-slate-200/60 flex flex-wrap gap-2 justify-between items-center text-xs">
             <div className="flex items-center gap-1.5 text-emerald-600 font-bold">
               <CheckCircle2 size={14} className="shrink-0" />
               <span>Applied {Math.min(availableRewardPoints, maxRewardPoints)} points</span>
             </div>
-            <div className="font-bold text-slate-800 text-xs">
+            <div className="font-bold text-slate-800">
               Saved <span className="text-emerald-600 font-extrabold">₹{rewardDiscount}</span>
             </div>
           </div>
@@ -894,7 +895,7 @@ export default function CartPage() {
       </div>
 
       {/* --- PRICE BREAKDOWN PANEL --- */}
-      <div className="space-y-4 mb-6">
+      <div className="space-y-3 sm:space-y-4 mb-5">
         <PriceRow label="Subtotal" value={subtotal} />
         <PriceRow 
           label="Shipping" 
@@ -920,16 +921,16 @@ export default function CartPage() {
 
         {/* Total Metric Display */}
         <motion.div
-          className="pt-4 border-t border-dashed border-slate-200 flex justify-between items-end"
+          className="pt-4 border-t border-dashed border-slate-200 flex justify-between items-end gap-2"
           initial={{ scale: 0.95 }}
           animate={{ scale: 1 }}
           transition={{ duration: 0.3 }}
         >
           <div className="flex flex-col">
-            <span className="font-black text-slate-900 text-sm sm:text-base tracking-tight">
+            <span className="font-black text-slate-900 text-xs sm:text-sm md:text-base tracking-tight">
               Total Amount
             </span>
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
+            <span className="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
               Inclusive of all taxes
             </span>
           </div>
@@ -938,7 +939,7 @@ export default function CartPage() {
             initial={{ scale: 1.1 }}
             animate={{ scale: 1 }}
             transition={{ duration: 0.3 }}
-            className="text-2xl sm:text-3xl font-black text-[#2A4150] tracking-tighter"
+            className="text-xl sm:text-2xl md:text-3xl font-black text-[#2A4150] tracking-tighter whitespace-nowrap"
           >
             ₹{total}
           </motion.span>
@@ -946,8 +947,8 @@ export default function CartPage() {
       </div>
 
       {/* --- MANUAL COUPON PANEL --- */}
-      <div className="mb-6 pt-4 border-t border-slate-100">
-        <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">
+      <div className="mb-5 pt-4 border-t border-slate-100">
+        <h3 className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-widest mb-2.5">
           Apply Promo Code
         </h3>
 
@@ -957,27 +958,27 @@ export default function CartPage() {
             placeholder="Enter coupon code"
             value={coupon}
             onChange={(e) => setCoupon(e.target.value.toUpperCase())}
-            className="flex-1 border border-slate-200 bg-slate-50/50 rounded-xl px-4 py-3 text-sm font-semibold uppercase placeholder:normal-case tracking-wider outline-none transition focus:bg-white focus:border-[#2A4150] focus:ring-1 focus:ring-[#2A4150]"
+            className="flex-1 w-full min-w-0 border border-slate-200 bg-slate-50/50 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold uppercase placeholder:normal-case tracking-wider outline-none transition focus:bg-white focus:border-[#2A4150] focus:ring-1 focus:ring-[#2A4150]"
           />
 
           <button
             onClick={handleApplyCoupon}
             disabled={couponLoading}
-            className="px-5 py-3 rounded-xl bg-[#2A4150] text-white text-xs sm:text-sm font-black tracking-wider hover:bg-[#1E303C] disabled:opacity-50 transition shrink-0"
+            className="px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl bg-[#2A4150] text-white text-xs font-black tracking-wider hover:bg-[#1E303C] disabled:opacity-50 transition shrink-0"
           >
             {couponLoading ? "APPLYING..." : "APPLY"}
           </button>
         </div>
 
         {appliedCoupon && (
-          <div className="mt-3 flex items-center gap-1.5 text-xs text-emerald-600 font-bold">
+          <div className="mt-2.5 flex items-center gap-1.5 text-xs text-emerald-600 font-bold">
             <CheckCircle2 size={14} className="shrink-0" />
             Code active: {appliedCoupon}
           </div>
         )}
 
         {couponError && (
-          <div className="mt-3 flex items-center gap-1.5 text-xs text-rose-500 font-bold">
+          <div className="mt-2.5 flex items-center gap-1.5 text-xs text-rose-500 font-bold">
             <AlertCircle size={14} className="shrink-0" />
             {couponError}
           </div>
@@ -997,13 +998,13 @@ export default function CartPage() {
         )}
         
         <motion.div
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.99 }}
+          whileHover={{ scale: 1.005 }}
+          whileTap={{ scale: 0.995 }}
         >
           <Button
             disabled={isPending}
             onClick={handlePlaceOrder}
-            className="w-full py-4 bg-[#2A4150] hover:bg-[#1E303C] text-white text-base font-black uppercase tracking-widest rounded-xl transition shadow-lg shadow-[#2A4150]/10 flex items-center justify-center gap-2"
+            className="w-full py-3.5 sm:py-4 bg-[#2A4150] hover:bg-[#1E303C] text-white text-sm sm:text-base font-black uppercase tracking-widest rounded-xl transition shadow-lg shadow-[#2A4150]/10 flex items-center justify-center gap-2"
             text={isPending ? "Processing..." : "Place Order"}
             icon={<ChevronRight size={18} className="shrink-0" />}
           />
@@ -1011,18 +1012,18 @@ export default function CartPage() {
       </div>
 
       {/* --- TRUST BADGES --- */}
-      <div className="mt-6 pt-5 border-t border-slate-100 flex justify-around items-center text-slate-400 opacity-60">
-        <div className="flex flex-col items-center gap-1 hover:text-[#2A4150] transition-colors cursor-default">
-          <ShieldCheck size={20} />
-          <span className="text-[9px] font-bold uppercase tracking-wider">Secure</span>
+      <div className="mt-5 pt-4 border-t border-slate-100 flex justify-around items-center text-slate-400 opacity-60 gap-1">
+        <div className="flex flex-col items-center gap-1 hover:text-[#2A4150] transition-colors cursor-default select-none">
+          <ShieldCheck size={18} className="sm:size-5" />
+          <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-wider">Secure</span>
         </div>
-        <div className="flex flex-col items-center gap-1 hover:text-[#2A4150] transition-colors cursor-default">
-          <RotateCcw size={20} />
-          <span className="text-[9px] font-bold uppercase tracking-wider">Returns</span>
+        <div className="flex flex-col items-center gap-1 hover:text-[#2A4150] transition-colors cursor-default select-none">
+          <RotateCcw size={18} className="sm:size-5" />
+          <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-wider">Returns</span>
         </div>
-        <div className="flex flex-col items-center gap-1 hover:text-[#2A4150] transition-colors cursor-default">
-          <CreditCard size={20} />
-          <span className="text-[9px] font-bold uppercase tracking-wider">Verified</span>
+        <div className="flex flex-col items-center gap-1 hover:text-[#2A4150] transition-colors cursor-default select-none">
+          <CreditCard size={18} className="sm:size-5" />
+          <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-wider">Verified</span>
         </div>
       </div>
     </div>

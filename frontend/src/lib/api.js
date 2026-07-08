@@ -34,4 +34,14 @@ api.interceptors.response.use(
   }
 );
 
+export const logWebsiteVisit = async () => {
+  const response = await api.post("/audit/visit");
+  return response.data;
+};
+
+export const getAuditLogs = async () => {
+  const response = await api.get("/audit/logs");
+  return response.data.data;
+};
+
 export default api;

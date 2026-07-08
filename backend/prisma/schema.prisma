@@ -33,6 +33,7 @@ model User {
   rewardTransactions RewardTransaction[]
   rewardPoints       Int @default(0)
   lifetimePoints     Int @default(0)
+  auditLogs AuditLog[]
 
   @@map("user")
 }
@@ -76,6 +77,7 @@ model Product {
   price       Decimal
   stock       Int
   status      ProductStatus
+  createdAt     DateTime @default(now())
   createdby   String
   orderItems  OrderItem[]
   cartItems     CartItem[]        
@@ -312,6 +314,18 @@ model RewardTransaction {
   description String?
 
   createdAt   DateTime @default(now())
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  ipAddress  String?
+  userAgent  String?
+
+  createdAt  DateTime @default(now())
 }
 
 enum RewardType {
