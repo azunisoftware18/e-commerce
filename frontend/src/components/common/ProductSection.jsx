@@ -83,7 +83,7 @@ export default function ProductSection({
   }
 
   return (
-    <section className="w-full px-4 md:px-8 lg:px-12 py-10 ">
+    <section className="w-full px-4 md:px-8 lg:px-12 py-4 ">
       {/* Header */}
       <div className="flex justify-between items-start mb-6">
         <div>
@@ -114,7 +114,8 @@ export default function ProductSection({
         {finalProducts.length > 3 && (
           <button
             onClick={scrollLeft}
-            className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-black/20 shadow-lg p-2 rounded-full hover:bg-gray-100 transition-all"
+            className="hidden lg:flex absolute -left-10 top-1/2 -translate-y-1/2 z-20 bg-white shadow-lg p-2 rounded-full"
+
             aria-label="Scroll left"
           >
             <ChevronLeft size={20} />
@@ -125,7 +126,7 @@ export default function ProductSection({
         {finalProducts.length > 3 && (
           <button
             onClick={scrollRight}
-            className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-black/20 shadow-lg p-2 rounded-full hover:bg-gray-100 transition-all"
+            className="hidden lg:flex absolute -right-10 top-1/2 -translate-y-1/2 z-20 bg-white shadow-lg p-2 rounded-full"
             aria-label="Scroll right"
           >
             <ChevronRight size={20} />
@@ -135,29 +136,48 @@ export default function ProductSection({
         {/* Products Scroll */}
         <div
           ref={scrollRef}
-          className="flex gap-4 sm:gap-5 md:gap-6 overflow-x-auto scroll-smooth scrollbar-hide px-2 md:px-0 snap-x snap-mandatory py-8 mx-12"
+          className="
+flex
+overflow-x-auto
+scroll-smooth
+scrollbar-hide
+gap-3
+md:gap-4
+lg:gap-6
+px-2
+lg:px-16
+snap-x
+snap-mandatory
+py-8
+"
         >
           {finalProducts.map((product) => {
             // Get the best available image
+            // Find front image
+            const frontImage =
+              product.images?.find((img) =>
+                img.key?.startsWith("front|")
+              ) || product.images?.[0];
+
+            // Product image
             const productImage =
-              getImageUrl(product.images?.[0]) ||
+              getImageUrl(frontImage) ||
               getImageUrl(product.image) ||
               "/placeholder.png";
 
             return (
-              <div
-                key={product.id}
-                className="
-  w-45
-  sm:w-55
-  md:w-60
-  lg:w-65
-  snap-start
-  first:ml-1
-  last:mr-1
-  shrink-0
-"
-              >
+             <div
+  key={product.id}
+  className="
+    w-[48%]
+    sm:w-[48%]
+    md:w-[31%]
+    lg:w-64
+    xl:w-64
+    shrink-0
+    snap-start
+  "
+>
                 <ProductCard
                   id={product.id}
                   image={productImage}
