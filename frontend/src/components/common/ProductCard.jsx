@@ -129,7 +129,7 @@ export default function ProductCard({
               scale: 0,
             }}
             transition={{
-              duration: 2,
+              duration: 1,
               ease: "easeOut",
               times: [0, 0.6, 0.85, 1],
             }}
