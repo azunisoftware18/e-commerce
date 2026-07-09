@@ -13,11 +13,12 @@ import {
   Salad,
   ClipboardPlus,
   TicketPercent,
+  Globe,
 } from "lucide-react";
 
 export const MENU_ITEMS = [
   { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
-  { name: "Audit Logs", icon: LayoutDashboard, path: "/dashboard/audit-logs" },
+  { name: "Audit Logs", icon: Globe, path: "/dashboard/audit-logs" },
   { name: "Ledger", icon: Notebook, path: "/dashboard/ledger" },
   { name: "Categories", icon: Layers, path: "/dashboard/categories" },
   { name: "Products", icon: Box, path: "/dashboard/products" },

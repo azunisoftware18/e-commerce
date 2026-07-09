@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useAuditLogs } from "@/lib/queries/useAudit";
 import { 
   User, 
@@ -8,11 +9,33 @@ import {
   Clock, 
   FileSpreadsheet, 
   AlertTriangle,
-  Loader2
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight
 } from "lucide-react";
+
+const ITEMS_PER_PAGE = 10;
 
 export default function AuditPage() {
   const { data: logs = [], isLoading, error } = useAuditLogs();
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Calculate pagination values
+  const totalPages = Math.ceil(logs.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const currentLogs = logs.slice(startIndex, endIndex);
+
+  // Reset to page 1 if data changes and current page would be invalid
+  if (currentPage > totalPages && totalPages > 0) {
+    setCurrentPage(1);
+  }
+
+  const handlePageChange = (page) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  };
 
   // --- LOADING / SKELETON STATE ---
   if (isLoading) {
@@ -89,7 +112,7 @@ export default function AuditPage() {
 
           {/* Core Logs Stack */}
           <div className="divide-y divide-slate-100">
-            {logs.map((log) => (
+            {currentLogs.map((log) => (
               <div 
                 key={log.id} 
                 className="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4 px-5 py-4 md:px-6 md:py-4.5 hover:bg-slate-50/70 items-center transition-colors group"
@@ -143,6 +166,83 @@ export default function AuditPage() {
             ))}
           </div>
 
+          {/* Pagination Controls */}
+          <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="text-xs font-medium text-slate-500">
+              Showing {startIndex + 1}–{Math.min(endIndex, logs.length)} of {logs.length} entries
+            </div>
+            
+            <div className="flex items-center gap-1">
+              {/* First Page */}
+              <button
+                onClick={() => handlePageChange(1)}
+                disabled={currentPage === 1}
+                className="p-1.5 rounded-md hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                aria-label="First page"
+              >
+                <ChevronsLeft size={16} className="text-slate-600" />
+              </button>
+
+              {/* Previous Page */}
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="p-1.5 rounded-md hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                aria-label="Previous page"
+              >
+                <ChevronLeft size={16} className="text-slate-600" />
+              </button>
+
+              {/* Page Numbers */}
+              <div className="flex items-center gap-0.5 mx-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter(page => {
+                    // Show first page, last page, and pages around current
+                    if (totalPages <= 7) return true;
+                    if (page === 1 || page === totalPages) return true;
+                    if (Math.abs(page - currentPage) <= 1) return true;
+                    return false;
+                  })
+                  .map((page, index, array) => (
+                    <div key={page} className="flex items-center">
+                      {index > 0 && array[index - 1] !== page - 1 && (
+                        <span className="px-1 text-slate-400 text-xs">...</span>
+                      )}
+                      <button
+                        onClick={() => handlePageChange(page)}
+                        className={`w-8 h-8 rounded-md text-xs font-bold transition-colors ${
+                          currentPage === page
+                            ? "bg-slate-800 text-white shadow-sm"
+                            : "text-slate-600 hover:bg-slate-200"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    </div>
+                  ))}
+              </div>
+
+              {/* Next Page */}
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="p-1.5 rounded-md hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                aria-label="Next page"
+              >
+                <ChevronRight size={16} className="text-slate-600" />
+              </button>
+
+              {/* Last Page */}
+              <button
+                onClick={() => handlePageChange(totalPages)}
+                disabled={currentPage === totalPages}
+                className="p-1.5 rounded-md hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                aria-label="Last page"
+              >
+                <ChevronsRight size={16} className="text-slate-600" />
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
