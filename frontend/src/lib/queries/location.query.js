@@ -24,3 +24,17 @@ export const useCities = (state) => {
     enabled: !!state, // 🔥 important
   });
 };
+
+export const useLocationByPincode = (pincode) => {
+  return useQuery({
+    queryKey: ["location", pincode],
+    queryFn: async () => {
+      if (!pincode || pincode.length !== 6) return null;
+
+      const res = await api.get(`/location/pincode/${pincode}`);
+      return res.data.data;
+    },
+    enabled: !!pincode && pincode.length === 6,
+    retry: false,
+  });
+};

@@ -5,7 +5,7 @@ import InputField from "@/components/ui/InputField";
 import TextAreaField from "@/components/ui/TextAreaField";
 import SelectField from "@/components/ui/SelectField";
 import { MapPin } from "lucide-react";
-import { useCities, useStates } from "@/lib/queries/location.query";
+import { useCities, useLocationByPincode, useStates } from "@/lib/queries/location.query";
 
 export default function AddressForm({
   register,
@@ -27,6 +27,7 @@ export default function AddressForm({
 
   const { data: states = [] } = useStates();
   const { data: cities = [] } = useCities(selectedState);
+  const { data: location } = useLocationByPincode(value?.pinCode);
 
   const handleChange = (name, val) => {
     if (!onChange) return;
@@ -51,6 +52,23 @@ export default function AddressForm({
     setSelectedState(value.state);
   }
 }, [value?.state]);
+
+useEffect(() => {
+  if (!location || !onChange) return;
+
+  setSelectedState(location.state);
+
+  onChange((prev) => ({
+    ...prev,
+    state: location.state,
+    city: location.city,
+  }));
+}, [location, onChange]);
+
+useEffect(() => {
+  console.log("Selected State:", selectedState);
+  console.log("Form State:", value.state);
+}, [selectedState, value.state]);
 
   return (
     <div className={`grid grid-cols-2 gap-x-5 gap-y-4  ${className}`}>
@@ -126,6 +144,7 @@ export default function AddressForm({
             } else {
               handleChange("state", val);
             }
+            handleChange("city", ""); 
           }}
         />
       )}

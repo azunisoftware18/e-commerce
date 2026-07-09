@@ -1,25 +1,20 @@
-import axios from "axios";
-
-const BASE_URL = "https://countriesnow.space/api/v0.1/countries";
+import { State, City } from "country-state-city";
 
 // ✅ Get States
 export const fetchStates = async () => {
-  const res = await axios.post(`${BASE_URL}/states`, {
-    country: "India",
-  });
-
-  return res.data.data.states;
+  return State.getStatesOfCountry("IN");
 };
 
 // ✅ Get Cities
-export const fetchCities = async (state) => {
-  const res = await axios.post(
-    `${BASE_URL}/state/cities`,
-    {
-      country: "India",
-      state,
-    }
+export const fetchCities = async (stateName) => {
+  // State object find karo
+  const state = State.getStatesOfCountry("IN").find(
+    (s) => s.name.toLowerCase() === stateName.toLowerCase()
   );
 
-  return res.data.data;
+  if (!state) {
+    return [];
+  }
+
+  return City.getCitiesOfState("IN", state.isoCode);
 };
