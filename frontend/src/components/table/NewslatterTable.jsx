@@ -8,11 +8,11 @@ import {
   TableEmpty,
   TablePagination,
 } from "@/components/table/core";
+import { useNewsletterSubscribers } from "@/lib/queries/useNewsletter";
 
-import { useAuditLogs } from "@/lib/queries/useAudit";
 
-export default function AuditLogsTable() {
-  const { data = [], isLoading } = useAuditLogs();
+export default function NewsletterTable() {
+  const { data = [], isLoading } = useNewsletterSubscribers();
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -25,56 +25,28 @@ export default function AuditLogsTable() {
 
   const columns = [
     {
-      label: "User",
-      accessor: "user",
-      render: (_, row) => (
-        <div>
-          <p className="font-medium text-slate-800">
-            {row.user?.name || "Guest"}
-          </p>
-          <p className="text-xs text-slate-400">
-            {row.user?.email || "Not Logged In"}
-          </p>
-        </div>
-      ),
+      label: "Email",
+      accessor: "email",
     },
     {
-      label: "IP Address",
-      accessor: "ipAddress",
-    },
-    {
-      label: "User Agent",
-      accessor: "userAgent",
-      render: (value) => (
-        <div
-          className="max-w-xs truncate"
-          title={value}
-        >
-          {value}
-        </div>
-      ),
-    },
-    {
-      label: "Visited On",
+      label: "Subscribed On",
       accessor: "createdAt",
       render: (value) =>
-        new Date(value).toLocaleString(),
+        new Date(value).toLocaleDateString(),
     },
   ];
 
   const filteredData = useMemo(() => {
-    return data.filter((item) => {
-      const keyword = search.toLowerCase();
-
-      return (
-        item.user?.name?.toLowerCase().includes(keyword) ||
-        item.user?.email?.toLowerCase().includes(keyword) ||
-        item.ipAddress?.toLowerCase().includes(keyword)
-      );
-    });
+    return data.filter((item) =>
+      item.email
+        .toLowerCase()
+        .includes(search.toLowerCase())
+    );
   }, [data, search]);
 
-  const totalPages = Math.ceil(filteredData.length / pageSize);
+  const totalPages = Math.ceil(
+    filteredData.length / pageSize
+  );
 
   const paginatedData = useMemo(() => {
     const start = (page - 1) * pageSize;
@@ -108,8 +80,9 @@ export default function AuditLogsTable() {
         columns={columns}
         searchProps={{
           value: search,
-          onChange: (e) => setSearch(e.target.value),
-          placeholder: "Search audit logs...",
+          onChange: (e) =>
+            setSearch(e.target.value),
+          placeholder: "Search email...",
         }}
         onReset={handleReset}
         showFilter={false}
@@ -123,7 +96,7 @@ export default function AuditLogsTable() {
           actions={[]}
         />
       ) : (
-        <TableEmpty message="No audit logs found." />
+        <TableEmpty message="No newsletter subscribers found" />
       )}
     </TableShell>
   );

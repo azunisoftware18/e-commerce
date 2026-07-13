@@ -18,10 +18,14 @@ import {
 import { FaWhatsapp } from "react-icons/fa";
 // Hooks
 import { useSettings } from "@/lib/queries/useSettings";
+import { useSubscribeNewsletter } from "@/lib/mutations/useNewsletter";
+import toast from "react-hot-toast";
 
 export default function Footer() {
   const { data: settings, isLoading: settingsLoading } = useSettings();
   const [email, setEmail] = useState("");
+  const { mutate: subscribeNewsletter, isPending } =
+  useSubscribeNewsletter();
   const companyName = settings?.companyName || "Herbs n Glam";
 const words = companyName.split(" ");
 
@@ -93,10 +97,25 @@ const words = companyName.split(" ");
   };
 
   const handleSubscribe = (e) => {
-    e.preventDefault();
-    alert(`Subscribed with: ${email}`);
-    setEmail("");
-  };
+  e.preventDefault();
+
+  subscribeNewsletter(
+    { email },
+    {
+      onSuccess: (res) => {
+  toast.success(res?.data?.message);
+  setEmail("");
+},
+
+      onError: (error) => {
+  toast.error(
+    error?.response?.data?.message ||
+      "Something went wrong."
+  );
+},
+    },
+  );
+};
 
   const getLogoUrl = () => {
     if (!settings) return null;
@@ -240,7 +259,7 @@ const words = companyName.split(" ");
             <p className="text-xs text-slate-400 mb-3 leading-relaxed">
               Follow to get special offers, free giveaways, and updates.
             </p>
-            {/* <form onSubmit={handleSubscribe} className="flex gap-2">
+            <form onSubmit={handleSubscribe} className="flex gap-2">
               <input
                 type="email"
                 placeholder="Your email address"
@@ -250,13 +269,18 @@ const words = companyName.split(" ");
                 className="bg-slate-800 text-slate-200 text-xs px-3 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-emerald-500 w-full border border-slate-700"
               />
               <button
-                type="submit"
-                className="bg-emerald-600 hover:bg-emerald-500 text-white p-2 rounded-md transition-colors flex items-center justify-center shrink-0"
-                title="Subscribe"
-              >
-                <Send size={14} />
-              </button>
-            </form> */}
+  type="submit"
+  disabled={isPending}
+  className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white p-2 rounded-md transition-colors flex items-center justify-center shrink-0"
+  title="Subscribe"
+>
+  {isPending ? (
+    <span className="text-xs px-2">...</span>
+  ) : (
+    <Send size={14} />
+  )}
+</button>
+            </form>
           </div>
 
           <div>

@@ -41,6 +41,7 @@ import cartRoutes from "./routes/cart.routes.js";
 import wishlistRoutes from "./routes/wishlist.routes.js";
 import rewardRoutes from "./routes/reward.routes.js";
 import auditRoutes from "./routes/audit.routes.js";
+import newsletterRoutes from "./routes/newsletter.routes.js";
 
 // routes declaration
 app.use("/api/v1/auth", userRouter);
@@ -61,6 +62,7 @@ app.use("/api/v1/cart", cartRoutes);
 app.use("/api/v1/wishlist", wishlistRoutes);
 app.use("/api/v1/rewards", rewardRoutes);
 app.use("/api/v1/audit", auditRoutes);
+app.use("/api/v1/newsletter", newsletterRoutes);
 
 app.use((err, req, res, next) => {
   console.error("ERROR 💥", err);
