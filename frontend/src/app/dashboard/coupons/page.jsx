@@ -128,7 +128,7 @@ export default function Page() {
   };
 
   return (
-    <div className="p-4 sm:p-6">
+    <div className="p-4 sm:p-6 bg-white min-h-screen">
       {/* PAGE HEADER */}
       <div
         className="
@@ -143,23 +143,11 @@ export default function Page() {
       >
         {/* LEFT */}
         <div>
-          <h1
-            className="
-              text-2xl
-              font-black
-              text-slate-900
-            "
-          >
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-[#2A4150]">
             Coupons
           </h1>
 
-          <p
-            className="
-              text-sm
-              text-slate-500
-              mt-1
-            "
-          >
+          <p className="text-sm md:text-base text-slate-500">
             Manage all discount coupons
           </p>
         </div>

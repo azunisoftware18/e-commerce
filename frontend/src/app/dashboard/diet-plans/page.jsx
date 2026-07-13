@@ -71,7 +71,7 @@ export default function Page() {
   };
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6 w-full bg-slate-50 min-h-screen">
+    <div className="flex flex-col gap-6 p-4 md:p-6 w-full bg-white min-h-screen">
       {/* Header */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">

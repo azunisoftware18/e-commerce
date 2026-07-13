@@ -8,9 +8,16 @@ export default function ConsultationsPage() {
   const { data = [], isLoading } = useConsultations();
 
   return (
-    <div className="p-6 bg-white">
-      <h1 className="text-xl font-bold mb-4">Consultations</h1>
+    <div className="flex flex-col gap-6 p-4 md:p-6 w-full bg-white min-h-screen">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+      <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-[#2A4150]">Consultations</h1>
 
+      <p className="text-sm md:text-base text-slate-500">
+        View all consultations.
+      </p>
+      </div>
+</header>
       <ConsultationsTable
         data={data}
         isLoading={isLoading}
