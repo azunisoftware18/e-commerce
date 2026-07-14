@@ -912,14 +912,24 @@ const CartItem = ({ item, onUpdate, onRemove, onMoveToWishlist }) => {
 
       <div className="flex-1 min-w-0 flex flex-col gap-2 sm:gap-0 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex-1">
-          <h3 className="font-bold text-slate-900 text-xs sm:text-base line-clamp-2 sm:line-clamp-1">{name}</h3>
-          {description && (
-            <div
-              className="text-[10px] sm:text-xs text-slate-400 mt-0.5 sm:mt-1 leading-relaxed line-clamp-1 sm:line-clamp-2 hidden sm:block"
-              style={{ wordBreak: "break-word", overflowWrap: "anywhere" }}
-              dangerouslySetInnerHTML={{ __html: description }}
-            />
-          )}
+          <div className="space-y-1">
+  <h3 className="font-bold text-slate-900 text-sm line-clamp-1">
+    {name}
+  </h3>
+
+  {description && (
+    <div
+      className="text-[10px] sm:text-xs text-slate-400 mt-1 leading-relaxed line-clamp-2"
+      style={{
+        wordBreak: "break-word",
+        overflowWrap: "anywhere",
+      }}
+      dangerouslySetInnerHTML={{
+        __html: description,
+      }}
+    />
+  )}
+</div>
           <motion.span
             className="font-black text-slate-900 text-sm block sm:hidden mt-1"
             key={price * item.quantity}
@@ -1013,7 +1023,7 @@ const WishlistItem = ({ item, onMoveToCart, onRemove }) => {
 
       <div className="flex-1 min-w-0 flex flex-col gap-2 sm:gap-0 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex-1">
-          <h3 className="font-bold text-slate-900 text-xs sm:text-base line-clamp-2 sm:line-clamp-1">{name}</h3>
+          <h3 className="font-bold text-slate-900 text-xs sm:text-base leading-5 line-clamp-2">{name}</h3>
           <motion.span
             className="font-black text-slate-900 text-xs sm:text-base"
             key={price}
