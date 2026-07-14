@@ -3,7 +3,8 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
-const getOrCreateWishlist = async (userId) => {
+// Helper: Get or create user wishlist
+const getOrCreateUserWishlist = async (userId) => {
   let wishlist = await prisma.wishlist.findUnique({
     where: { userId },
   });
@@ -17,10 +18,27 @@ const getOrCreateWishlist = async (userId) => {
   return wishlist;
 };
 
-// Add To Wishlist
+// Helper: Get or create guest wishlist
+const getOrCreateGuestWishlist = async (sessionId) => {
+  if (!sessionId) return null;
+
+  let wishlist = await prisma.guestWishlist.findUnique({
+    where: { sessionId },
+  });
+
+  if (!wishlist) {
+    wishlist = await prisma.guestWishlist.create({
+      data: { sessionId },
+    });
+  }
+
+  return wishlist;
+};
+
+// Add To Wishlist (Guest & User)
 const addToWishlist = asyncHandler(async (req, res) => {
-  const { productId } = req.body;
-  const userId = req.user.id;
+  const { productId, sessionId } = req.body;
+  const userId = req.user?.id;
 
   if (!productId) {
     return ApiError.send(res, 400, "Product ID is required.");
@@ -34,155 +52,284 @@ const addToWishlist = asyncHandler(async (req, res) => {
     return ApiError.send(res, 404, "Product not found.");
   }
 
-  const wishlist = await getOrCreateWishlist(userId);
+  let wishlistItem;
 
-  const exists = await prisma.wishlistItem.findFirst({
-    where: {
-      wishlistId: wishlist.id,
-      productId,
-    },
-  });
+  if (userId) {
+    const wishlist = await getOrCreateUserWishlist(userId);
 
-  if (exists) {
-    return ApiError.send(res, 400, "Product already in wishlist.");
+    const exists = await prisma.wishlistItem.findFirst({
+      where: { wishlistId: wishlist.id, productId },
+    });
+
+    if (exists) {
+      return ApiError.send(res, 400, "Product already in wishlist.");
+    }
+
+    wishlistItem = await prisma.wishlistItem.create({
+      data: { wishlistId: wishlist.id, productId },
+      include: { product: { include: { images: true } } }
+    });
+  } else if (sessionId) {
+    const guestWishlist = await getOrCreateGuestWishlist(sessionId);
+
+    if (!guestWishlist) {
+      return ApiError.send(res, 400, "Session ID is required for guest users.");
+    }
+
+    const exists = await prisma.guestWishlistItem.findFirst({
+      where: { guestWishlistId: guestWishlist.id, productId },
+    });
+
+    if (exists) {
+      return ApiError.send(res, 400, "Product already in wishlist.");
+    }
+
+    wishlistItem = await prisma.guestWishlistItem.create({
+      data: { guestWishlistId: guestWishlist.id, productId },
+      include: { product: { include: { images: true } } }
+    });
+  } else {
+    return ApiError.send(res, 400, "Either login or provide session ID.");
   }
-
-  const item = await prisma.wishlistItem.create({
-    data: {
-      wishlistId: wishlist.id,
-      productId,
-    },
-  });
 
   return res
     .status(201)
-    .json(new ApiResponse(201, "Product added to wishlist.", { item }));
+    .json(new ApiResponse(201, "Product added to wishlist.", { item: wishlistItem }));
 });
 
-// Get Wishlist
+// Get Wishlist (Guest & User)
 const getWishlist = asyncHandler(async (req, res) => {
-  const userId = req.user.id;
+  const userId = req.user?.id;
+  const { sessionId } = req.query;
 
-  const wishlist = await getOrCreateWishlist(userId);
+  let wishlistData = null;
 
-  const data = await prisma.wishlist.findUnique({
-    where: {
-      id: wishlist.id,
-    },
-    include: {
-      items: {
-        include: {
-          product: {
-            include: {
-              images: true,
+  if (userId) {
+    const wishlist = await getOrCreateUserWishlist(userId);
+    wishlistData = await prisma.wishlist.findUnique({
+      where: { id: wishlist.id },
+      include: {
+        items: {
+          include: {
+            product: {
+              include: { images: true },
             },
           },
         },
       },
-    },
-  });
+    });
+  } else if (sessionId) {
+    wishlistData = await prisma.guestWishlist.findUnique({
+      where: { sessionId },
+      include: {
+        items: {
+          include: {
+            product: {
+              include: { images: true },
+            },
+          },
+        },
+      },
+    });
+  } else {
+    // Return empty wishlist if no userId or sessionId
+    return res.status(200).json(
+      new ApiResponse(200, "Wishlist fetched successfully.", { wishlist: { items: [] } })
+    );
+  }
 
   return res
     .status(200)
-    .json(new ApiResponse(200, "Wishlist fetched successfully.", { wishlist: data }));
+    .json(new ApiResponse(200, "Wishlist fetched successfully.", { wishlist: wishlistData }));
 });
 
-// Remove Wishlist Item
+// Remove Wishlist Item (Guest & User)
 const removeWishlistItem = asyncHandler(async (req, res) => {
   const { productId } = req.params;
-  const userId = req.user.id;
+  const userId = req.user?.id;
+  const { sessionId } = req.body;
 
-  const wishlist = await getOrCreateWishlist(userId);
+  if (userId) {
+    const wishlist = await getOrCreateUserWishlist(userId);
+    const item = await prisma.wishlistItem.findFirst({
+      where: { wishlistId: wishlist.id, productId },
+    });
 
-  const item = await prisma.wishlistItem.findFirst({
-    where: {
-      wishlistId: wishlist.id,
-      productId,
-    },
-  });
+    if (!item) {
+      return ApiError.send(res, 404, "Wishlist item not found.");
+    }
 
-  if (!item) {
-    return ApiError.send(res, 404, "Wishlist item not found.");
+    await prisma.wishlistItem.delete({ where: { id: item.id } });
+  } else if (sessionId) {
+    const guestWishlist = await prisma.guestWishlist.findUnique({
+      where: { sessionId },
+    });
+
+    if (!guestWishlist) {
+      return ApiError.send(res, 404, "Guest wishlist not found.");
+    }
+
+    const item = await prisma.guestWishlistItem.findFirst({
+      where: { guestWishlistId: guestWishlist.id, productId },
+    });
+
+    if (!item) {
+      return ApiError.send(res, 404, "Wishlist item not found.");
+    }
+
+    await prisma.guestWishlistItem.delete({ where: { id: item.id } });
+  } else {
+    return ApiError.send(res, 400, "Either login or provide session ID.");
   }
-
-  await prisma.wishlistItem.delete({
-    where: {
-      id: item.id,
-    },
-  });
 
   return res
     .status(200)
     .json(new ApiResponse(200, "Product removed from wishlist."));
 });
 
-// Move Wishlist To Cart
+// Move Wishlist To Cart (Guest & User)
 const moveToCart = asyncHandler(async (req, res) => {
-  const { productId } = req.body;
-  const userId = req.user.id;
+  const { productId, sessionId } = req.body;
+  const userId = req.user?.id;
 
-  const wishlist = await getOrCreateWishlist(userId);
-
-  const wishlistItem = await prisma.wishlistItem.findFirst({
-    where: {
-      wishlistId: wishlist.id,
-      productId,
-    },
-  });
-
-  if (!wishlistItem) {
-    return ApiError.send(res, 404, "Wishlist item not found.");
+  if (!productId) {
+    return ApiError.send(res, 400, "Product ID is required.");
   }
 
-  let cart = await prisma.cart.findUnique({
-    where: {
-      userId,
-    },
-  });
-
-  if (!cart) {
-    cart = await prisma.cart.create({
-      data: {
-        userId,
-      },
+  if (userId) {
+    // Remove from user wishlist
+    const wishlist = await getOrCreateUserWishlist(userId);
+    const wishlistItem = await prisma.wishlistItem.findFirst({
+      where: { wishlistId: wishlist.id, productId },
     });
-  }
 
-  const existingCartItem = await prisma.cartItem.findFirst({
-    where: {
-      cartId: cart.id,
-      productId,
-    },
-  });
+    if (!wishlistItem) {
+      return ApiError.send(res, 404, "Wishlist item not found.");
+    }
 
-  if (existingCartItem) {
-    await prisma.cartItem.update({
-      where: {
-        id: existingCartItem.id,
-      },
-      data: {
-        quantity: existingCartItem.quantity + 1,
-      },
+    await prisma.wishlistItem.delete({ where: { id: wishlistItem.id } });
+
+    // Add to user cart
+    let cart = await prisma.cart.findUnique({ where: { userId } });
+    if (!cart) {
+      cart = await prisma.cart.create({ data: { userId } });
+    }
+
+    const existingCartItem = await prisma.cartItem.findFirst({
+      where: { cartId: cart.id, productId },
     });
+
+    if (existingCartItem) {
+      await prisma.cartItem.update({
+        where: { id: existingCartItem.id },
+        data: { quantity: existingCartItem.quantity + 1 },
+      });
+    } else {
+      await prisma.cartItem.create({
+        data: { cartId: cart.id, productId, quantity: 1 },
+      });
+    }
+  } else if (sessionId) {
+    // Remove from guest wishlist
+    const guestWishlist = await prisma.guestWishlist.findUnique({
+      where: { sessionId },
+    });
+
+    if (!guestWishlist) {
+      return ApiError.send(res, 404, "Guest wishlist not found.");
+    }
+
+    const wishlistItem = await prisma.guestWishlistItem.findFirst({
+      where: { guestWishlistId: guestWishlist.id, productId },
+    });
+
+    if (!wishlistItem) {
+      return ApiError.send(res, 404, "Wishlist item not found.");
+    }
+
+    await prisma.guestWishlistItem.delete({ where: { id: wishlistItem.id } });
+
+    // Add to guest cart
+    let guestCart = await prisma.guestCart.findUnique({
+      where: { sessionId },
+    });
+
+    if (!guestCart) {
+      guestCart = await prisma.guestCart.create({ data: { sessionId } });
+    }
+
+    const existingCartItem = await prisma.guestCartItem.findFirst({
+      where: { guestCartId: guestCart.id, productId },
+    });
+
+    if (existingCartItem) {
+      await prisma.guestCartItem.update({
+        where: { id: existingCartItem.id },
+        data: { quantity: existingCartItem.quantity + 1 },
+      });
+    } else {
+      await prisma.guestCartItem.create({
+        data: { guestCartId: guestCart.id, productId, quantity: 1 },
+      });
+    }
   } else {
-    await prisma.cartItem.create({
-      data: {
-        cartId: cart.id,
-        productId,
-        quantity: 1,
-      },
-    });
+    return ApiError.send(res, 400, "Either login or provide session ID.");
   }
 
-  await prisma.wishlistItem.delete({
-    where: {
-      id: wishlistItem.id,
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Product moved to cart."));
+});
+
+// Merge Guest Wishlist (After login)
+const mergeWishlist = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const { sessionId } = req.body;
+
+  if (!sessionId) {
+    return ApiError.send(res, 400, "Session ID is required.");
+  }
+
+  const guestWishlist = await prisma.guestWishlist.findUnique({
+    where: { sessionId },
+    include: { items: true },
+  });
+
+  if (!guestWishlist || guestWishlist.items.length === 0) {
+    return res.status(200).json(new ApiResponse(200, "No wishlist items to merge."));
+  }
+
+  const userWishlist = await getOrCreateUserWishlist(userId);
+
+  for (const guestItem of guestWishlist.items) {
+    const existingItem = await prisma.wishlistItem.findFirst({
+      where: { wishlistId: userWishlist.id, productId: guestItem.productId },
+    });
+
+    if (!existingItem) {
+      await prisma.wishlistItem.create({
+        data: {
+          wishlistId: userWishlist.id,
+          productId: guestItem.productId,
+        },
+      });
+    }
+  }
+
+  await prisma.guestWishlist.delete({ where: { id: guestWishlist.id } });
+
+  const mergedWishlist = await prisma.wishlist.findUnique({
+    where: { id: userWishlist.id },
+    include: {
+      items: {
+        include: { product: { include: { images: true } } },
+      },
     },
   });
 
   return res
     .status(200)
-    .json(new ApiResponse(200, "Product moved to cart."));
+    .json(new ApiResponse(200, "Wishlist merged successfully.", { wishlist: mergedWishlist }));
 });
 
 export {
@@ -190,4 +337,5 @@ export {
   getWishlist,
   removeWishlistItem,
   moveToCart,
+  mergeWishlist,
 };

@@ -10,12 +10,14 @@ import { closeLogin, setUser } from "@/store/slices/authSlice";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useLogin, useForgotPassword } from "@/lib/mutations/useAuth";
+import { useQueryClient } from "@tanstack/react-query"; // 👈 Import for cart invalidation
 
 export default function Login({ title, onSuccess, isModal = false }) {
   const { mutate: loginMutate, isLoading } = useLogin();
   const { mutate: forgotPasswordMutate, isLoading: isSendingEmail } = useForgotPassword();
   const dispatch = useDispatch();
   const router = useRouter();
+  const queryClient = useQueryClient(); // 👈 For cart invalidation
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [form, setForm] = useState({ email: "", password: "" });
@@ -32,11 +34,38 @@ export default function Login({ title, onSuccess, isModal = false }) {
       return;
     }
 
-    loginMutate(form, {
+    // 🔥 Get guest session ID from localStorage
+    const sessionId = typeof window !== "undefined" 
+      ? localStorage.getItem("cart_session_id") 
+      : null;
+    
+    console.log("🔑 Login with sessionId:", sessionId);
+
+    // 🔥 Send sessionId along with login data
+    const loginData = {
+      email: form.email,
+      password: form.password,
+      sessionId, // 👈 Session ID for cart merge
+    };
+
+    loginMutate(loginData, {
       onSuccess: (res) => {
         const user = res?.data?.data?.user;
         dispatch(setUser(user));
         localStorage.setItem("user", JSON.stringify(user));
+        
+        // 🔥 Clear guest session after successful login
+        if (sessionId) {
+          localStorage.removeItem("cart_session_id");
+          console.log("🗑️ Cleared guest session ID after login");
+        }
+
+        // 🔥 Invalidate cart query to fetch merged cart
+        queryClient.invalidateQueries({ queryKey: ["cart"] });
+        
+        // 🔥 Also invalidate wishlist if needed
+        queryClient.invalidateQueries({ queryKey: ["wishlist"] });
+
         toast.success("Login Successful!");
 
         if (onSuccess) onSuccess();
@@ -68,7 +97,6 @@ export default function Login({ title, onSuccess, isModal = false }) {
       return;
     }
 
-    // Use the mutation hook
     forgotPasswordMutate(
       { email: forgotEmail },
       {

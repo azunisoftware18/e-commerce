@@ -14,8 +14,154 @@ import {
 } from "../utils/utils.js";
 import prisma from "../db/db.js";
 
+// 🔄 Helper function to merge guest cart AND wishlist to user
+const mergeGuestDataToUser = async (userId, sessionId) => {
+  if (!sessionId) {
+    console.log("⚠️ No sessionId provided, skipping merge");
+    return;
+  }
+
+  try {
+    // ==========================================
+    // 🔥 MERGE GUEST CART
+    // ==========================================
+    console.log("🔍 Looking for guest cart with sessionId:", sessionId);
+    
+    const guestCart = await prisma.guestCart.findUnique({
+      where: { sessionId },
+      include: { items: true },
+    });
+
+    if (guestCart && guestCart.items.length > 0) {
+      console.log(`📦 Found guest cart with ${guestCart.items.length} items`);
+      
+      let userCart = await prisma.cart.findUnique({
+        where: { userId },
+      });
+
+      if (!userCart) {
+        userCart = await prisma.cart.create({
+          data: { userId },
+        });
+        console.log("🆕 Created new user cart");
+      }
+
+      for (const guestItem of guestCart.items) {
+        const existingItem = await prisma.cartItem.findFirst({
+          where: {
+            cartId: userCart.id,
+            productId: guestItem.productId,
+          },
+        });
+
+        const product = await prisma.product.findUnique({
+          where: { id: guestItem.productId },
+        });
+
+        if (!product) {
+          console.log(`⚠️ Product ${guestItem.productId} not found, skipping`);
+          continue;
+        }
+
+        if (existingItem) {
+          const newQuantity = Math.min(
+            existingItem.quantity + guestItem.quantity,
+            product.stock
+          );
+          console.log(`📝 Updating cart item: ${existingItem.id}, new qty: ${newQuantity}`);
+          
+          await prisma.cartItem.update({
+            where: { id: existingItem.id },
+            data: { quantity: newQuantity },
+          });
+        } else if (product.stock > 0) {
+          const quantityToAdd = Math.min(guestItem.quantity, product.stock);
+          console.log(`➕ Adding to cart: ${guestItem.productId}, qty: ${quantityToAdd}`);
+          
+          await prisma.cartItem.create({
+            data: {
+              cartId: userCart.id,
+              productId: guestItem.productId,
+              quantity: quantityToAdd,
+            },
+          });
+        }
+      }
+
+      // Delete guest cart
+      await prisma.guestCart.delete({
+        where: { id: guestCart.id },
+      });
+      console.log("🗑️ Guest cart deleted");
+    } else {
+      console.log("⚠️ No guest cart found or empty");
+    }
+
+    // ==========================================
+    // 🔥 MERGE GUEST WISHLIST
+    // ==========================================
+    console.log("🔍 Looking for guest wishlist with sessionId:", sessionId);
+    
+    const guestWishlist = await prisma.guestWishlist.findUnique({
+      where: { sessionId },
+      include: { items: true },
+    });
+
+    if (guestWishlist && guestWishlist.items.length > 0) {
+      console.log(`📦 Found guest wishlist with ${guestWishlist.items.length} items`);
+      
+      let userWishlist = await prisma.wishlist.findUnique({
+        where: { userId },
+      });
+
+      if (!userWishlist) {
+        userWishlist = await prisma.wishlist.create({
+          data: { userId },
+        });
+        console.log("🆕 Created new user wishlist");
+      }
+
+      for (const guestItem of guestWishlist.items) {
+        const existingItem = await prisma.wishlistItem.findFirst({
+          where: {
+            wishlistId: userWishlist.id,
+            productId: guestItem.productId,
+          },
+        });
+
+        if (!existingItem) {
+          console.log(`➕ Adding to wishlist: ${guestItem.productId}`);
+          
+          await prisma.wishlistItem.create({
+            data: {
+              wishlistId: userWishlist.id,
+              productId: guestItem.productId,
+            },
+          });
+        } else {
+          console.log(`⏭️ Wishlist item already exists: ${guestItem.productId}`);
+        }
+      }
+
+      // Delete guest wishlist
+      await prisma.guestWishlist.delete({
+        where: { id: guestWishlist.id },
+      });
+      console.log("🗑️ Guest wishlist deleted");
+    } else {
+      console.log("⚠️ No guest wishlist found or empty");
+    }
+
+    console.log(`✅ All guest data merged for user ${userId}`);
+  } catch (error) {
+    console.error("❌ Merge error:", error);
+    // Don't throw error - continue with login/signup even if merge fails
+  }
+};
+
+// ✅ SIGNUP (Updated with cart & wishlist merge)
 const signup = asyncHandler(async (req, res) => {
-  const { name, location, email, phone, password } = req.body;
+  const { name, location, email, phone, password, sessionId } = req.body;
 
   // 1️⃣ Validate required fields
   if (!name || !location || !email || !phone || !password) {
@@ -71,19 +217,25 @@ const signup = asyncHandler(async (req, res) => {
       password: hashedPassword,
       phone: phone.trim(),
       location,
-      status: "Active", // Default status for signup
-      joinDate: new Date(), // Auto-set join date
+      status: "Active",
+      joinDate: new Date(),
     },
   });
 
-  // 8️⃣ Generate token
+  // 8️⃣ MERGE GUEST CART & WISHLIST (after user creation)
+  if (sessionId) {
+    console.log("🔄 Signup - merging guest data for sessionId:", sessionId);
+    await mergeGuestDataToUser(newUser.id, sessionId);
+  }
+
+  // 9️⃣ Generate token
   const accessToken = generateAccessToken(
     newUser.id,
     newUser.email,
     newUser.role,
   );
 
-  // 9️⃣ Prepare safe response
+  // 🔟 Prepare safe response
   const { password: _, ...userSafe } = newUser;
 
   const userSafeWithFormattedDate = {
@@ -91,7 +243,7 @@ const signup = asyncHandler(async (req, res) => {
     joinDate: formattedJoinDate(newUser.joinDate),
   };
 
-  // 🔟 Send response with cookie
+  // Send response with cookie
   return res
     .status(201)
     .cookie("accessToken", accessToken, cookieOptions)
@@ -103,9 +255,11 @@ const signup = asyncHandler(async (req, res) => {
     );
 });
 
-// ✅ LOGIN
+// ✅ LOGIN (Updated with cart & wishlist merge)
 const login = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, sessionId } = req.body;
+
+  console.log("🔑 Login attempt:", { email, sessionId: sessionId || "none" });
 
   if (!email || !password) {
     return ApiError.send(res, 400, "Email and password are required.");
@@ -131,9 +285,15 @@ const login = asyncHandler(async (req, res) => {
     data: { lastLogin: new Date() },
   });
 
+  // 🔄 MERGE GUEST CART & WISHLIST (after successful login)
+  if (sessionId) {
+    console.log("🔄 Login - merging guest data for sessionId:", sessionId);
+    await mergeGuestDataToUser(user.id, sessionId);
+  } else {
+    console.log("⚠️ No sessionId provided with login");
+  }
+
   const accessToken = generateAccessToken(user.id, user.email, user.role);
-
-
 
   const { password: _, ...userSafe } = user;
 
@@ -148,8 +308,9 @@ const login = asyncHandler(async (req, res) => {
     );
 });
 
+// ✅ GET ALL USERS
 const getAllUsers = asyncHandler(async (req, res) => {
-  const currentUser = req.user; // Assuming user is set by authentication middleware
+  const currentUser = req.user;
 
   let whereClause = {};
 
@@ -176,6 +337,7 @@ const getAllUsers = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, "Users fetched successfully.", users));
 });
 
+// ✅ UPDATE ADMIN
 const updateAdmin = asyncHandler(async (req, res) => {
   const { name, email, phone, location } = req.body;
   const { id } = req.user;
@@ -259,9 +421,9 @@ const forgotPassword = asyncHandler(async (req, res) => {
   const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
 
   await sendEmail({
-  to: email,
-  subject: "Password Reset Request",
-  text: `
+    to: email,
+    subject: "Password Reset Request",
+    text: `
     <div style="font-family:sans-serif;padding:20px">
       <h2>Password Reset</h2>
       <p>You requested a password reset.</p>
@@ -286,15 +448,14 @@ const forgotPassword = asyncHandler(async (req, res) => {
       </p>
     </div>
   `,
-});
+  });
 
   return res
     .status(200)
     .json(new ApiResponse(200, "Password reset email sent."));
 });
 
-// ✅ RESET PASSWORD
-
+// ✅ RESET PASSWORD (Logged-in user)
 const resetPassword = asyncHandler(async (req, res) => {
   const userId = req.user?.id;
 
@@ -304,7 +465,6 @@ const resetPassword = asyncHandler(async (req, res) => {
 
   const { currentPassword, newPassword, confirmNewPassword } = req.body;
 
-  // Validate all fields
   if (!currentPassword || !newPassword || !confirmNewPassword) {
     return ApiError.send(
       res,
@@ -364,6 +524,7 @@ const resetPassword = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, "Password changed successfully."));
 });
 
+// ✅ GET CURRENT USER
 const getMe = asyncHandler(async (req, res) => {
   const userId = req.user?.id;
 
@@ -388,6 +549,7 @@ const getMe = asyncHandler(async (req, res) => {
   );
 });
 
+// ✅ RESET FORGOT PASSWORD (With token)
 const resetForgotPassword = asyncHandler(async (req, res) => {
   const { token, email, password } = req.body;
 

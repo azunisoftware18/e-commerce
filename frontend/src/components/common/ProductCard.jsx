@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Heart, ShoppingCart } from "lucide-react";
 import Button from "../ui/Button";
 import Link from "next/link";
@@ -24,6 +24,18 @@ const poppins = Poppins({
   weight: ["400", "600", "700"],
 });
 
+// 🔑 Session ID helper (direct component mein)
+const getOrCreateSessionId = () => {
+  if (typeof window === "undefined") return null;
+  
+  let sessionId = localStorage.getItem("cart_session_id");
+  if (!sessionId) {
+    sessionId = `guest_${Date.now().toString(36)}_${Math.random().toString(36).substr(2, 9)}`;
+    localStorage.setItem("cart_session_id", sessionId);
+  }
+  return sessionId;
+};
+
 export default function ProductCard({
   id,
   image,
@@ -35,25 +47,38 @@ export default function ProductCard({
   status,
   className = "",
 }) {
-  const { data: cart } = useCart();
+  const [sessionId, setSessionId] = useState(null);
+  
+  // Get session ID on client side
+  useEffect(() => {
+    setSessionId(getOrCreateSessionId());
+  }, []);
+
+  const { data: cart } = useCart(sessionId);
+  const { data: wishlist } = useWishlist();
 
   const { mutate: addToCart } = useAddToCart();
   const { mutate: updateCart } = useUpdateCart();
   const { mutate: removeCartItem } = useRemoveCartItem();
+  const { mutate: addToWishlist } = useAddToWishlist();
+  const { mutate: removeWishlistItem } = useRemoveWishlistItem();
 
   const cartItems = cart?.items || [];
   const cartItem = cartItems.find((item) => item.productId === id);
   const isOutOfStock = status === "Out_of_Stock" || stock === 0;
 
+  const wishlistItems = wishlist?.items || [];
+  const isWishlisted = wishlistItems.some(
+    (item) => item.productId === id || item.product?.id === id,
+  );
+
   const [isAnimating, setIsAnimating] = useState(false);
   const [coords, setCoords] = useState({ x: 0, y: 0 });
   const buttonContainerRef = useRef(null);
-  const cartElement = document.getElementById("header-cart");
+  
+  const cartElement = typeof document !== "undefined" ? document.getElementById("header-cart") : null;
   const cartRect = cartElement?.getBoundingClientRect();
-  const { data: wishlist } = useWishlist();
 
-  const { mutate: addToWishlist } = useAddToWishlist();
-  const { mutate: removeWishlistItem } = useRemoveWishlistItem();
   const handleWishlist = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -66,12 +91,6 @@ export default function ProductCard({
       });
     }
   };
-
-  const wishlistItems = wishlist?.items || [];
-
-  const isWishlisted = wishlistItems.some(
-    (item) => item.productId === id || item.product?.id === id,
-  );
 
   const handleAddToCart = (e) => {
     e.preventDefault();
@@ -89,9 +108,11 @@ export default function ProductCard({
 
     setIsAnimating(true);
 
+    // 🔑 Send sessionId with add to cart
     addToCart({
       productId: id,
       quantity: 1,
+      sessionId: sessionId, // 👈 Guest cart support
     });
 
     setTimeout(() => {
@@ -101,8 +122,7 @@ export default function ProductCard({
 
   return (
     <>
-      {}
-      {}
+      {/* Animation part */}
       <AnimatePresence>
         {isAnimating && (
           <motion.div
@@ -118,9 +138,7 @@ export default function ProductCard({
               left: cartRect
                 ? cartRect.left + cartRect.width / 2 - 20
                 : window.innerWidth - 60,
-
               top: cartRect ? cartRect.top + cartRect.height / 2 - 20 : 20,
-
               scale: [1, 0.8, 0.4, 0],
               opacity: [1, 1, 1, 0],
             }}
@@ -135,15 +153,11 @@ export default function ProductCard({
             }}
             className="fixed pointer-events-none w-16 rounded-lg overflow-hidden bg-white shadow-2xl border border-slate-200"
           >
-            {}
             <img src={image} alt={title} className="w-full h-12 object-cover" />
-
-            {}
             <div className="p-1">
               <p className="text-[7px] font-semibold truncate leading-tight">
                 {title}
               </p>
-
               <p className="text-[7px] font-bold text-[#2A4150]">₹{price}</p>
             </div>
           </motion.div>
@@ -167,7 +181,7 @@ export default function ProductCard({
             will-change-transform ${className}
           `}
         >
-          {}
+          {/* Image Section */}
           <div className="w-full relative overflow-hidden bg-slate-50 aspect-square flex items-center justify-center p-3 sm:p-4">
             <img
               src={image}
@@ -185,7 +199,7 @@ export default function ProductCard({
               whileTap={{ scale: 0.85 }}
               whileHover={{ scale: 1.1 }}
               onClick={handleWishlist}
-              className="absolute top-3 right-3 z-20 w-10 h-10 rounded-full   flex items-center justify-center transition-all"
+              className="absolute top-3 right-3 z-20 w-10 h-10 rounded-full flex items-center justify-center transition-all"
             >
               <Heart
                 size={20}
@@ -207,7 +221,7 @@ export default function ProductCard({
             )}
           </div>
 
-          {}
+          {/* Content Section */}
           <div className="p-2.5 sm:p-3 md:p-4 flex flex-col gap-1 sm:gap-1.5 flex-1 bg-white">
             <h3 className="text-sm sm:text-base font-semibold md:font-bold text-slate-800 overflow-hidden text-ellipsis whitespace-nowrap w-full">
               {title}
@@ -248,7 +262,7 @@ export default function ProductCard({
             </div>
           </div>
 
-          {}
+          {/* Button Section */}
           <div
             ref={buttonContainerRef}
             className="px-2.5 sm:px-3 md:px-4 pb-2.5 sm:pb-3 md:pb-4 pt-0 bg-white"
@@ -291,18 +305,26 @@ export default function ProductCard({
                       alert(`Only ${stock} items available`);
                       return;
                     }
+                    // 🔑 Send sessionId with update
                     updateCart({
                       productId: id,
                       quantity: cartItem.quantity + 1,
+                      sessionId: sessionId, // 👈 Guest cart support
                     });
                   }}
                   onDecrease={() => {
                     if (cartItem.quantity === 1) {
-                      removeCartItem(id);
+                      // 🔑 Send sessionId with remove
+                      removeCartItem({
+                        productId: id,
+                        sessionId: sessionId, // 👈 Guest cart support
+                      });
                     } else {
+                      // 🔑 Send sessionId with update
                       updateCart({
                         productId: id,
                         quantity: cartItem.quantity - 1,
+                        sessionId: sessionId, // 👈 Guest cart support
                       });
                     }
                   }}
