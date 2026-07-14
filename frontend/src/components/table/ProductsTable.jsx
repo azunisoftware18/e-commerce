@@ -48,6 +48,7 @@ export default function ProductsTable({
     {
       label: "Product",
       accessor: "product",
+      className: "w-[320px]",
       render: (value, row) => (
         <div className="flex items-center gap-3">
           {/* 🖼️ Image */}
@@ -68,24 +69,38 @@ export default function ProductsTable({
           </div>
 
           {/* 📝 Name */}
-          <span className="font-medium text-slate-800 line-clamp-2 wrap-break-word">{value}</span>
+          <span
+  className="block w-[220px] overflow-hidden text-sm font-medium text-slate-800 leading-5"
+  style={{
+    display: "-webkit-box",
+    WebkitBoxOrient: "vertical",
+    WebkitLineClamp: 2,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    wordBreak: "break-word",
+  }}
+  title={value}
+>
+  {value}
+</span>
         </div>
       ),
     },
     {
       label: "Description",
       accessor: "description",
-      render: (value) => (
-        <div
-          className="product-description text-slate-500 text-sm max-w-50 overflow-hidden"
-          style={{
-            display: "-webkit-box",
-            WebkitLineClamp: 1,
-            WebkitBoxOrient: "vertical",
-          }}
-          dangerouslySetInnerHTML={{ __html: value || "" }}
-        />
-      ),
+      render: (value) => {
+  const text = value?.replace(/<[^>]*>/g, "") || "";
+
+  return (
+    <p
+      className="max-w-[220px] text-sm text-slate-500 leading-5 break-words line-clamp-2"
+      title={text}
+    >
+      {text}
+    </p>
+  );
+},
     },
     { label: "Category", accessor: "category" },
     {
