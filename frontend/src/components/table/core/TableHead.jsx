@@ -2,6 +2,7 @@ import React from "react";
 import SearchField from "@/components/ui/SearchField";
 import FilterDropdown from "@/components/ui/FilterDropdown";
 import Button from "@/components/ui/Button";
+import { Download, Loader2 } from "lucide-react";
 
 export default function TableHead({
   columns,
@@ -10,12 +11,20 @@ export default function TableHead({
   searchProps = {},
   filterProps = {},
   dateProps = {},
-
   showSearch = true,
   showFilter = true,
   showDate = true,
   showReset = true,
+  showExport = false,
+  exportProps = {},
 }) {
+  const {
+    onExport,
+    isExporting = false,
+    exportLabel = "Export Excel",
+    exportDisabled = false,
+  } = exportProps;
+
   return (
     <>
       {/* 1. Filter Bar: Visible on ALL devices */}
@@ -42,26 +51,40 @@ export default function TableHead({
                 )}
 
                 {/* Date */}
-                {/* {showDate && (
+                {showDate && (
                   <input
                     type="date"
                     {...dateProps}
                     className="flex-1 sm:flex-none h-10 px-3 rounded-xl border border-gray-200 text-sm text-slate-600 
-        focus:ring-2 focus:ring-[#2A4150]/10 focus:border-[#2A4150] outline-none transition-all"
+                      focus:ring-2 focus:ring-[#2A4150]/10 focus:border-[#2A4150] outline-none transition-all"
                   />
-                )} */}
+                )}
+
+                {/* Export Button */}
+                {showExport && (
+                  <Button
+                    text={isExporting ? "Exporting..." : exportLabel}
+                    icon={isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                    onClick={onExport}
+                    disabled={exportDisabled || isExporting}
+                    variant="outline"
+                    className="h-10 px-4 rounded-xl border border-slate-200 bg-white transition-all duration-200
+                      flex items-center gap-2 hover:border-gray-400 text-slate-600 
+                      hover:bg-slate-50 hover:text-slate-900! active:bg-slate-100"
+                  />
+                )}
 
                 {/* Reset */}
-                {/* {showReset && (
+                {showReset && (
                   <Button
                     text="Reset Filters"
                     onClick={onReset}
                     variant="outline"
                     className="h-10 px-4 rounded-xl border border-slate-200 bg-white transition-all duration-200
-        flex items-center gap-2 hover:border-gray-400 text-slate-600 
-        hover:bg-slate-50 hover:text-slate-900! active:bg-slate-100"
+                      flex items-center gap-2 hover:border-gray-400 text-slate-600 
+                      hover:bg-slate-50 hover:text-slate-900! active:bg-slate-100"
                   />
-                )} */}
+                )}
               </div>
             </div>
           </th>

@@ -177,25 +177,25 @@ export default function ProductsTable({
       }
     >
       <TableHead
-        columns={columns}
-        actions={[{ lable: "Edit" }, { lable: "Delete" }]}
-        onReset={handleReset}
-        searchProps={{
-          value: search,
-          placeholder: "Search products...",
-          onChange: (e) => setSearch(e.target.value),
-        }}
-        filterProps={{
-          value: status,
-          options: [
-            { label: "All", value: "All" },
-            { label: "Active", value: "Active" },
-            { label: "Out of Stock", value: "Out of Stock" },
-          ],
-          onChange: setStatus,
-        }}
-        dateProps={{}} // not needed
-      />
+  columns={columns}
+  actions={[{ lable: "Edit" }, { lable: "Delete" }]}
+  onReset={handleReset}
+  searchProps={{
+    value: search,
+    placeholder: "Search products...",
+    onChange: (e) => setSearch(e.target.value),
+  }}
+  filterProps={{
+    value: status,
+    options: [
+      { label: "All", value: "All" },
+      { label: "Active", value: "Active" },
+      { label: "Out of Stock", value: "Out of Stock" },
+    ],
+    onChange: setStatus,
+  }}
+  showDate={false}
+/>
 
       <TableBody
         data={paginatedData}
