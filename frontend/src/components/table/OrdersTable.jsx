@@ -5,7 +5,8 @@ import { TableShell, TableHead, TableBody, TablePagination } from "./core";
 import { useUpdateOrder } from "@/lib/mutations/useOrders";
 import toast from "react-hot-toast";
 import ConfirmationDialog from "../common/ConfirmationDialog";
-import { Package, Plus } from "lucide-react";
+import { Eye, Package, Plus } from "lucide-react";
+import Link from "next/link";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_IMAGE_URL;
 export default function OrdersTable({ data = [] }) {
@@ -73,28 +74,38 @@ export default function OrdersTable({ data = [] }) {
 
   const columns = [
     {
-      label: "Product",
-      accessor: "items",
-      render: (items) => (
-        <div className="flex items-center gap-2">
-          <img
-            src={`${BASE_URL}${items?.[0]?.product?.images?.[0]?.url}`}
-            className="w-10 h-10 rounded-lg"
-          />
-          <span
-            title={items?.[0]?.product?.name}
-            className="text-sm font-medium text-slate-800 line-clamp-2 wrap-break-word max-w-50"
-          >
-            {items?.[0]?.product?.name || "-"}
-          </span>
-        </div>
-      ),
-    },
+  label: "Products",
+  accessor: "id",
+  render: (id) => (
+    <Link
+      href={`/dashboard/orders/${id}/products`}
+      className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition"
+    >
+      <Eye className="w-4 h-4" />
+      View
+    </Link>
+  ),
+},
     {
-      label: "Order ID",
-      accessor: "id",
-      render: (id) => `${id}`,
-    },
+  label: "Order ID",
+  accessor: "id",
+  render: (id) => {
+    const parts = id.split("-");
+
+    const firstLine = `${parts[0]}-${parts[1]}`;
+    const secondLine = `${parts[2]}-${parts[3]}-${parts[4]}`;
+
+    return (
+      <div
+        className="text-sm leading-5 whitespace-nowrap"
+        title={id}
+      >
+        <div>{firstLine}</div>
+        <div>{secondLine}</div>
+      </div>
+    );
+  },
+},
     {
       label: "Customer",
       accessor: "customer",
