@@ -87,25 +87,10 @@ export default function OrdersTable({ data = [] }) {
   ),
 },
     {
-  label: "Order ID",
-  accessor: "id",
-  render: (id) => {
-    const parts = id.split("-");
-
-    const firstLine = `${parts[0]}-${parts[1]}`;
-    const secondLine = `${parts[2]}-${parts[3]}-${parts[4]}`;
-
-    return (
-      <div
-        className="text-sm leading-5 whitespace-nowrap"
-        title={id}
-      >
-        <div>{firstLine}</div>
-        <div>{secondLine}</div>
-      </div>
-    );
-  },
-},
+      label: "Order ID",
+      accessor: "id",
+      render: (id) => `${id}`,
+    },
     {
       label: "Customer",
       accessor: "customer",
