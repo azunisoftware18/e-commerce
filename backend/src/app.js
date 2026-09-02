@@ -9,7 +9,7 @@ app.use(
   cors({
     origin: [
       process.env.CLIENT_URL,
-      "https://www.herbsnglam.com",
+      "https://ecom.azzunique.co.in",
       "http://localhost:3000",
       "https://d9vxjqxn-3000.inc1.devtunnels.ms",
     ],
