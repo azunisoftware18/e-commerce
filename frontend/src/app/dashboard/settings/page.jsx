@@ -126,7 +126,11 @@ export default function SettingPage() {
     upsertSetting(payload, {
       onSuccess: () => toast.success("Settings saved successfully!"),
       onError: (err) =>
-        toast.error(err?.response?.data?.error || "Error saving settings"),
+        toast.error(
+          err?.response?.data?.message ||
+            err?.response?.data?.error ||
+            "Error saving settings",
+        ),
     });
   };
 
