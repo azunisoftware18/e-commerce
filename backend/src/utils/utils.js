@@ -52,7 +52,7 @@ export const sendEmail = async ({ to, subject, text }) => {
   });
 
   await transporter.sendMail({
-    from: `"HerbsNglam" <${process.env.EMAIL_USER}>`,
+    from: `"alphanutrapharm" <${process.env.EMAIL_USER}>`,
     to,
     subject,
     html: text,

@@ -527,7 +527,7 @@ export const downloadInvoice = async (req, res) => {
       .fillColor(primaryColor)
       .fontSize(24)
       .font("Helvetica-Bold")
-      .text("HERBSNGLAM", 50, 50);
+      .text("ALPHANUTRAPHARM", 50, 50);
 
     doc
       .fillColor(secondaryColor)

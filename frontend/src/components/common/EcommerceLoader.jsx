@@ -146,7 +146,7 @@ export default function EcommerceLoader() {
                 className="text-3xl font-bold"
                 style={{ color: "#2A4150" }}
               >
-                Herbsnglam
+                alphanutrapharm
               </motion.h1>
 
               {/* Loading Progress Bar */}
@@ -177,7 +177,7 @@ export default function EcommerceLoader() {
                   : !pageLoaded && progress < 85
                   ? "Loading premium products..."
                   : minimumTimeReached && pageLoaded
-                  ? "Welcome to Herbsnglam!"
+                  ? "Welcome to alphanutrapharm!"
                   : "Almost ready..."}
               </motion.p>
             </div>
