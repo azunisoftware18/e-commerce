@@ -278,9 +278,9 @@ const totalQuantity = cartItems.reduce(
                       </span>
                     </span>
 
-                    <span className="mt-2 text-center text-[8px] sm:text-[9px] md:text-[11px] font-sans font-semibold tracking-[0.3em] uppercase text-[#2D5138]">
+                    {/* <span className="mt-2 text-center text-[8px] sm:text-[9px] md:text-[11px] font-sans font-semibold tracking-[0.3em] uppercase text-[#2D5138]">
                       Glam Your Beauty
-                    </span>
+                    </span> */}
                   </div>
                 )}
               </Link>
