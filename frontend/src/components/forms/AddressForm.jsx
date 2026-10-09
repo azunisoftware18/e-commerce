@@ -31,8 +31,20 @@ export default function AddressForm({
 
   const handleChange = (name, val) => {
     if (!onChange) return;
+
+    if (typeof onChange === "function") {
+      onChange((prev) => {
+        const current = prev && typeof prev === "object" ? prev : value || {};
+        return {
+          ...current,
+          [name]: val,
+        };
+      });
+      return;
+    }
+
     onChange({
-      ...value,
+      ...(value || {}),
       [name]: val,
     });
   };
@@ -64,11 +76,6 @@ useEffect(() => {
     city: location.city,
   }));
 }, [location, onChange]);
-
-useEffect(() => {
-  console.log("Selected State:", selectedState);
-  console.log("Form State:", value.state);
-}, [selectedState, value.state]);
 
   return (
     <div className={`grid grid-cols-2 gap-x-5 gap-y-4  ${className}`}>
