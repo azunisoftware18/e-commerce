@@ -70,12 +70,12 @@ export default function HeroSlider({
                 </p>
 
                 {/* FIXED: Added rounded corners to match the Login button style */}
-                <Link
+                {/* <Link
                   href={typeof item.link === "string" ? item.link : "/"}
                   className="inline-block bg-white text-black px-8 py-3 md:px-10 md:py-3.5 text-xs md:text-sm font-bold uppercase tracking-widest rounded-lg hover:bg-[#2A4150] hover:text-white shadow-md transition-all duration-300 transform active:scale-95"
                 >
                   Shop Now
-                </Link>
+                </Link> */}
               </div>
             </div>
           </div>
