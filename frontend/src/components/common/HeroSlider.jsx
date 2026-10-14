@@ -55,19 +55,19 @@ export default function HeroSlider({
                 }`}
               >
                 {/* Optional Soft Subtitle/Tagline */}
-                <span className="text-white/90 text-xs md:text-sm font-medium tracking-[0.2em] uppercase mb-3 block">
+                {/* <span className="text-white/90 text-xs md:text-sm font-medium tracking-[0.2em] uppercase mb-3 block">
                   Premium Wellness Collection
-                </span>
+                </span> */}
 
                 {/* FIXED: Changed font-black & tracking-tighter to elegant font-serif & tracking-wide */}
-                <h2 className="text-white text-4xl md:text-6xl lg:text-7xl font-serif font-normal mb-5 uppercase leading-tight tracking-wide max-w-3xl drop-shadow-sm">
+                {/* <h2 className="text-white text-4xl md:text-6xl lg:text-7xl font-serif font-normal mb-5 uppercase leading-tight tracking-wide max-w-3xl drop-shadow-sm">
                   {item.title}
-                </h2> 
+                </h2>  */}
 
                 {/* Description with better visibility */}
-                <p className="text-white/80 text-sm md:text-base max-w-xl mb-8 leading-relaxed font-light tracking-wide">
+                {/* <p className="text-white/80 text-sm md:text-base max-w-xl mb-8 leading-relaxed font-light tracking-wide">
                   {item.description}
-                </p>
+                </p> */}
 
                 {/* FIXED: Added rounded corners to match the Login button style */}
                 {/* <Link
