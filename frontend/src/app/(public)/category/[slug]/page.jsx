@@ -10,7 +10,7 @@ export default function CategoryPage({ params }) {
   const { slug } = use(params);
   const searchParams = useSearchParams();
   const search = searchParams.get("search") || "";
-  const safeSlug = decodeURIComponent(slug || "");
+  const safeSlug = decodeURIComponent(slug || ""); 
   const { data: products = [], isLoading } = useProducts();
 
   // Helper function to get image URL
