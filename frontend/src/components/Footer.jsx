@@ -147,30 +147,22 @@ const words = companyName.split(" ");
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-10 pb-12 border-b border-slate-800">
         {/* 1. COMPANY IDENTITY (Logo & Info) */}
         <div className="md:col-span-2 space-y-5">
-          <div className="flex flex-row items-center gap-3">
-            {/* {logoUrl ? (
+          <Link href="/" className="inline-flex items-center">
+            {logoUrl ? (
               <img
-                src={"logoUrl"}
-                alt="Logo"
-                className="h-14 w-auto object-contain"
-                onError={(e) => {
-                  e.target.style.display = "none";
-                }}
+                src={logoUrl}
+                alt={companyName}
+                className="h-[72px] w-auto object-contain"
               />
             ) : (
-              <div className="bg-emerald-600 text-white rounded-lg w-10 h-10 flex items-center justify-center font-bold shadow-md shrink-0">
-                {settings?.companyName?.substring(0, 2).toUpperCase() || "H&G"}
-              </div>
-            )} */}
-            <h2 className="text-white font-extrabold text-xl tracking-tight leading-none self-center">
-  <span style={{ color: "#35583D" }}>
-    {words[0]}
-  </span>{" "}
-  <span style={{ color: "#B8925A" }}>
-    {words.slice(1).join(" ")}
-  </span>
-</h2>
-          </div>
+              <h2 className="text-white font-extrabold text-xl tracking-tight leading-none">
+                <span style={{ color: "#35583D" }}>{words[0]}</span>{" "}
+                <span style={{ color: "#B8925A" }}>
+                  {words.slice(1).join(" ")}
+                </span>
+              </h2>
+            )}
+          </Link>
 
           <p className="text-sm text-slate-400 max-w-sm leading-relaxed">
             Experience the purity of nature combined with premium wellness
