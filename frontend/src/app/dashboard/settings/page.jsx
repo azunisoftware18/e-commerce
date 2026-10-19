@@ -245,13 +245,13 @@ export default function SettingPage() {
 
             {/* Grid Inputs */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-              <InputField
+              {/* <InputField
                 label="Company Name"
                 placeholder="My Business Name"
                 {...register("companyName", { required: true })}
                 icon={Globe}
                 className="focus:border-[#2A4150]"
-              />
+              /> */}
               <InputField
                 label="Contact Email"
                 type="email"
