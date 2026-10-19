@@ -55,27 +55,27 @@ export default function HeroSlider({
                 }`}
               >
                 {/* Optional Soft Subtitle/Tagline */}
-                <span className="text-white/90 text-xs md:text-sm font-medium tracking-[0.2em] uppercase mb-3 block">
+                {/* <span className="text-white/90 text-xs md:text-sm font-medium tracking-[0.2em] uppercase mb-3 block">
                   Premium Wellness Collection
-                </span>
+                </span> */}
 
                 {/* FIXED: Changed font-black & tracking-tighter to elegant font-serif & tracking-wide */}
-                <h2 className="text-white text-4xl md:text-6xl lg:text-7xl font-serif font-normal mb-5 uppercase leading-tight tracking-wide max-w-3xl drop-shadow-sm">
+                {/* <h2 className="text-white text-4xl md:text-6xl lg:text-7xl font-serif font-normal mb-5 uppercase leading-tight tracking-wide max-w-3xl drop-shadow-sm">
                   {item.title}
-                </h2> 
+                </h2>  */}
 
                 {/* Description with better visibility */}
-                <p className="text-white/80 text-sm md:text-base max-w-xl mb-8 leading-relaxed font-light tracking-wide">
+                {/* <p className="text-white/80 text-sm md:text-base max-w-xl mb-8 leading-relaxed font-light tracking-wide">
                   {item.description}
-                </p>
+                </p> */}
 
                 {/* FIXED: Added rounded corners to match the Login button style */}
-                <Link
+                {/* <Link
                   href={typeof item.link === "string" ? item.link : "/"}
                   className="inline-block bg-white text-black px-8 py-3 md:px-10 md:py-3.5 text-xs md:text-sm font-bold uppercase tracking-widest rounded-lg hover:bg-[#2A4150] hover:text-white shadow-md transition-all duration-300 transform active:scale-95"
                 >
                   Shop Now
-                </Link>
+                </Link> */}
               </div>
             </div>
           </div>
