@@ -44,7 +44,7 @@ export default function Home() {
           return (
             <ProductSection
               key={cat.id}
-              title={`${cat.name} PRODUCTS`}
+              title={`${cat.name}`}
               description={cat.description || `Explore ${cat.name}`}
               products={categoryProducts}
               category={cat.name}
