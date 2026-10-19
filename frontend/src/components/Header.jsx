@@ -377,9 +377,9 @@ const totalQuantity = cartItems.reduce(
                   <NavLink item={cat} />
                 </li>
               ))}
-              <li>
+              {/* <li>
                 <NavLink item="DIET PLANS" />
-              </li>
+              </li> */}
               <li>
                 <NavLink item="EXPERTS" />
               </li>
@@ -515,10 +515,10 @@ const totalQuantity = cartItems.reduce(
                     />
                   ))}
                   <div className="border-t border-slate-100 my-2" />
-                  <MobileNavLink
+                  {/* <MobileNavLink
                     item="DIET PLANS"
                     onClose={() => setIsMobileMenuOpen(false)}
-                  />
+                  /> */}
                   <MobileNavLink
                     item="EXPERTS"
                     onClose={() => setIsMobileMenuOpen(false)}
