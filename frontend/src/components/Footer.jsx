@@ -31,8 +31,8 @@ const words = companyName.split(" ");
 
   const legalLinks = [
     { name: "Terms & Conditions", href: "/terms-conditions" },
-    { name: "Privacy Policy", href: "/privacy-policy" },
-    { name: "Cancellation & Refund", href: "/cancellation-refund" },
+    { name: "Return & Refund Policy", href: "/privacy-policy" },
+    { name: "Shipping Policy", href: "/shipping-policy" },
   ];
 
   const policiesLinks = [
@@ -142,17 +142,17 @@ const words = companyName.split(" ");
   const logoUrl = getLogoUrl();
 
   return (
-    <footer className="bg-slate-900 text-slate-300 px-6 md:px-16 pt-16 pb-8 border-t border-slate-800">
+    <footer className="border-t border-slate-800 bg-slate-900 px-4 pb-6 pt-10 text-slate-300 sm:px-6 sm:pb-8 sm:pt-12 md:px-10 md:pt-16 lg:px-16">
       {/* MAIN FOOTER GRID */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-10 pb-12 border-b border-slate-800">
+      <div className="grid grid-cols-2 gap-x-6 gap-y-8 border-b border-slate-800 pb-10 sm:gap-x-8 sm:gap-y-10 sm:pb-12 lg:grid-cols-5">
         {/* 1. COMPANY IDENTITY (Logo & Info) */}
-        <div className="md:col-span-2 space-y-5">
+        <div className="col-span-2 space-y-5 lg:col-span-2">
           <Link href="/" className="inline-flex items-center">
             {logoUrl ? (
               <img
                 src={logoUrl}
                 alt={companyName}
-                className="h-[72px] w-auto object-contain"
+                className="h-14 w-auto max-w-full object-contain sm:h-16 md:h-[72px]"
               />
             ) : (
               <h2 className="text-white font-extrabold text-xl tracking-tight leading-none">
@@ -164,7 +164,7 @@ const words = companyName.split(" ");
             )}
           </Link>
 
-          <p className="text-sm text-slate-400 max-w-sm leading-relaxed">
+          <p className="max-w-sm text-sm leading-relaxed text-slate-400">
             Experience the purity of nature combined with premium wellness
             solutions tailored just for you.
           </p>
@@ -184,7 +184,7 @@ const words = companyName.split(" ");
                 <Mail size={16} className="text-emerald-500 shrink-0" />
                 <a
                   href={`mailto:${settings.email}`}
-                  className="hover:text-white transition"
+                  className="break-all transition hover:text-white"
                 >
                   {settings.email}
                 </a>
@@ -243,7 +243,7 @@ const words = companyName.split(" ");
         </div>
 
         {/* 4. NEWSLETTER & SOCIALS */}
-        <div className="space-y-6">
+        <div className="col-span-2 space-y-6 lg:col-span-1">
           <div>
             <h3 className="text-white font-bold tracking-wider uppercase text-xs mb-4">
               Stay Updated
@@ -258,7 +258,7 @@ const words = companyName.split(" ");
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-slate-800 text-slate-200 text-xs px-3 py-2 rounded-md focus:outline-none focus:ring-1 focus:ring-emerald-500 w-full border border-slate-700"
+                className="min-w-0 w-full rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
               />
               <button
   type="submit"
@@ -315,7 +315,7 @@ const words = companyName.split(" ");
       </div>
 
       {/* BOTTOM SECTION */}
-      <div className="mt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+      <div className="mt-6 flex flex-col items-center justify-between gap-4 text-center text-xs text-slate-500 sm:mt-8 md:flex-row md:text-left">
         <div>
           © {new Date().getFullYear()}{" "}
           <span className="text-slate-400 font-medium">
@@ -324,7 +324,7 @@ const words = companyName.split(" ");
           . All rights reserved.
         </div>
 
-        <div className="flex items-center gap-4 text-slate-400 bg-slate-800/40 px-4 py-2 rounded-lg border border-slate-800">
+        <div className="flex w-full flex-wrap items-center justify-center gap-2 rounded-lg border border-slate-800 bg-slate-800/40 px-3 py-2 text-slate-400 sm:w-auto sm:gap-4 sm:px-4">
           <div className="flex items-center gap-1.5 text-slate-300">
             <ShieldCheck size={16} className="text-emerald-500" />
             <span className="font-medium tracking-wide">
