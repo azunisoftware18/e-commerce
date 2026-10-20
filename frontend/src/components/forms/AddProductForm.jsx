@@ -46,20 +46,22 @@ export default function AddProductForm({
       data.backImage,
       data.leftImage,
       data.rightImage,
-    ];
+    ].filter(Boolean);
 
     onSubmit?.(data);
     reset();
     setPreviewImages({ front: null, back: null, left: null, right: null });
   };
 
-  // Register image inputs for validation tracking
+  // Only one product image is required. The remaining image slots are optional.
   useEffect(() => {
-    register("frontImage", { required: "Front image is required" });
-    register("backImage", { required: "Back image is required" });
-    register("leftImage", { required: "Left image is required" });
-    register("rightImage", { required: "Right image is required" });
-  }, [register]);
+    register("frontImage", {
+      required: editData ? false : "At least one product image is required",
+    });
+    register("backImage");
+    register("leftImage");
+    register("rightImage");
+  }, [editData, register]);
 
   // Clean up object URLs to prevent memory leaks
   useEffect(() => {
@@ -266,12 +268,15 @@ export default function AddProductForm({
         {/* Section 4: Enhanced Image Upload */}
         <div className="space-y-4 pt-4">
           <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
-            <Upload size={18} /> Product Angle Images <span className="text-red-500">*</span>
+            <Upload size={18} /> Product Images <span className="text-red-500">*</span>
           </label>
+          <p className="text-xs text-slate-500">
+            Add one main image to publish the product. Additional images are optional.
+          </p>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
-              { key: "front", label: "Front Angle" },
+              { key: "front", label: "Main Image", required: true },
               { key: "back", label: "Back Angle" },
               { key: "left", label: "Left Side" },
               { key: "right", label: "Right Side" },
@@ -306,7 +311,9 @@ export default function AddProductForm({
                     ) : (
                       <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer p-3 text-center">
                         <Upload size={20} className={`${hasError ? "text-red-400" : "text-slate-400 group-hover:text-blue-500"} mb-1.5 transition-colors`} />
-                        <span className="text-xs font-semibold text-slate-700 block">{item.label}</span>
+                        <span className="text-xs font-semibold text-slate-700 block">
+                          {item.label}{item.required ? " *" : ""}
+                        </span>
                         <span className="text-[10px] text-slate-400 mt-0.5">Click to browse</span>
                         <input
                           type="file"

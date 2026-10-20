@@ -12,6 +12,12 @@ const createProduct = asyncHandler(async (req, res) => {
   const { name, description, categoryid, subCategoryId, price, stock, status } =
     req.body;
   const { id: createdby, role } = req.user;
+  const files = [
+    req.files?.frontImage?.[0],
+    req.files?.backImage?.[0],
+    req.files?.leftImage?.[0],
+    req.files?.rightImage?.[0],
+  ].filter(Boolean);
 
   if (role !== "Admin") {
     // Clean up uploaded files if user is not admin
@@ -57,18 +63,11 @@ const createProduct = asyncHandler(async (req, res) => {
     return ApiError.send(res, 400, "All required fields must be provided.");
   }
 
-  const files = [
-  req.files?.frontImage?.[0],
-  req.files?.backImage?.[0],
-  req.files?.leftImage?.[0],
-  req.files?.rightImage?.[0],
-].filter(Boolean);
-
-if (files.length !== 4) {
+if (files.length < 1) {
   return ApiError.send(
     res,
     400,
-    "Please upload Front, Back, Left and Right images."
+    "Please upload at least one product image."
   );
 }
 
@@ -131,15 +130,6 @@ if (files.length !== 4) {
   // Upload images to S3
   let uploadedImages = [];
   try {
-    const imageTypes = [
-  "1_front",
-  "2_back",
-  "3_left",
-  "4_right",
-];
-
-
-
 uploadedImages = await Promise.all(
   files.map(async (file, index) => {
     const localFilePath = path.join(
@@ -149,7 +139,7 @@ uploadedImages = await Promise.all(
     );
 
     const fileName =
-      `${imageTypes[index]}_${Date.now()}_${file.originalname}`;
+      `${["1_front", "2_back", "3_left", "4_right"][index]}_${Date.now()}_${file.originalname}`;
 
     const s3Result = await upload(localFilePath, fileName);
 

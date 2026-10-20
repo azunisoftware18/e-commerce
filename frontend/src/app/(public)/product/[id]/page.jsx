@@ -147,26 +147,28 @@ export default function ViewProductPage() {
               </button>
             </div>
 
-            {/* Thumbnails */}
-            <div className="grid grid-cols-4 gap-4 mt-5">
-              {sortedImages.map((img, index) => (
-                <div
-                  key={img.id}
-                  onClick={() => setSelectedImage(index)}
-                  className={`aspect-square rounded-xl overflow-hidden border-2 cursor-pointer transition-all ${
-                    selectedImage === index
-                      ? "border-blue-600"
-                      : "border-slate-200 hover:border-slate-400"
-                  }`}
-                >
-                  <img
-                    src={img.signedUrl || img.url}
-                    alt={`Product ${index + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              ))}
-            </div>
+            {/* Thumbnails are only useful when there is more than one image. */}
+            {sortedImages.length > 1 && (
+              <div className="grid grid-cols-4 gap-4 mt-5">
+                {sortedImages.map((img, index) => (
+                  <div
+                    key={img.id}
+                    onClick={() => setSelectedImage(index)}
+                    className={`aspect-square rounded-xl overflow-hidden border-2 cursor-pointer transition-all ${
+                      selectedImage === index
+                        ? "border-blue-600"
+                        : "border-slate-200 hover:border-slate-400"
+                    }`}
+                  >
+                    <img
+                      src={img.signedUrl || img.url}
+                      alt={`Product ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* --- 📝 RIGHT: Details Section (Using Flex Order) --- */}

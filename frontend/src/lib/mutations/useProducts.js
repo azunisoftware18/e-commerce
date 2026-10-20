@@ -20,10 +20,13 @@ export const useCreateProduct = () => {
       formData.append("stock", data.stock);
       formData.append("status", data.status);
 
-      formData.append("frontImage", data.frontImage);
-      formData.append("backImage", data.backImage);
-      formData.append("leftImage", data.leftImage);
-      formData.append("rightImage", data.rightImage);
+      ["frontImage", "backImage", "leftImage", "rightImage"].forEach(
+        (field) => {
+          if (data[field]) {
+            formData.append(field, data[field]);
+          }
+        },
+      );
 
       return api.post("/product/create-product", formData, {
         headers: {
