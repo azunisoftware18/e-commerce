@@ -395,44 +395,4 @@ enum PaymentStatus {
   Paid
   Pending
   Refunded
-iscountType {
-  percentage
-  flat
-}
-
-enum PlanType {
-  FREE
-  PAID
-}
-
-enum Role {
-  Admin
-  Customer
-}
-
-enum Status {
-  Active
-  Inactive
-}
-
-enum ProductStatus {
-  Active
-  Out_of_Stock
-  Discontinued
-}
-
-enum OrderStatus {
-  Pending
-  Processing
-  Delivered
-  Cancelled
-  Shipped
-}
-
-enum PaymentStatus {
-  Processing
-  Cancelled
-  Paid
-  Pending
-  Refunded
 }
