@@ -129,8 +129,6 @@ model Order {
   discount           Float               @default(0)
   razorpayOrderId    String?
   razorpayPaymentId  String?
-  cashfreeOrderId   String?             @unique
-  cashfreePaymentId String?
   transactionId      String?             @map("transaction_id")
   merchantOrderId    String?             @map("merchant_order_id")
   bankReferenceId    String?             @map("bank_reference_id")
