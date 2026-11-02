@@ -127,6 +127,7 @@ model Order {
   paymentMode        String              @default("COD") @map("payment_mode")
   couponCode         String?
   discount           Float               @default(0)
+  cashfreeOrderId    String?
   razorpayOrderId    String?
   razorpayPaymentId  String?
   transactionId      String?             @map("transaction_id")
