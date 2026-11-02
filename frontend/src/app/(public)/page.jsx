@@ -29,7 +29,7 @@ export default function Home() {
       <div className=" py-10 ">
         <ProductSection
           title="Best Sellers"
-          description="Explore best-selling safe, natural products"
+          description="Explore best-selling safe, natural products for"
           products={productsWithImages}
           isBestSeller
         />
