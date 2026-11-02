@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,95 +8,83 @@ datasource db {
 }
 
 model User {
-  id                  String               @id @default(uuid()) @unique(map: "User_id_key")
-  name                String
-  email               String               @unique(map: "User_email_key")
-  password            String?
-  role                Role                 @default(Customer)
-  status              Status
-  phone               String?
-  location            String?
-  totalSpent          Decimal              @default(0)
-  joinDate            DateTime             @default(now())
-  avatar              String?
-  createdAt           DateTime             @default(now())
-  lastLogin           DateTime?
-  token               String?
-  resetTokenExpiry    DateTime?
-  createdCategories   Category[]           @relation("CreatedCategories")
-  createdOrders       Order[]              @relation("CreatedOrders")
-  customerOrders      Order[]              @relation("CustomerOrders")
-  createdProducts     Product[]            @relation("CreatedProducts")
-  couponUsages        CouponUsage[]
-  cart                Cart?
-  wishlist            Wishlist?
-  rewardTransactions  RewardTransaction[]
-  rewardPoints        Int                  @default(0)
-  lifetimePoints      Int                  @default(0)
-  auditLogs           AuditLog[]
+  id                String              @id @unique(map: "User_id_key") @default(uuid())
+  name              String
+  email             String              @unique(map: "User_email_key")
+  password          String?
+  role              Role                @default(Customer)
+  status            Status
+  phone             String?
+  location          String?
+  totalSpent        Decimal             @default(0.000000000000000000000000000000)
+  joinDate          DateTime            @default(now())
+  avatar            String?
+  createdAt         DateTime            @default(now())
+  lastLogin         DateTime?
+  token             String?
+  resetTokenExpiry  DateTime?
+  lifetimePoints    Int                 @default(0)
+  rewardPoints      Int                 @default(0)
+  auditlog          auditlog[]
+  cart              cart?
+  createdCategories Category[]          @relation("CreatedCategories")
+  couponusage       couponusage[]
+  createdOrders     Order[]             @relation("CreatedOrders")
+  customerOrders    Order[]             @relation("CustomerOrders")
+  createdProducts   Product[]           @relation("CreatedProducts")
+  rewardtransaction rewardtransaction[]
+  wishlist          wishlist?
 
   @@map("user")
 }
 
 model Category {
-  id            String        @id @default(uuid())
-  name          String
-  sku           String        @unique(map: "Category_sku_key")
-  description   String?       @db.LongText
-  image         Json?
-  createdby     String
-  creator       User          @relation("CreatedCategories", fields: [createdby], references: [id], map: "Category_createdby_fkey")
-  products      Product[]
-  subCategories SubCategory[]
+  id          String        @id @default(uuid())
+  name        String
+  sku         String        @unique(map: "Category_sku_key")
+  description String?       @db.LongText
+  image       String?       @db.LongText
+  createdby   String
+  creator     User          @relation("CreatedCategories", fields: [createdby], references: [id], map: "Category_createdby_fkey")
+  products    Product[]
+  subcategory subcategory[]
 
   @@index([createdby], map: "Category_createdby_fkey")
   @@map("category")
 }
 
-model SubCategory {
-  id          String    @id @default(uuid())
-  name        String
-  sku         String    @unique
-  description String?
-  image       Json?
-  categoryId  String
-  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  products    Product[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-}
-
 model Product {
-  id                 String             @id @default(uuid())
-  name               String
-  description        String             @db.LongText
-  categoryid         String
-  price              Decimal
-  stock              Int
-  status             ProductStatus
-  createdAt          DateTime           @default(now())
-  createdby          String
-  orderItems         OrderItem[]
-  cartItems          CartItem[]
-  wishlistItems      WishlistItem[]
-  guestCartItems     GuestCartItem[]
-  guestWishlistItems GuestWishlistItem[]
-  category           Category           @relation(fields: [categoryid], references: [id], map: "Product_categoryid_fkey")
-  creator            User               @relation("CreatedProducts", fields: [createdby], references: [id], map: "Product_createdby_fkey")
-  subCategoryId      String?
-  subCategory        SubCategory?       @relation(fields: [subCategoryId], references: [id], onDelete: Cascade)
-  images             ProductImage[]
+  id                String              @id @default(uuid())
+  name              String
+  description       String              @db.LongText
+  categoryid        String
+  price             Decimal
+  stock             Int
+  status            ProductStatus
+  createdby         String
+  subCategoryId     String?
+  createdAt         DateTime            @default(now())
+  cartitem          cartitem[]
+  guestcartitem     guestcartitem[]
+  guestwishlistitem guestwishlistitem[]
+  orderItems        OrderItem[]
+  category          Category            @relation(fields: [categoryid], references: [id], map: "Product_categoryid_fkey")
+  creator           User                @relation("CreatedProducts", fields: [createdby], references: [id], map: "Product_createdby_fkey")
+  subCategory       subcategory?        @relation(fields: [subCategoryId], references: [id], onDelete: Cascade)
+  images            ProductImage[]
+  wishlistitem      wishlistitem[]
 
   @@index([categoryid], map: "Product_categoryid_fkey")
   @@index([createdby], map: "Product_createdby_fkey")
+  @@index([subCategoryId], map: "product_subCategoryId_fkey")
   @@map("product")
 }
 
 model ProductImage {
   id        String  @id @default(uuid())
   url       String
-  key       String?
   productId String
+  key       String?
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade, map: "ProductImage_productId_fkey")
 
   @@index([productId], map: "ProductImage_productId_fkey")
@@ -105,33 +92,33 @@ model ProductImage {
 }
 
 model Order {
-  id                 String              @id @default(uuid())
-  customerid         String
-  total              Decimal
-  status             OrderStatus?        @default(Pending)
-  payment            PaymentStatus?       @default(Pending)
-  date               DateTime            @default(now())
-  deliveredAt        DateTime?
-  rewardCredited     Boolean             @default(false)
-  duedate            DateTime?
-  cancelReason       String?
-  createdby          String
-  shippingId         String
-  trackingId         String?
-  courierName        String?
-  creator            User                @relation("CreatedOrders", fields: [createdby], references: [id], map: "Order_createdby_fkey")
-  customer           User                @relation("CustomerOrders", fields: [customerid], references: [id], map: "Order_customerid_fkey")
-  shipping           ShippingAddress     @relation(fields: [shippingId], references: [id], map: "Order_shippingId_fkey")
-  items              OrderItem[]
-  rewardTransactions RewardTransaction[]
-  paymentMode        String              @default("COD") @map("payment_mode")
-  couponCode         String?
-  discount           Float               @default(0)
-  razorpayOrderId    String?
-  razorpayPaymentId  String?
-  transactionId      String?             @map("transaction_id")
-  merchantOrderId    String?             @map("merchant_order_id")
-  bankReferenceId    String?             @map("bank_reference_id")
+  id                String              @id @default(uuid())
+  customerid        String
+  total             Decimal
+  status            OrderStatus?        @default(Pending)
+  payment           PaymentStatus?      @default(Pending)
+  date              DateTime            @default(now())
+  duedate           DateTime?
+  createdby         String
+  shippingId        String
+  paymentMode       String              @default("COD") @map("payment_mode")
+  transactionId     String?             @map("transaction_id")
+  merchantOrderId   String?             @map("merchant_order_id")
+  bankReferenceId   String?             @map("bank_reference_id")
+  cancelReason      String?
+  courierName       String?
+  trackingId        String?
+  couponCode        String?
+  deliveredAt       DateTime?
+  discount          Float               @default(0)
+  rewardCredited    Boolean             @default(false)
+  cashfreeOrderId   String?             @unique
+  cashfreePaymentId String?
+  creator           User                @relation("CreatedOrders", fields: [createdby], references: [id], map: "Order_createdby_fkey")
+  customer          User                @relation("CustomerOrders", fields: [customerid], references: [id], map: "Order_customerid_fkey")
+  shipping          ShippingAddress     @relation(fields: [shippingId], references: [id], map: "Order_shippingId_fkey")
+  items             OrderItem[]
+  rewardtransaction rewardtransaction[]
 
   @@index([createdby], map: "Order_createdby_fkey")
   @@index([customerid], map: "Order_customerid_fkey")
@@ -167,202 +154,211 @@ model OrderItem {
   @@map("orderitem")
 }
 
-model DietPlan {
-  id           String         @id @default(uuid())
-  name         String
-  description  String
-  price        Float
-  type         PlanType
-  pdfUrl       String
-  pdfKey       String?
-  thumbnail    String
-  thumbnailKey String?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  consultations Consultation[]
-}
-
-model Consultation {
-  id          String   @id @default(uuid())
-  firstName   String
-  lastName    String
-  age         Int
-  weight      Float
-  phone       String
-  email       String?
-  healthIssues Json
-  otherIssue  String?
-  dietPlanId  String?
-  dietPlan    DietPlan? @relation(fields: [dietPlanId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
 model Setting {
   id          String   @id @default("global-setting")
   companyName String?
+  logo        String?
   phone       String?
   email       String?
   address     String?
-  logo        String?
-  logoKey     String?
-  socialLinks Json?
+  socialLinks String?  @db.LongText
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  logoKey     String?
 
   @@map("setting")
 }
 
-model Coupon {
-  id                String        @id @default(uuid())
-  code              String        @unique
-  discountType      DiscountType
-  discountValue     Float
-  minOrderAmount    Float         @default(0)
-  maxDiscountAmount Float?
-  usageLimit        Int           @default(1)
-  usedCount         Int           @default(0)
-  isActive          Boolean       @default(true)
-  expiryDate        DateTime
-  usages            CouponUsage[]
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-}
-
-model CouponUsage {
-  id       String   @id @default(uuid())
-  userId   String
-  couponId String
-  usedAt   DateTime @default(now())
-  user     User     @relation(fields: [userId], references: [id])
-  coupon   Coupon   @relation(fields: [couponId], references: [id])
-
-  @@unique([userId, couponId])
-}
-
-model Cart {
-  id        String     @id @default(uuid())
-  userId    String     @unique
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items     CartItem[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-}
-
-model CartItem {
-  id        String   @id @default(uuid())
-  cartId    String
-  productId String
-  quantity  Int      @default(1)
-  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-
-  @@unique([cartId, productId])
-}
-
-model GuestCart {
-  id        String          @id @default(uuid())
-  sessionId String          @unique
-  items     GuestCartItem[]
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
-}
-
-model GuestCartItem {
-  id          String   @id @default(uuid())
-  guestCartId String
-  productId   String
-  quantity    Int      @default(1)
-  guestCart   GuestCart @relation(fields: [guestCartId], references: [id], onDelete: Cascade)
-  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
-
-  @@unique([guestCartId, productId])
-}
-
-model Wishlist {
-  id        String         @id @default(uuid())
-  userId    String         @unique
-  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items     WishlistItem[]
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-}
-
-model WishlistItem {
-  id         String   @id @default(uuid())
-  wishlistId String
-  productId  String
-  wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  createdAt  DateTime @default(now())
-
-  @@unique([wishlistId, productId])
-}
-
-model GuestWishlist {
-  id        String               @id @default(uuid())
-  sessionId String               @unique
-  items     GuestWishlistItem[]
-  createdAt DateTime             @default(now())
-  updatedAt DateTime             @updatedAt
-}
-
-model GuestWishlistItem {
-  id               String        @id @default(uuid())
-  guestWishlistId  String
-  productId        String
-  guestWishlist    GuestWishlist @relation(fields: [guestWishlistId], references: [id], onDelete: Cascade)
-  product          Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
-  createdAt        DateTime      @default(now())
-
-  @@unique([guestWishlistId, productId])
-}
-
-model RewardTransaction {
-  id          String      @id @default(uuid())
-  userId      String
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orderId     String?
-  order       Order?      @relation(fields: [orderId], references: [id])
-  points      Int
-  type        RewardType
-  description String?
-  createdAt   DateTime    @default(now())
-}
-
-model AuditLog {
-  id        String   @id @default(uuid())
+model auditlog {
+  id        String   @id
   userId    String?
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   ipAddress String?
   userAgent String?
   createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id], map: "AuditLog_userId_fkey")
+
+  @@index([userId], map: "AuditLog_userId_fkey")
 }
 
-model Newsletter {
-  id        String   @id @default(uuid())
-  email     String   @unique
+model cart {
+  id        String     @id
+  userId    String     @unique(map: "Cart_userId_key")
+  createdAt DateTime   @default(now())
+  updatedAt DateTime
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Cart_userId_fkey")
+  cartitem  cartitem[]
+}
+
+model cartitem {
+  id        String   @id
+  cartId    String
+  productId String
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  cart      cart     @relation(fields: [cartId], references: [id], onDelete: Cascade, map: "CartItem_cartId_fkey")
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade, map: "CartItem_productId_fkey")
+
+  @@unique([cartId, productId], map: "CartItem_cartId_productId_key")
+  @@index([productId], map: "CartItem_productId_fkey")
+}
+
+model consultation {
+  id           String    @id
+  firstName    String
+  lastName     String
+  age          Int
+  weight       Float
+  phone        String
+  email        String?
+  healthIssues String    @db.LongText
+  otherIssue   String?
+  dietPlanId   String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime
+  dietplan     dietplan? @relation(fields: [dietPlanId], references: [id], map: "Consultation_dietPlanId_fkey")
+
+  @@index([dietPlanId], map: "Consultation_dietPlanId_fkey")
+}
+
+model coupon {
+  id                String              @id
+  code              String              @unique(map: "Coupon_code_key")
+  discountType      coupon_discountType
+  discountValue     Float
+  minOrderAmount    Float               @default(0)
+  maxDiscountAmount Float?
+  usageLimit        Int                 @default(1)
+  usedCount         Int                 @default(0)
+  isActive          Boolean             @default(true)
+  expiryDate        DateTime
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime
+  couponusage       couponusage[]
+}
+
+model couponusage {
+  id       String   @id
+  userId   String
+  couponId String
+  usedAt   DateTime @default(now())
+  coupon   coupon   @relation(fields: [couponId], references: [id], map: "CouponUsage_couponId_fkey")
+  user     User     @relation(fields: [userId], references: [id], map: "CouponUsage_userId_fkey")
+
+  @@unique([userId, couponId], map: "CouponUsage_userId_couponId_key")
+  @@index([couponId], map: "CouponUsage_couponId_fkey")
+}
+
+model dietplan {
+  id           String         @id
+  name         String
+  description  String
+  price        Float
+  type         dietplan_type
+  pdfUrl       String
+  thumbnail    String
+  createdAt    DateTime       @default(now())
+  pdfKey       String?
+  thumbnailKey String?
+  updatedAt    DateTime       @default(now())
+  consultation consultation[]
+}
+
+model guestcart {
+  id            String          @id
+  sessionId     String          @unique(map: "GuestCart_sessionId_key")
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime
+  guestcartitem guestcartitem[]
+}
+
+model guestcartitem {
+  id          String    @id
+  guestCartId String
+  productId   String
+  quantity    Int       @default(1)
+  createdAt   DateTime  @default(now())
+  guestcart   guestcart @relation(fields: [guestCartId], references: [id], onDelete: Cascade, map: "GuestCartItem_guestCartId_fkey")
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade, map: "GuestCartItem_productId_fkey")
+
+  @@unique([guestCartId, productId], map: "GuestCartItem_guestCartId_productId_key")
+  @@index([productId], map: "GuestCartItem_productId_fkey")
+}
+
+model guestwishlist {
+  id                String              @id
+  sessionId         String              @unique(map: "GuestWishlist_sessionId_key")
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime
+  guestwishlistitem guestwishlistitem[]
+}
+
+model guestwishlistitem {
+  id              String        @id
+  guestWishlistId String
+  productId       String
+  createdAt       DateTime      @default(now())
+  guestwishlist   guestwishlist @relation(fields: [guestWishlistId], references: [id], onDelete: Cascade, map: "GuestWishlistItem_guestWishlistId_fkey")
+  product         Product       @relation(fields: [productId], references: [id], onDelete: Cascade, map: "GuestWishlistItem_productId_fkey")
+
+  @@unique([guestWishlistId, productId], map: "GuestWishlistItem_guestWishlistId_productId_key")
+  @@index([productId], map: "GuestWishlistItem_productId_fkey")
+}
+
+model newsletter {
+  id        String   @id
+  email     String   @unique(map: "Newsletter_email_key")
   createdAt DateTime @default(now())
 }
 
-enum RewardType {
-  EARNED
-  REDEEMED
-  BONUS
-  REFUND
-  EXPIRED
+model rewardtransaction {
+  id          String                 @id
+  userId      String
+  orderId     String?
+  points      Int
+  type        rewardtransaction_type
+  description String?
+  createdAt   DateTime               @default(now())
+  order       Order?                 @relation(fields: [orderId], references: [id], map: "RewardTransaction_orderId_fkey")
+  user        User                   @relation(fields: [userId], references: [id], onDelete: Cascade, map: "RewardTransaction_userId_fkey")
+
+  @@index([orderId], map: "RewardTransaction_orderId_fkey")
+  @@index([userId], map: "RewardTransaction_userId_fkey")
 }
 
-enum DiscountType {
-  percentage
-  flat
+model subcategory {
+  id          String    @id
+  name        String
+  sku         String    @unique(map: "SubCategory_sku_key")
+  description String?
+  image       String?   @db.LongText
+  categoryId  String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime
+  products    Product[]
+  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade, map: "SubCategory_categoryId_fkey")
+
+  @@index([categoryId], map: "SubCategory_categoryId_fkey")
 }
 
-enum PlanType {
-  FREE
-  PAID
+model wishlist {
+  id           String         @id
+  userId       String         @unique(map: "Wishlist_userId_key")
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Wishlist_userId_fkey")
+  wishlistitem wishlistitem[]
+}
+
+model wishlistitem {
+  id         String   @id
+  wishlistId String
+  productId  String
+  createdAt  DateTime @default(now())
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade, map: "WishlistItem_productId_fkey")
+  wishlist   wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade, map: "WishlistItem_wishlistId_fkey")
+
+  @@unique([wishlistId, productId], map: "WishlistItem_wishlistId_productId_key")
+  @@index([productId], map: "WishlistItem_productId_fkey")
 }
 
 enum Role {
@@ -395,4 +391,22 @@ enum PaymentStatus {
   Paid
   Pending
   Refunded
+}
+
+enum coupon_discountType {
+  percentage
+  flat
+}
+
+enum dietplan_type {
+  FREE
+  PAID
+}
+
+enum rewardtransaction_type {
+  EARNED
+  REDEEMED
+  BONUS
+  REFUND
+  EXPIRED
 }
