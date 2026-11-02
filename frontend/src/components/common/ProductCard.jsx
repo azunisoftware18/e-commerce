@@ -24,7 +24,7 @@ const poppins = Poppins({
   weight: ["400", "600", "700"],
 });
 
-// 🔑 Session ID helper (direct component mein)
+// Session ID helper used directly by this component.
 const getOrCreateSessionId = () => {
   if (typeof window === "undefined") return null;
   

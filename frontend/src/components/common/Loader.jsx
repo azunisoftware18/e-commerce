@@ -4,7 +4,7 @@ export default function Loader({
   fullScreen = false, 
   text = "Loading ", 
 }) {
-  // Container logic: fullScreen ke liye fixed position aur solid white background
+  // Use fixed positioning and a solid white background for the full-screen loader.
   const containerClasses = fullScreen
     ? "fixed inset-0 z-[150] flex flex-col items-center justify-center bg-white animate-in fade-in duration-300"
     : "flex flex-col items-center justify-center min-h-[60vh] w-full bg-white gap-3";

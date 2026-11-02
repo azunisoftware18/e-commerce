@@ -19,7 +19,7 @@ export default function DashboardLayout({ children }) {
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   useEffect(() => {
-    // ✅ Jab tak auth check complete nahi hua tab tak kuch mat karo
+    // Wait until the authentication check is complete.
     if (!isAuthChecked) return;
 
     // ❌ Unauthorized

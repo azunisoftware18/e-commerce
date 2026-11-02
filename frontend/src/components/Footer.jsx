@@ -283,7 +283,7 @@ const words = companyName.split(" ");
             <div className="flex flex-wrap gap-2.5">
               {settings?.socialLinks?.length > 0 ? (
                 settings.socialLinks.map((link, index) => {
-                  // Har platform ke liye configuration nikalna
+                  // Get the configuration for each platform.
                   const config = getSocialConfig(link.platform);
 
                   return (

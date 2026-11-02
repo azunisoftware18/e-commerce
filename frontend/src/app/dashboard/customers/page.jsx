@@ -98,7 +98,7 @@ export default function Customers() {
         />
       </header>
 
-      {/* Stats Grid - Mobile par 1, Tablet par 2, aur Laptop/PC par 4 cards ek hi row mein */}
+      {/* Stats grid: one card on mobile, two on tablet, and four in one row on laptop and desktop. */}
       <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6 w-full max-w-400">
         <StatCard title="Total Customers" value={totalCustomers} icon={Users} />
 

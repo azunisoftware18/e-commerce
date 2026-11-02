@@ -95,7 +95,15 @@ export const createOrder = asyncHandler(async (req, res) => {
   paymentMethod,
   useReward,
 } = req.body;
-  const createdby = req.user?.id;
+  const createdby = req.user?.id ?? req.user?._id;
+
+console.log("CREATE ORDER USER DEBUG:", {
+  id: req.user?.id,
+  _id: req.user?._id,
+  role: req.user?.role,
+  _role: req.user?._role,
+  createdby,
+});
 
   if (req.user?.role !== "Customer") {
     return ApiError.send(res, 403, "Only Customers can order products.");
@@ -230,12 +238,12 @@ if (useReward) {
     return ApiError.send(res, 404, "User not found.");
   }
 
-  // Maximum reward points = Order Total ka 10%
+  // Maximum reward points equal 10% of the order total.
 
 const maxRewardPoints =
   Math.floor((Number(total) * 0.10) / 10) * 10;
 
-// User jitne reward use kar sakta hai
+// Limit the reward points that the user can redeem.
 
 usableRewardPoints = Math.min(
   user.rewardPoints,
@@ -319,6 +327,12 @@ if (usableRewardPoints >= 10) {
         shipping: true,
       },
     });
+
+    console.log("CREATED ORDER CUSTOMER DEBUG:", {
+  orderId: orderCreated.id,
+  customerId: orderCreated.customerId,
+  createdBy: orderCreated.createdby,
+});
 
     // Update stock
     for (const item of items) {

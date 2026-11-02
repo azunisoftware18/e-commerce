@@ -14,7 +14,7 @@ export default function TextAreaField({
   resize = "vertical",
   className = "",
   containerClassName = "",
-  ...rest // 👈 register yahan aayega
+  ...rest // React Hook Form registration props are passed here.
 }) {
   const id = useId();
 
@@ -62,7 +62,7 @@ export default function TextAreaField({
 
         {maxLength && (
           <span className="text-slate-400">
-            {/* 👇 RHF me value nahi milega direct, optional hai */}
+            {/* React Hook Form does not provide the value directly; this is optional. */}
           </span>
         )}
       </div>

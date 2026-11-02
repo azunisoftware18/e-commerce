@@ -16,7 +16,7 @@ export default function Button({
     "rounded-full font-medium transition-all duration-200 flex items-center justify-center gap-2";
 
   const variants = {
-    // Aapka perfect color combination:
+    // Primary color combination:
     primary: "bg-[#2A4150] text-white hover:bg-[#1F3342]",
     secondary: "bg-gray-200 text-gray-800 hover:bg-gray-300",
     outline:

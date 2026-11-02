@@ -23,7 +23,7 @@ export default function Consultation() {
     <main className="min-h-screen flex flex-col md:flex-row bg-[#2A4150]">
       
       {/* LEFT SECTION: Form Content Area */}
-      {/* Mobile/Tablet par w-full (full width) rahega aur desktop par automatic split standard side layout (md:w-1/2) le lega */}
+      {/* Use full width on mobile and tablet; switch to a standard split layout on desktop (md:w-1/2). */}
       <section className="w-full md:w-1/2 flex items-center justify-center py-12 px-4 sm:px-8 md:p-12 lg:p-20 text-white shadow-2xl z-10">
         <div className="w-full max-w-lg mx-auto">
           
@@ -53,7 +53,7 @@ export default function Consultation() {
       </section>
 
       {/* RIGHT SECTION: Visual Image Section */}
-      {/* ⚡ 'hidden md:block' se mobile aur tablet par image clean tareeqe se hide ho jayegi */}
+      {/* Hide the image cleanly on mobile and tablet with hidden md:block. */}
       <section className="hidden md:block relative md:w-1/2 h-screen sticky top-0 overflow-hidden">
         <img 
           src="https://i.pinimg.com/1200x/1c/e6/48/1ce6488e1797d67b3904e71ddbd682f6.jpg" 

@@ -6,7 +6,7 @@ const optionalAuthMiddleware = (req, res, next) => {
       req.cookies?.accessToken ||
       req.header("Authorization")?.replace("Bearer ", "");
 
-    // Token nahi hai to bhi request continue hogi
+    // Continue the request when no token is present.
     if (!accessToken) {
       req.user = null;
       return next();
@@ -23,7 +23,7 @@ const optionalAuthMiddleware = (req, res, next) => {
 
     next();
   } catch (error) {
-    // Invalid token ho to bhi request continue hogi
+    // Continue the request when the token is invalid.
     req.user = null;
     next();
   }

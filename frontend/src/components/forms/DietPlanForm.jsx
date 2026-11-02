@@ -135,7 +135,7 @@ export default function DietPlanForm({
           placeholder="Detailed breakdown of the meal plan, goals, and results..."
           rows={4}
           error={errors.description?.message}
-          className="rounded-2xl bg-white border-slate-200" // Form style match karne ke liye
+          className="rounded-2xl bg-white border-slate-200" // Matches the form styling.
           {...register("description", { required: "Description is required" })}
         />
       </div>

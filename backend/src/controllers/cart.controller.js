@@ -170,7 +170,7 @@ const getCart = asyncHandler(async (req, res) => {
       },
     });
   } else if (sessionId) {
-    // 🔥 FIX: Guest cart mein bhi product details include karo
+    // Include product details for guest carts as well.
     cartData = await prisma.guestCart.findUnique({
       where: { sessionId },
       include: {

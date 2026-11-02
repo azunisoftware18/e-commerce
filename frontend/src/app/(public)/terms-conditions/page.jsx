@@ -92,7 +92,7 @@ export default function TermsAndConditions() {
               <p className="text-[#2A4150]/70 text-sm">
                 If you have any questions about these Terms, please contact our legal department at:
                 <br />
-                <span className="text-[#2A4150] font-semibold mt-2 block italic">support@yourbusiness.com</span>
+                <span className="text-[#2A4150] font-semibold mt-2 block italic">alphanutrapharm@gmail.com</span>
               </p>
             </div>
           </div>

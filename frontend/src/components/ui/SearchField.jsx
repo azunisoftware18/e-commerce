@@ -51,7 +51,7 @@ export default function SearchField({
       <div
         className={`
           flex w-full items-stretch 
-          border border-[#2A4150] rounded-full  {/* Naya Border Color */}
+          border border-[#2A4150] rounded-full  {/* Updated border color */}
           overflow-hidden bg-white
           transition-all duration-200
           focus-within:border-[#1F3342] focus-within:ring-1 focus-within:ring-[#1F3342]/20

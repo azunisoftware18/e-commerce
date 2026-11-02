@@ -2,14 +2,14 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api/v1",
-  withCredentials: true, // cookies ke liye important
+  withCredentials: true, // Required to send authentication cookies.
   
 });
 
 // 🔐 Request Interceptor (optional)
 api.interceptors.request.use(
   (config) => {
-    // Agar future me token use karna ho
+    // Use this if token-based authentication is added later.
     // const token = localStorage.getItem("token");
     // if (token) {
     //   config.headers.Authorization = `Bearer ${token}`;
@@ -27,7 +27,7 @@ api.interceptors.response.use(
     // Global error handle
     if (error.response?.status === 401) {
       console.log("Unauthorized ❌");
-      // yaha logout bhi kara sakte ho
+      // A logout action can be handled here if needed.
     }
 
     return Promise.reject(error);

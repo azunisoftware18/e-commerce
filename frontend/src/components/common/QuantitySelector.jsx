@@ -38,7 +38,7 @@ export default function QuantitySelector({
               : "hover:bg-white hover:shadow-sm text-slate-600"
           }`}
         >
-          {/* Agar quantity 1 hai to Trash icon dikhao, warna Minus */}
+          {/* Show the trash icon for quantity 1; otherwise show the minus icon. */}
           {quantity === 1 ? (
             <Trash2 size={isButton ? 18 : 16} />
           ) : (

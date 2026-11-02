@@ -18,13 +18,24 @@ import {
   useDownloadInvoice,
   useUpdateOrder,
 } from "@/lib/mutations/useOrders";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ConfirmationDialog from "@/components/common/ConfirmationDialog";
 import { useOrders } from "@/lib/queries/useOrders";
+import { useDispatch } from "react-redux";
+import { logout } from "@/store/slices/authSlice";
 
 export default function OrdersPage() {
+  return (
+    <AuthGuard>
+      <OrdersPageContent />
+    </AuthGuard>
+  );
+}
+
+function OrdersPageContent() {
   const router = useRouter();
-  const { data, isLoading, isError } = useOrders();
+  const dispatch = useDispatch();
+  const { data, isLoading, isError, error, refetch } = useOrders();
   const orders = data?.orders || data || [];
   const { mutate: updateOrder } = useUpdateOrder();
   const { mutate: downloadInvoice, isLoading: downloading } =
@@ -33,6 +44,17 @@ export default function OrdersPage() {
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [successOpen, setSuccessOpen] = useState(false);
   const [imageErrors, setImageErrors] = useState({});
+
+  const isUnauthorized = error?.response?.status === 401;
+
+  useEffect(() => {
+    if (isUnauthorized) {
+      // Redux was restored from localStorage, but the httpOnly login cookie
+      // is no longer valid. Clear the stale client session so AuthGuard can
+      // show the sign-in prompt instead of an orders API error.
+      dispatch(logout());
+    }
+  }, [dispatch, isUnauthorized]);
 
   // Helper function to get image URL
   const getImageUrl = (image) => {
@@ -117,13 +139,17 @@ export default function OrdersPage() {
   }
 
   if (isError) {
+    if (isUnauthorized) {
+      return null;
+    }
+
     return (
       <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
         <div className="text-center p-8 bg-white rounded-2xl shadow-sm">
           <XCircle size={48} className="text-red-500 mx-auto mb-4" />
           <p className="text-red-600 font-medium">Failed to load orders</p>
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => refetch()}
             className="mt-4 text-[#2A4150] underline text-sm"
           >
             Try again
@@ -175,7 +201,7 @@ export default function OrdersPage() {
   };
 
   return (
-    <AuthGuard>
+    <>
       <div className="min-h-screen bg-[#F8FAFC] pb-20">
         {/* TOP NAVBAR */}
         <header className="bg-[#F8FAFC] backdrop-blur-md sticky top-0 z-30 px-6 py-4 w-full">
@@ -398,7 +424,7 @@ export default function OrdersPage() {
           )}
         </main>
       </div>
-      
+
       <ConfirmationDialog
         open={confirmOpen}
         title="Cancel Order?"
@@ -420,6 +446,6 @@ export default function OrdersPage() {
         variant="success"
         onConfirm={() => setSuccessOpen(false)}
       />
-    </AuthGuard>
+    </>
   );
 }

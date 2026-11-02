@@ -1,6 +1,7 @@
+
 import { Router } from "express";
 import {
-    createPaymentOrder,
+  createPaymentOrder,
   verifyPayment,
 } from "../controllers/payment.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";

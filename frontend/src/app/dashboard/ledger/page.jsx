@@ -17,10 +17,10 @@ export default function Ledger() {
     orderId: order.id,
     customer: order.customer?.name || "N/A",
 
-    // ⚠️ yaha bhi small fix
+    // Normalize the payment status here as well.
     amount: order.totalAmount || order.total || 0,
 
-    // ⚠️ backend field "payment" hota hai
+    // The backend field is named "payment".
     status: order.payment || order.status || "Pending",
 
     // 🔥 ADD THESE (main fix)

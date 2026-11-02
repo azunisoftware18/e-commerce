@@ -13,14 +13,14 @@ import {
 
 const router = Router();
 
-// Add Product To Cart (Guest & Logged-in dono ke liye)
+// Add a product to cart (for guests and signed-in users)
 router.post(
   "/add-to-cart",
   optionalAuthMiddleware, // 👈 Changed from authMiddleware
   addToCart
 );
 
-// Get Cart (Guest & Logged-in dono ke liye)
+// Get cart (for guests and signed-in users)
 router.get(
   "/get-cart",
   optionalAuthMiddleware, // 👈 Changed from authMiddleware
@@ -34,21 +34,21 @@ router.post(
   mergeCart
 );
 
-// Update Product Quantity (Guest & Logged-in dono ke liye)
+// Update product quantity (for guests and signed-in users)
 router.put(
   "/update-cart",
   optionalAuthMiddleware, // 👈 Changed from authMiddleware
   updateQuantity
 );
 
-// Remove Single Item (Guest & Logged-in dono ke liye)
+// Remove a single item (for guests and signed-in users)
 router.delete(
   "/remove-cart-item/:productId",
   optionalAuthMiddleware, // 👈 Changed from authMiddleware
   removeCartItem
 );
 
-// Clear Complete Cart (Guest & Logged-in dono ke liye)
+// Clear the entire cart (for guests and signed-in users)
 router.delete(
   "/clear-cart",
   optionalAuthMiddleware, // 👈 Changed from authMiddleware

@@ -1,1158 +1,1424 @@
-"use client";
+'use client';
 
-import React, { useState, useMemo, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useMemo, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-  ShoppingBag,
-  ArrowLeft,
-  ChevronRight,
-  Truck,
-  ShieldCheck,
-  RotateCcw,
-  CreditCard,
-  MapPin,
-  CheckCircle2,
-  AlertCircle,
-  Trash2,
-  Minus,
-  Plus,
-  TicketPercent,
-  Heart,
-  ShoppingCart,
-  Sparkles,
-  Tag,
-  Coins,
-  LogIn,
-} from "lucide-react";
-import Link from "next/link";
+	ShoppingBag,
+	ArrowLeft,
+	ChevronRight,
+	Truck,
+	ShieldCheck,
+	RotateCcw,
+	CreditCard,
+	MapPin,
+	CheckCircle2,
+	AlertCircle,
+	Trash2,
+	Minus,
+	Plus,
+	TicketPercent,
+	Heart,
+	ShoppingCart,
+	Sparkles,
+	Tag,
+	Coins,
+	LogIn,
+} from 'lucide-react';
+import Link from 'next/link';
 
-import Button from "@/components/ui/Button";
-import { useCreateOrder } from "@/lib/mutations/useOrders";
-import { useRouter } from "next/navigation";
-import { useSelector } from "react-redux";
-import { openLogin } from "@/store/slices/authSlice";
-import ConfirmationDialog from "@/components/common/ConfirmationDialog";
+import Button from '@/components/ui/Button';
+import { useCreateOrder } from '@/lib/mutations/useOrders';
+import { useRouter } from 'next/navigation';
+import { useSelector } from 'react-redux';
+import { openLogin } from '@/store/slices/authSlice';
+import ConfirmationDialog from '@/components/common/ConfirmationDialog';
 import {
-  useCreatePaymentOrder,
-  useVerifyPayment,
-} from "@/lib/mutations/usePayment";
-import { useCoupons } from "@/lib/queries/useCoupon";
-import { useApplyCoupon } from "@/lib/mutations/useCoupon";
+	useCreatePaymentOrder,
+	useVerifyPayment,
+} from '@/lib/mutations/usePayment';
+import { useCoupons } from '@/lib/queries/useCoupon';
+import { useApplyCoupon } from '@/lib/mutations/useCoupon';
 import {
-  useAddToCart,
-  useUpdateCart,
-  useRemoveCartItem,
-  useClearCart,
-} from "@/lib/mutations/useCart";
+	useAddToCart,
+	useUpdateCart,
+	useRemoveCartItem,
+	useClearCart,
+} from '@/lib/mutations/useCart';
 import {
-  useAddToWishlist,
-  useRemoveWishlistItem,
-  useMoveToCart,
-} from "@/lib/mutations/useWishlist";
-import { useDispatch } from "react-redux";
-import { useCart } from "@/lib/queries/useCart";
-import { useWishlist } from "@/lib/queries/useWishlist";
-import YouMightAlsoLike from "@/components/common/YouMightAlsoLike";
-import { useRewardBalance } from "@/lib/queries/useRewards";
+	useAddToWishlist,
+	useRemoveWishlistItem,
+	useMoveToCart,
+} from '@/lib/mutations/useWishlist';
+import { useDispatch } from 'react-redux';
+import { useCart } from '@/lib/queries/useCart';
+import { useWishlist } from '@/lib/queries/useWishlist';
+import YouMightAlsoLike from '@/components/common/YouMightAlsoLike';
+import { useRewardBalance } from '@/lib/queries/useRewards';
 
 const fadeInUp = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -20 },
+	initial: { opacity: 0, y: 20 },
+	animate: { opacity: 1, y: 0 },
+	exit: { opacity: 0, y: -20 },
 };
 
 const staggerContainer = {
-  animate: {
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
+	animate: {
+		transition: {
+			staggerChildren: 0.1,
+		},
+	},
 };
 
 export default function CartPage() {
-  const { data: cart, isLoading: isCartLoading } = useCart();
-  const { data: wishlist, isLoading: isWishlistLoading } = useWishlist();
-  const updateCart = useUpdateCart();
-  const removeCartItem = useRemoveCartItem();
-  const clearCart = useClearCart();
-  const addToWishlist = useAddToWishlist();
-  const removeWishlistItem = useRemoveWishlistItem();
-  const moveToCart = useMoveToCart();
-  const { data: rewardBalance } = useRewardBalance();
-  const router = useRouter();
-  const dispatch = useDispatch();
-  const { mutate: createOrder, isPending } = useCreateOrder();
-  const { mutateAsync: applyCouponMutation } = useApplyCoupon();
-  const { data: couponsData = [] } = useCoupons();
-  const { isAuthenticated } = useSelector((state) => state.auth);
+	const { data: cart, isLoading: isCartLoading } = useCart();
+	const { data: wishlist, isLoading: isWishlistLoading } = useWishlist();
+	const updateCart = useUpdateCart();
+	const removeCartItem = useRemoveCartItem();
+	const clearCart = useClearCart();
+	const addToWishlist = useAddToWishlist();
+	const removeWishlistItem = useRemoveWishlistItem();
+	const moveToCart = useMoveToCart();
+	const { data: rewardBalance } = useRewardBalance();
+	const router = useRouter();
+	const dispatch = useDispatch();
+	const { mutate: createOrder, isPending } = useCreateOrder();
+	const { mutateAsync: applyCouponMutation } = useApplyCoupon();
+	const { data: couponsData = [] } = useCoupons();
+	const { isAuthenticated } = useSelector((state) => state.auth);
 
-  const { selectedAddressId, addresses } = useSelector(
-    (state) => state.address,
-  );
-  const selectedAddress = addresses?.find(
-    (addr) => addr.id === selectedAddressId
-  );
+	const { selectedAddressId, addresses } = useSelector(
+		(state) => state.address,
+	);
+	const selectedAddress = addresses?.find(
+		(addr) => addr.id === selectedAddressId,
+	);
 
-  const [coupon, setCoupon] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("");
-  const [isHydrated, setIsHydrated] = useState(false);
-  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  const [createdOrderId, setCreatedOrderId] = useState(null);
-  const [errorMsg, setErrorMsg] = useState("");
-  const { mutateAsync: createPaymentOrder } = useCreatePaymentOrder();
-  const { mutateAsync: verifyPayment } = useVerifyPayment();
-  const [appliedCoupon, setAppliedCoupon] = useState(null);
-  const [couponDiscount, setCouponDiscount] = useState(0);
-  const [couponError, setCouponError] = useState("");
-  const [couponLoading, setCouponLoading] = useState(false);
-  const [availableCoupons, setAvailableCoupons] = useState([]);
-  const [activeTab, setActiveTab] = useState("cart");
-  const [useReward, setUseReward] = useState(false);
-  const [rewardDiscount, setRewardDiscount] = useState(0);
+	const [coupon, setCoupon] = useState('');
+	const [paymentMethod, setPaymentMethod] = useState('');
+	const [isHydrated, setIsHydrated] = useState(false);
+	const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+const [createdOrderId, setCreatedOrderId] = useState(null);
 
-  // Extract items from API response
-  const cartItems = cart?.items || [];
-  const wishlistItems = wishlist?.items || [];
+const [paymentDialog, setPaymentDialog] = useState({
+  variant: "info",
+  title: "Payment Pending",
+  description: "Your payment status is being checked.",
+  confirmText: "My Orders",
+});
+	const [errorMsg, setErrorMsg] = useState('');
+	const { mutateAsync: verifyPayment } = useVerifyPayment();
+	const { mutateAsync: createPaymentOrder } = useCreatePaymentOrder();
+	const [appliedCoupon, setAppliedCoupon] = useState(null);
+	const [couponDiscount, setCouponDiscount] = useState(0);
+	const [couponError, setCouponError] = useState('');
+	const [couponLoading, setCouponLoading] = useState(false);
+	const [availableCoupons, setAvailableCoupons] = useState([]);
+	const [activeTab, setActiveTab] = useState('cart');
+	const [useReward, setUseReward] = useState(false);
+	const [rewardDiscount, setRewardDiscount] = useState(0);
 
-  useEffect(() => {
-    setIsHydrated(true);
-  }, []);
+	// Extract items from API response
+	const cartItems = cart?.items || [];
+	const wishlistItems = wishlist?.items || [];
 
-  useEffect(() => {
-    if (couponsData?.length) {
-      setAvailableCoupons(couponsData.filter((coupon) => coupon.isActive));
-    }
-  }, [couponsData]);
+	useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
 
-  const handleQuickApplyCoupon = async (code) => {
-    setCoupon(code);
-    try {
-      setCouponLoading(true);
-      setCouponError("");
-      const data = await applyCouponMutation({
-        couponCode: code,
-        cartTotal: subtotal,
-      });
-      if (!data.success) {
-        setCouponError(data.message);
-        return;
-      }
-      setAppliedCoupon(data.couponCode);
-      setCouponDiscount(data.discount);
-      setCouponError("");
-    } catch (error) {
-      setCouponError(
-        error?.response?.data?.message || "Failed to apply coupon",
-      );
-      setAppliedCoupon(null);
-      setCouponDiscount(0);
-    } finally {
-      setCouponLoading(false);
-    }
-  };
+  if (params.get("payment") !== "return") return;
 
-  const handleMoveToWishlist = (item) => {
-    addToWishlist.mutate({ productId: item.productId || item.product?.id });
-    removeCartItem.mutate({ productId: item.productId || item.product?.id });
-  };
+  const orderId = params.get("order_id");
 
-  const handleMoveToCartFromWishlist = (item) => {
-    if (item.product?.stock <= 0) {
-      alert("This product is currently Out of Stock and cannot be moved to Cart.");
-      return;
-    }
-    moveToCart.mutate({ productId: item.product?.id || item.productId });
-  };
-
-  const FREE_SHIPPING_MIN = 500;
-
-  const { subtotal, shipping, discount, total } = useMemo(() => {
-    const sub = cartItems.reduce(
-      (acc, item) => acc + (item.product?.price || 0) * (item.quantity || 0),
-      0,
-    );
-    const ship = sub >= FREE_SHIPPING_MIN || sub === 0 ? 0 : 0;
-    const disc = couponDiscount;
-    return {
-      subtotal: sub,
-      shipping: ship,
-      discount: disc,
-      total: sub - disc - rewardDiscount + ship,
-    };
-  }, [cartItems, couponDiscount, rewardDiscount]);
-
-  const maxRewardDiscount = subtotal * 0.1;
-  const maxRewardPoints = Math.floor(maxRewardDiscount / 10) * 10;
-  const availableRewardPoints = rewardBalance?.rewardPoints || 0;
-
-  useEffect(() => {
-    if (!useReward) {
-      setRewardDiscount(0);
-      return;
-    }
-    if (availableRewardPoints < 10) {
-      setRewardDiscount(0);
-      return;
-    }
-    const usablePoints = Math.min(availableRewardPoints, maxRewardPoints);
-    setRewardDiscount(usablePoints / 10);
-  }, [useReward, availableRewardPoints, maxRewardPoints]);
-
-  if (!isHydrated || isCartLoading)
-    return (
-      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="w-8 h-8 border-2 border-[#2A4150] border-t-transparent rounded-full"
-        />
-      </div>
-    );
-
-  if (cartItems.length === 0 && wishlistItems.length === 0 && !showSuccessDialog) {
-    return <EmptyCartView />;
+  if (!orderId) {
+    setPaymentDialog({
+      variant: "danger",
+      title: "Payment Status Unavailable",
+      description:
+        "The order ID was not found. Please check the order in My Orders.",
+      confirmText: "My Orders",
+    });
+    setCreatedOrderId(null);
+    setShowSuccessDialog(true);
+    window.history.replaceState({}, "", "/cart");
+    return;
   }
 
-  const handleApplyCoupon = async () => {
+  let cancelled = false;
+
+  const checkPayment = async () => {
+    setCreatedOrderId(orderId);
+
+    // Show the same confirmation dialog while verification is in progress.
+    setPaymentDialog({
+      variant: "info",
+      title: "Checking Payment...",
+      description: "Please wait while we verify your payment.",
+      confirmText: "My Orders",
+    });
+    setShowSuccessDialog(true);
+
     try {
-      setCouponLoading(true);
-      setCouponError("");
-      const data = await applyCouponMutation({
-        couponCode: coupon,
-        cartTotal: subtotal,
-      });
-      if (!data.success) {
-        setCouponError(data.message);
-        setAppliedCoupon(null);
-        setCouponDiscount(0);
-        return;
+      const response = await verifyPayment({ orderId });
+
+      if (cancelled) return;
+
+      // Support both direct API responses and Axios responses.
+      const result =
+        response?.data?.data ??
+        response?.data ??
+        response;
+
+      const status = String(
+        result?.payment ??
+        result?.paymentStatus ??
+        result?.status ??
+        ""
+      ).toUpperCase();
+
+      if (status === "PAID" || status === "SUCCESS") {
+        setPaymentDialog({
+          variant: "success",
+          title: "Payment Successful!",
+          description:
+            "Your payment has been confirmed successfully. You can now track your order.",
+          confirmText: "Track Order",
+        });
+      } else if (
+        status === "FAILED" ||
+        status === "USER_DROPPED" ||
+        status === "CANCELLED" ||
+        status === "CANCELED" ||
+        status === "EXPIRED" ||
+        status === "TERMINATED"
+      ) {
+        const userDropped = status === "USER_DROPPED";
+
+        setPaymentDialog({
+          variant: "danger",
+          title: userDropped
+            ? "Payment Cancelled"
+            : "Payment Failed",
+          description: userDropped
+            ? "You exited the payment process. You can try the payment again."
+            : "The payment could not be completed. Please check your payment status and try again.",
+          confirmText: "View Order",
+        });
+      } else {
+        setPaymentDialog({
+          variant: "info",
+          title: "Payment Pending",
+          description:
+            "The payment has not been confirmed yet. Please check the order status again shortly and verify it before making another payment.",
+          confirmText: "Check Order",
+        });
       }
-      setAppliedCoupon(data.couponCode);
-      setCouponDiscount(data.discount);
-      setCouponError("");
     } catch (error) {
-      setCouponError(
-        error?.response?.data?.message || "Failed to apply coupon",
-      );
-      setAppliedCoupon(null);
-      setCouponDiscount(0);
+      if (cancelled) return;
+
+      console.error("Payment verification failed:", error);
+
+      setPaymentDialog({
+        variant: "info",
+        title: "Unable to Verify Payment",
+        description:
+          "The payment status could not be verified yet. This does not necessarily mean the payment failed. Please check the status in My Orders.",
+        confirmText: "View Order",
+      });
     } finally {
-      setCouponLoading(false);
+      if (!cancelled) {
+        // Remove query parameters so the dialog does not reopen on refresh.
+        window.history.replaceState({}, "", "/cart");
+      }
     }
   };
 
-  const handlePlaceOrder = () => {
-    if (!isAuthenticated) {
-      dispatch(openLogin());
-      return;
-    }
-    if (!selectedAddress && !paymentMethod) {
-      setErrorMsg("Please select address and payment method");
-      return;
-    }
-    if (!selectedAddress) {
-      setErrorMsg("Please select an address");
-      return;
-    }
-    if (!paymentMethod) {
-      setErrorMsg("Please select a payment method");
-      return;
-    }
-    setErrorMsg("");
+  checkPayment();
 
-    const payload = {
-      items: cartItems.map((item) => ({
-        id: item.product?.id || item.productId,
-        quantity: item.quantity,
-        price: Number(item.product?.price || 0),
-      })),
-      couponCode: appliedCoupon,
-      discount: couponDiscount,
-      useReward,
-      shipping: {
-        firstName: selectedAddress.firstName || "User",
-        lastName: selectedAddress.lastName || "",
-        email: selectedAddress.email || "test@example.com",
-        address: selectedAddress.address,
-        state: selectedAddress.state,
-        city: selectedAddress.city,
-        pinCode: selectedAddress?.pinCode ?? "",
-      },
-    };
-
-    if (paymentMethod === "COD") {
-      createOrder(payload, {
-        onSuccess: (res) => {
-          const orderId = res?.data?.data?.id;
-          setCreatedOrderId(orderId);
-          setShowSuccessDialog(true);
-          clearCart.mutate();
-        },
-        onError: () => alert("Order failed"),
-      });
-      return;
-    }
-
-    if (paymentMethod === "ONLINE") {
-      createOrder(payload, {
-        onSuccess: async (res) => {
-          try {
-            const orderId = res?.data?.data?.id;
-            const paymentData = await createPaymentOrder({ orderId });
-            if (!paymentData?.success) {
-              alert(paymentData?.message || "Payment failed");
-              return;
-            }
-            const razorpayOrder = paymentData.data;
-            const options = {
-              key: process.env.NEXT_PUBLIC_RAZORPAY_KEY,
-              amount: razorpayOrder.amount,
-              currency: "INR",
-              order_id: razorpayOrder.id,
-              handler: async function (response) {
-                await verifyPayment(response);
-                setCreatedOrderId(orderId);
-                setShowSuccessDialog(true);
-                clearCart.mutate();
-              },
-            };
-            const rzp = new window.Razorpay(options);
-            rzp.open();
-          } catch (error) {
-            alert("Payment failed");
-          }
-        },
-        onError: () => alert("Order failed"),
-      });
-    }
+  return () => {
+    cancelled = true;
   };
+}, [verifyPayment]);
 
-  return (
-    <>
-      <div className="min-h-screen bg-[white] py-4 sm:py-8 md:py-12 px-3 sm:px-4">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <motion.header
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mb-4 sm:mb-8"
-          >
-            <Link
-              href="/"
-              className="group inline-flex items-center gap-2 text-slate-500 hover:text-[#2A4150] transition-colors mb-2 sm:mb-4 text-xs sm:text-sm font-semibold"
-            >
-              <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-              Back to Shop
-            </Link>
-            <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
-              <h1 className="text-xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
-                {activeTab === "cart" ? "Your Cart" : "Your Wishlist"}{" "}
-                <span className="text-slate-400 font-normal">
-                  ({activeTab === "cart" ? cartItems.length : wishlistItems.length})
-                </span>
-              </h1>
-              <div className="flex items-center gap-2">
-                {cartItems.length > 0 && (
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setActiveTab("cart")}
-                    className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
-                      activeTab === "cart"
-                        ? "bg-[#2A4150] text-white"
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                    }`}
-                  >
-                    <ShoppingBag size={14} />
-                    <span className="hidden sm:inline">Cart</span> ({cartItems.length})
-                  </motion.button>
-                )}
-                {wishlistItems.length > 0 && (
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setActiveTab("wishlist")}
-                    className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
-                      activeTab === "wishlist"
-                        ? "bg-pink-500 text-white"
-                        : "bg-pink-50 text-pink-600 border border-pink-200 hover:bg-pink-100"
-                    }`}
-                  >
-                    <Heart size={14} className={activeTab === "wishlist" ? "fill-current" : ""} />
-                    <span className="hidden sm:inline">Wishlist</span> ({wishlistItems.length})
-                  </motion.button>
-                )}
-              </div>
-            </div>
-          </motion.header>
+	useEffect(() => {
+		setIsHydrated(true);
+	}, []);
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 md:gap-8">
-            {/* Left Column */}
-            <motion.div
-              className="lg:col-span-8 space-y-3 sm:space-y-4 md:space-y-6"
-              variants={staggerContainer}
-              initial="initial"
-              animate="animate"
-            >
-              {activeTab === "wishlist" ? (
-                /* Wishlist Section */
-                <>
-                  {wishlistItems.length === 0 ? (
-                    <motion.div
-                      variants={fadeInUp}
-                      className="bg-white rounded-xl md:rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 text-center"
-                    >
-                      <Heart size={48} className="mx-auto text-slate-300 mb-4" />
-                      <h3 className="text-lg font-bold text-slate-700 mb-2">Your wishlist is empty</h3>
-                      <p className="text-sm text-slate-500 mb-4">Save items you love for later</p>
-                      <button
-                        onClick={() => setActiveTab("cart")}
-                        className="px-4 py-2 bg-[#2A4150] text-white rounded-xl text-sm font-bold"
-                      >
-                        View Cart
-                      </button>
-                    </motion.div>
-                  ) : (
-                    <motion.section
-                      variants={fadeInUp}
-                      className="bg-white rounded-xl md:rounded-2xl border border-slate-200 shadow-sm divide-y divide-slate-100"
-                    >
-                      <div className="p-3 sm:p-5 bg-gradient-to-r from-pink-50 to-rose-50 rounded-t-xl md:rounded-t-2xl border-b border-pink-100">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-2xl bg-pink-500 text-white flex items-center justify-center shadow-lg">
-                            <Heart size={20} className="fill-current" />
-                          </div>
-                          <div>
-                            <h3 className="text-base sm:text-lg font-black text-slate-900">Saved Items</h3>
-                            <p className="text-xs text-slate-500 font-semibold">
-                              {wishlistItems.length} {wishlistItems.length === 1 ? "item" : "items"} saved for later
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      <AnimatePresence mode="popLayout">
-                        {wishlistItems.map((item, index) => (
-                          <motion.div
-                            key={item.id || item.product?.id}
-                            initial={{ opacity: 0, x: -50 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: 50 }}
-                            transition={{ delay: index * 0.05 }}
-                            layout
-                          >
-                            <WishlistItem
-                              item={item}
-                              onMoveToCart={() => handleMoveToCartFromWishlist(item)}
-                              onRemove={() => removeWishlistItem.mutate(item.product?.id || item.productId)}
-                            />
-                          </motion.div>
-                        ))}
-                      </AnimatePresence>
-                    </motion.section>
-                  )}
-                  {wishlistItems.length > 0 && (
-                    <motion.div
-                      variants={fadeInUp}
-                      className="bg-white p-3 sm:p-5 rounded-xl md:rounded-2xl border border-slate-200 shadow-sm"
-                    >
-                      <button
-                        onClick={() => {
-                          wishlistItems.forEach((item) => handleMoveToCartFromWishlist(item));
-                          setActiveTab("cart");
-                        }}
-                        className="w-full py-3 bg-[#2A4150] text-white rounded-xl font-bold text-sm hover:opacity-90 transition-opacity"
-                      >
-                        Move All Items to Cart
-                      </button>
-                    </motion.div>
-                  )}
-                </>
-              ) : (
-                /* Cart Section */
-                <>
-                  {cartItems.length > 0 ? (
-                    <>
-                      {/* Available Coupons - Only for authenticated users */}
-                      {isAuthenticated && (
-                        <motion.section
-                          variants={fadeInUp}
-                          className="bg-white p-3 sm:p-5 rounded-xl md:rounded-2xl border border-slate-200 shadow-sm"
-                        >
-                          <div className="flex items-center justify-between mb-3 sm:mb-4">
-                            <div className="flex items-center gap-2 sm:gap-3">
-                              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[#2A4150] text-white flex items-center justify-center shadow-lg">
-                                <TicketPercent size={16} className="sm:size-5" />
-                              </div>
-                              <div>
-                                <h3 className="text-sm sm:text-lg font-black text-slate-900">Available Coupons</h3>
-                                <p className="text-[10px] sm:text-xs text-slate-400 font-semibold">Apply & Save More</p>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="space-y-2 sm:space-y-3">
-                            {availableCoupons.length === 0 ? (
-                              <p className="text-xs sm:text-sm text-slate-400 text-center py-3 sm:py-4">No coupons available at the moment</p>
-                            ) : (
-                              availableCoupons.map((couponItem) => (
-                                <div
-                                  key={couponItem.id}
-                                  className="border border-dashed border-[#2A4150]/20 rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center justify-between gap-3 sm:gap-4 bg-[#2A4150]/[0.02]"
-                                >
-                                  <div className="min-w-0 flex-1">
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                      <span className="font-black text-[#2A4150] text-xs sm:text-base truncate">{couponItem.code}</span>
-                                      <span className="text-[9px] sm:text-[10px] bg-emerald-100 text-emerald-700 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full font-bold uppercase shrink-0">Active</span>
-                                    </div>
-                                    <p className="text-[11px] sm:text-sm text-slate-500 mt-0.5 sm:mt-1">
-                                      {couponItem.discountType === "percentage"
-                                        ? `${couponItem.discountValue}% OFF`
-                                        : `₹${couponItem.discountValue} OFF`}
-                                    </p>
-                                    <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 sm:mt-1">Min Order ₹{couponItem.minOrderAmount}</p>
-                                  </div>
-                                  <button
-                                    onClick={() => handleQuickApplyCoupon(couponItem.code)}
-                                    className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl bg-[#2A4150] text-white text-[11px] sm:text-sm font-bold hover:opacity-90 transition shrink-0"
-                                  >
-                                    APPLY
-                                  </button>
-                                </div>
-                              ))
-                            )}
-                          </div>
-                        </motion.section>
-                      )}
+	useEffect(() => {
+		if (couponsData?.length) {
+			setAvailableCoupons(couponsData.filter((coupon) => coupon.isActive));
+		}
+	}, [couponsData]);
 
-                      {/* Shipping Promo */}
-                      <motion.section
-                        variants={fadeInUp}
-                        className="bg-white p-3 sm:p-5 rounded-xl md:rounded-2xl border border-slate-200 shadow-sm"
-                      >
-                        <div className="flex items-center gap-2 sm:gap-4 mb-2 sm:mb-3">
-                          <motion.div
-                            whileHover={{ scale: 1.05 }}
-                            className={`p-2 rounded-xl ${shipping === 0 ? "bg-emerald-100 text-emerald-600" : "bg-blue-100 text-[#2A4150]"}`}
-                          >
-                            <Truck size={16} className="sm:w-5 sm:h-5" />
-                          </motion.div>
-                          <div>
-                            <h4 className="font-bold text-slate-900 leading-none text-xs sm:text-base">
-                              {shipping === 0 ? "Free Shipping Unlocked" : "Almost there!"}
-                            </h4>
-                            <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1 uppercase font-black tracking-wider">
-                              {shipping === 0
-                                ? "Your order ships for free"
-                                : `Add ₹${FREE_SHIPPING_MIN - subtotal} for free delivery`}
-                            </p>
-                          </div>
-                        </div>
-                      </motion.section>
+	const handleQuickApplyCoupon = async (code) => {
+		setCoupon(code);
+		try {
+			setCouponLoading(true);
+			setCouponError('');
+			const data = await applyCouponMutation({
+				couponCode: code,
+				cartTotal: subtotal,
+			});
+			if (!data.success) {
+				setCouponError(data.message);
+				return;
+			}
+			setAppliedCoupon(data.couponCode);
+			setCouponDiscount(data.discount);
+			setCouponError('');
+		} catch (error) {
+			setCouponError(
+				error?.response?.data?.message || 'Failed to apply coupon',
+			);
+			setAppliedCoupon(null);
+			setCouponDiscount(0);
+		} finally {
+			setCouponLoading(false);
+		}
+	};
 
-                      {/* Cart Items */}
-                      <motion.div
-                        variants={fadeInUp}
-                        className="bg-white rounded-xl md:rounded-2xl border border-slate-200 shadow-sm divide-y divide-slate-100"
-                      >
-                        <AnimatePresence mode="popLayout">
-                          {cartItems.map((item, index) => (
-                            <motion.div
-                              key={item.id}
-                              initial={{ opacity: 0, x: -50 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              exit={{ opacity: 0, x: 50 }}
-                              transition={{ delay: index * 0.05 }}
-                              layout
-                            >
-                              <CartItem
-                                item={item}
-                                onUpdate={(delta) => {
-                                  const newQty = item.quantity + delta;
-                                  const productId = item.product?.id || item.productId;
-                                  const stock = item.product?.stock || 0;
-                                  if (newQty > stock) {
-                                    alert(`Only ${stock} items available`);
-                                    return;
-                                  }
-                                  if (stock === 0) {
-                                    alert("This product is out of stock");
-                                    return;
-                                  }
-                                  updateCart.mutate({ productId, quantity: newQty });
-                                }}
-                                onRemove={() =>
-                                  removeCartItem.mutate({
-                                    productId: item.product?.id || item.productId,
-                                  })
-                                }
-                                onMoveToWishlist={() => handleMoveToWishlist(item)}
-                              />
-                            </motion.div>
-                          ))}
-                        </AnimatePresence>
-                      </motion.div>
+	const handleMoveToWishlist = (item) => {
+		addToWishlist.mutate({ productId: item.productId || item.product?.id });
+		removeCartItem.mutate({ productId: item.productId || item.product?.id });
+	};
 
-                      {/* Address & Payment - Only for authenticated users */}
-                      {isAuthenticated ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                          <motion.div variants={fadeInUp}>
-                            <SelectionCard
-                              title="Shipping To"
-                              icon={<MapPin size={18} />}
-                              isError={!selectedAddress}
-                              link="/customer/address"
-                            >
-                              {selectedAddress ? (
-                                <div className="text-xs sm:text-sm">
-                                  <p className="font-bold text-slate-800">
-                                    {selectedAddress.firstName} {selectedAddress.lastName}
-                                  </p>
-                                  <p className="text-slate-600">{selectedAddress.address}</p>
-                                  <p className="text-slate-500">
-                                    {selectedAddress.city}, {selectedAddress.state} - {selectedAddress.pinCode}
-                                  </p>
-                                </div>
-                              ) : (
-                                "Select an address to proceed"
-                              )}
-                            </SelectionCard>
-                          </motion.div>
-                          <motion.div variants={fadeInUp}>
-                            <div className="bg-white p-3 sm:p-5 rounded-xl md:rounded-2xl border border-slate-200 shadow-sm">
-                              <h3 className="text-xs sm:text-sm font-black text-slate-400 uppercase tracking-widest mb-2 sm:mb-4 flex items-center gap-2">
-                                <CreditCard size={16} /> Payment
-                              </h3>
-                              <div className="flex gap-2 sm:gap-3">
-                                {["ONLINE", "COD"].map((method) => (
-                                  <motion.button
-                                    key={method}
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    onClick={() => setPaymentMethod(method)}
-                                    className={`flex-1 py-2 sm:py-3 rounded-lg sm:rounded-xl border-2 transition-all font-bold text-[11px] sm:text-sm ${
-                                      paymentMethod === method
-                                        ? "border-[#2A4150] bg-[#2A4150]/5 text-[#2A4150]"
-                                        : "border-slate-100 text-slate-400 hover:border-slate-200"
-                                    }`}
-                                  >
-                                    {method === "COD" ? "COD" : "Online"}
-                                  </motion.button>
-                                ))}
-                              </div>
-                            </div>
-                          </motion.div>
-                        </div>
-                      ) : (
-                        /* Login Prompt Card */
-                        <motion.div
-                          variants={fadeInUp}
-                          className="bg-gradient-to-r from-[#2A4150] to-[#1E303C] p-4 sm:p-6 rounded-xl md:rounded-2xl text-white text-center"
-                        >
-                          <LogIn size={28} className="mx-auto mb-2 sm:mb-3 opacity-80" />
-                          <h3 className="text-base sm:text-lg font-bold mb-1 sm:mb-2">Ready to Checkout?</h3>
-                          <p className="text-xs sm:text-sm opacity-80 mb-3 sm:mb-4">
-                            Sign in to complete your order, apply coupons, and earn rewards!
-                          </p>
-                          <button
-                            onClick={() => dispatch(openLogin())}
-                            className="px-5 sm:px-6 py-2.5 sm:py-3 bg-white text-[#2A4150] rounded-xl font-bold text-xs sm:text-sm hover:bg-slate-100 transition-colors"
-                          >
-                            Sign In to Continue
-                          </button>
-                        </motion.div>
-                      )}
-                    </>
-                  ) : (
-                    /* Empty Cart */
-                    <motion.div
-                      variants={fadeInUp}
-                      className="bg-white rounded-xl md:rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 text-center"
-                    >
-                      <ShoppingBag size={48} className="mx-auto text-slate-300 mb-4" />
-                      <h3 className="text-lg font-bold text-slate-700 mb-2">Your cart is empty</h3>
-                      <p className="text-sm text-slate-500 mb-4">
-                        {wishlistItems.length > 0
-                          ? `But you have ${wishlistItems.length} ${wishlistItems.length === 1 ? "item" : "items"} in your wishlist`
-                          : "Add some products to your cart!"}
-                      </p>
-                      {wishlistItems.length > 0 && (
-                        <button
-                          onClick={() => setActiveTab("wishlist")}
-                          className="px-4 py-2 bg-pink-500 text-white rounded-xl text-sm font-bold"
-                        >
-                          View Wishlist
-                        </button>
-                      )}
-                    </motion.div>
-                  )}
-                </>
-              )}
-            </motion.div>
+	const handleMoveToCartFromWishlist = (item) => {
+		if (item.product?.stock <= 0) {
+			alert(
+				'This product is currently Out of Stock and cannot be moved to Cart.',
+			);
+			return;
+		}
+		moveToCart.mutate({ productId: item.product?.id || item.productId });
+	};
 
-            {/* Right Sidebar */}
-            {activeTab === "cart" && cartItems.length > 0 && (
-              <motion.aside
-                className="lg:col-span-4 space-y-3 sm:space-y-4 md:space-y-6"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-              >
-                <div className="w-full bg-white p-4 sm:p-6 md:p-8 rounded-2xl md:rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/40 lg:sticky lg:top-36 transition-all duration-300">
-                  <h2 className="text-base sm:text-xl font-black text-slate-900 tracking-tight mb-4 sm:mb-5 pb-3 sm:pb-4 border-b border-slate-100">
-                    Order Summary
-                  </h2>
+	const FREE_SHIPPING_MIN = 500;
 
-                  {/* Rewards - Only for authenticated users */}
-                  {isAuthenticated && (
-                    <div className="mb-4 sm:mb-5 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-dashed border-[#2A4150]/20 bg-[#2A4150]/[0.02]">
-                      <div className="flex items-start justify-between gap-2 sm:gap-4">
-                        <div className="flex gap-2 sm:gap-3">
-                          <Coins
-                            size={18}
-                            className={useReward && availableRewardPoints >= 10 ? "text-emerald-600 mt-0.5 shrink-0" : "text-[#2A4150] mt-0.5 shrink-0"}
-                          />
-                          <div>
-                            <h4 className="font-bold text-slate-800 text-xs sm:text-sm md:text-base">Use Reward Points</h4>
-                            <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 font-medium">
-                              Available: <span className="font-bold text-[#2A4150]">{availableRewardPoints} pts</span>
-                            </p>
-                            <p className="text-[9px] sm:text-[11px] text-slate-400 mt-1 sm:mt-1.5 font-medium leading-tight">
-                              Min: 10 pts • Max: {maxRewardPoints} pts <span className="sm:inline sm:text-slate-400/80">(10% of order)</span>
-                            </p>
-                          </div>
-                        </div>
-                        <input
-                          type="checkbox"
-                          checked={useReward}
-                          disabled={availableRewardPoints < 10}
-                          onChange={(e) => setUseReward(e.target.checked)}
-                          className="w-4 h-4 rounded border-slate-300 text-[#2A4150] focus:ring-[#2A4150] cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 mt-1 shrink-0"
-                        />
-                      </div>
-                      {availableRewardPoints < 10 && (
-                        <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-slate-100 flex items-center gap-1.5 text-[10px] sm:text-xs text-rose-500 font-semibold">
-                          <AlertCircle size={14} className="shrink-0" />
-                          Minimum 10 reward points required.
-                        </div>
-                      )}
-                      {useReward && availableRewardPoints >= 10 && (
-                        <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-slate-200/60 flex flex-wrap gap-2 justify-between items-center text-xs">
-                          <div className="flex items-center gap-1.5 text-emerald-600 font-bold">
-                            <CheckCircle2 size={14} className="shrink-0" />
-                            <span>Applied {Math.min(availableRewardPoints, maxRewardPoints)} points</span>
-                          </div>
-                          <div className="font-bold text-slate-800">
-                            Saved <span className="text-emerald-600 font-extrabold">₹{rewardDiscount}</span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
+	const { subtotal, shipping, discount, total } = useMemo(() => {
+		const sub = cartItems.reduce(
+			(acc, item) => acc + (item.product?.price || 0) * (item.quantity || 0),
+			0,
+		);
+		const ship = sub >= FREE_SHIPPING_MIN || sub === 0 ? 0 : 0;
+		const disc = couponDiscount;
+		return {
+			subtotal: sub,
+			shipping: ship,
+			discount: disc,
+			total: sub - disc - rewardDiscount + ship,
+		};
+	}, [cartItems, couponDiscount, rewardDiscount]);
 
-                  {/* Price Breakdown */}
-                  <div className="space-y-2 sm:space-y-4 mb-4 sm:mb-5">
-                    <PriceRow label="Subtotal" value={subtotal} />
-                    <PriceRow label="Shipping" value={shipping} isFree={shipping === 0} />
-                    {discount > 0 && <PriceRow label="Coupon Discount" value={discount} isDiscount />}
-                    {rewardDiscount > 0 && <PriceRow label="Reward Discount" value={rewardDiscount} isDiscount />}
-                    <motion.div
-                      className="pt-3 sm:pt-4 border-t border-dashed border-slate-200 flex justify-between items-end gap-2"
-                      initial={{ scale: 0.95 }}
-                      animate={{ scale: 1 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <div className="flex flex-col">
-                        <span className="font-black text-slate-900 text-xs sm:text-sm md:text-base tracking-tight">Total Amount</span>
-                        <span className="text-[8px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Inclusive of all taxes</span>
-                      </div>
-                      <motion.span
-                        key={total}
-                        initial={{ scale: 1.1 }}
-                        animate={{ scale: 1 }}
-                        transition={{ duration: 0.3 }}
-                        className="text-lg sm:text-2xl md:text-3xl font-black text-[#2A4150] tracking-tighter whitespace-nowrap"
-                      >
-                        ₹{total}
-                      </motion.span>
-                    </motion.div>
-                  </div>
+	const maxRewardDiscount = subtotal * 0.1;
+	const maxRewardPoints = Math.floor(maxRewardDiscount / 10) * 10;
+	const availableRewardPoints = rewardBalance?.rewardPoints || 0;
 
-                  {/* Coupon Input - Only for authenticated users */}
-                  {isAuthenticated && (
-                    <div className="mb-4 sm:mb-5 pt-3 sm:pt-4 border-t border-slate-100">
-                      <h3 className="text-[9px] sm:text-xs font-black text-slate-400 uppercase tracking-widest mb-2 sm:mb-2.5">Apply Promo Code</h3>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          placeholder="Enter coupon code"
-                          value={coupon}
-                          onChange={(e) => setCoupon(e.target.value.toUpperCase())}
-                          className="flex-1 w-full min-w-0 border border-slate-200 bg-slate-50/50 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold uppercase placeholder:normal-case tracking-wider outline-none transition focus:bg-white focus:border-[#2A4150] focus:ring-1 focus:ring-[#2A4150]"
-                        />
-                        <button
-                          onClick={handleApplyCoupon}
-                          disabled={couponLoading}
-                          className="px-3 sm:px-5 py-2 sm:py-3 rounded-lg sm:rounded-xl bg-[#2A4150] text-white text-xs font-black tracking-wider hover:bg-[#1E303C] disabled:opacity-50 transition shrink-0"
-                        >
-                          {couponLoading ? "..." : "APPLY"}
-                        </button>
-                      </div>
-                      {appliedCoupon && (
-                        <div className="mt-2 sm:mt-2.5 flex items-center gap-1.5 text-xs text-emerald-600 font-bold">
-                          <CheckCircle2 size={14} className="shrink-0" />
-                          Code active: {appliedCoupon}
-                        </div>
-                      )}
-                      {couponError && (
-                        <div className="mt-2 sm:mt-2.5 flex items-center gap-1.5 text-xs text-rose-500 font-bold">
-                          <AlertCircle size={14} className="shrink-0" />
-                          {couponError}
-                        </div>
-                      )}
-                    </div>
-                  )}
+	useEffect(() => {
+		if (!useReward) {
+			setRewardDiscount(0);
+			return;
+		}
+		if (availableRewardPoints < 10) {
+			setRewardDiscount(0);
+			return;
+		}
+		const usablePoints = Math.min(availableRewardPoints, maxRewardPoints);
+		setRewardDiscount(usablePoints / 10);
+	}, [useReward, availableRewardPoints, maxRewardPoints]);
 
-                  {/* Action Button */}
-                  <div className="space-y-2 sm:space-y-3">
-                    {errorMsg && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="text-rose-600 text-xs sm:text-sm font-bold flex items-center gap-2 p-2.5 sm:p-3 bg-rose-50 rounded-lg sm:rounded-xl border border-rose-100"
-                      >
-                        <AlertCircle size={14} className="shrink-0" /> {errorMsg}
-                      </motion.div>
-                    )}
-                    <motion.div whileHover={{ scale: 1.005 }} whileTap={{ scale: 0.995 }}>
-                      {isAuthenticated ? (
-                        <Button
-                          disabled={isPending}
-                          onClick={handlePlaceOrder}
-                          className="w-full py-3 sm:py-4 bg-[#2A4150] hover:bg-[#1E303C] text-white text-sm sm:text-base font-black uppercase tracking-widest rounded-xl transition shadow-lg shadow-[#2A4150]/10 flex items-center justify-center gap-2"
-                          text={isPending ? "Processing..." : "Place Order"}
-                          icon={<ChevronRight size={18} className="shrink-0" />}
-                        />
-                      ) : (
-                        <Button
-                          onClick={() => dispatch(openLogin())}
-                          className="w-full py-3 sm:py-4 bg-[#2A4150] hover:bg-[#1E303C] text-white text-sm sm:text-base font-black uppercase tracking-widest rounded-xl transition shadow-lg shadow-[#2A4150]/10 flex items-center justify-center gap-2"
-                          text="Sign In to Checkout"
-                          icon={<LogIn size={18} className="shrink-0" />}
-                        />
-                      )}
-                    </motion.div>
-                  </div>
+	if (!isHydrated || isCartLoading)
+		return (
+			<div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
+				<motion.div
+					animate={{ rotate: 360 }}
+					transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+					className="w-8 h-8 border-2 border-[#2A4150] border-t-transparent rounded-full"
+				/>
+			</div>
+		);
 
-                  {/* Trust Badges */}
-                  <div className="mt-4 sm:mt-5 pt-3 sm:pt-4 border-t border-slate-100 flex justify-around items-center text-slate-400 opacity-60 gap-1">
-                    <div className="flex flex-col items-center gap-1 hover:text-[#2A4150] transition-colors cursor-default select-none">
-                      <ShieldCheck size={16} className="sm:size-5" />
-                      <span className="text-[7px] sm:text-[9px] font-bold uppercase tracking-wider">Secure</span>
-                    </div>
-                    <div className="flex flex-col items-center gap-1 hover:text-[#2A4150] transition-colors cursor-default select-none">
-                      <RotateCcw size={16} className="sm:size-5" />
-                      <span className="text-[7px] sm:text-[9px] font-bold uppercase tracking-wider">Returns</span>
-                    </div>
-                    <div className="flex flex-col items-center gap-1 hover:text-[#2A4150] transition-colors cursor-default select-none">
-                      <CreditCard size={16} className="sm:size-5" />
-                      <span className="text-[7px] sm:text-[9px] font-bold uppercase tracking-wider">Verified</span>
-                    </div>
-                  </div>
-                </div>
-              </motion.aside>
-            )}
-          </div>
+	if (
+		cartItems.length === 0 &&
+		wishlistItems.length === 0 &&
+		!showSuccessDialog
+	) {
+		return <EmptyCartView />;
+	}
 
-          {activeTab === "cart" && cartItems.length > 0 && <YouMightAlsoLike />}
-        </div>
-      </div>
+	const handleApplyCoupon = async () => {
+		try {
+			setCouponLoading(true);
+			setCouponError('');
+			const data = await applyCouponMutation({
+				couponCode: coupon,
+				cartTotal: subtotal,
+			});
+			if (!data.success) {
+				setCouponError(data.message);
+				setAppliedCoupon(null);
+				setCouponDiscount(0);
+				return;
+			}
+			setAppliedCoupon(data.couponCode);
+			setCouponDiscount(data.discount);
+			setCouponError('');
+		} catch (error) {
+			setCouponError(
+				error?.response?.data?.message || 'Failed to apply coupon',
+			);
+			setAppliedCoupon(null);
+			setCouponDiscount(0);
+		} finally {
+			setCouponLoading(false);
+		}
+	};
 
-      <ConfirmationDialog
-        open={showSuccessDialog}
-        variant="success"
-        title="Order Placed Successfully!"
-        description="Your order has been placed successfully. You can track your order status anytime."
-        showCancelButton={false}
-        confirmText="Track Order"
-        onConfirm={() => {
-          if (createdOrderId) router.push(`/customer/orders/${createdOrderId}`);
-        }}
-        onCancel={() => {
-          setShowSuccessDialog(false);
-          setCreatedOrderId(null);
-        }}
-      />
-    </>
-  );
+	const handlePlaceOrder = () => {
+		if (!isAuthenticated) {
+			dispatch(openLogin());
+			return;
+		}
+		if (!selectedAddress && !paymentMethod) {
+			setErrorMsg('Please select address and payment method');
+			return;
+		}
+		if (!selectedAddress) {
+			setErrorMsg('Please select an address');
+			return;
+		}
+		if (!paymentMethod) {
+			setErrorMsg('Please select a payment method');
+			return;
+		}
+		setErrorMsg('');
+
+		const payload = {
+			items: cartItems.map((item) => ({
+				id: item.product?._id || item.productId,
+				quantity: item.quantity,
+				price: Number(item.product?.price || 0),
+			})),
+
+			paymentMethod, // Required by the order API.
+
+			couponCode: appliedCoupon,
+			discount: couponDiscount,
+			useReward,
+
+			shipping: {
+				firstName: selectedAddress.firstName || 'User',
+				lastName: selectedAddress.lastName || '',
+				email: selectedAddress.email || 'test@example.com',
+				address: selectedAddress.address,
+				state: selectedAddress.state,
+				city: selectedAddress.city,
+				pinCode: selectedAddress?.pinCode ?? '',
+			},
+		};
+
+		if (paymentMethod === 'COD') {
+			createOrder(payload, {
+				onSuccess: (res) => {
+					const orderId = res?.data?.data?.id;
+					setCreatedOrderId(orderId);
+					setShowSuccessDialog(true);
+					clearCart.mutate();
+				},
+				onError: () => alert('Order failed'),
+			});
+			return;
+		}
+
+		if (paymentMethod === 'ONLINE') {
+			createOrder(payload, {
+				onSuccess: async (res) => {
+					try {
+						console.log('CREATE ORDER RESPONSE:', res);
+
+						const orderId =
+							res?.data?.data?._id ||
+							res?.data?._id ||
+							res?.data?.data?.id ||
+							res?.data?.id ||
+							res?.data?._id ||
+							res?._id ||
+							res?.id;
+
+						if (!orderId) {
+							throw new Error(
+								'The order ID was not included in the response. Check the console for details.',
+							);
+						}
+
+						if (!orderId) {
+							throw new Error('Order ID was not found.');
+						}
+
+						console.log('Internal Order ID:', orderId);
+
+						const paymentResponse = await createPaymentOrder({ orderId });
+
+						console.log('Cashfree Response:', paymentResponse);
+
+						if (!paymentResponse?.success) {
+							throw new Error(
+								paymentResponse?.message || 'The payment session could not be created.',
+							);
+						}
+
+						const cashfreeData = paymentResponse.data;
+
+						if (!cashfreeData?.paymentSessionId) {
+							throw new Error('Cashfree paymentSessionId is missing.');
+						}
+
+						if (typeof window.Cashfree !== 'function') {
+							throw new Error('Cashfree SDK could not be loaded.');
+						}
+
+						const cashfree = window.Cashfree({
+							mode: cashfreeData.environment || 'sandbox',
+						});
+
+						await cashfree.checkout({
+							paymentSessionId: cashfreeData.paymentSessionId,
+							redirectTarget: '_self',
+						});
+					} catch (error) {
+						console.error('Cashfree Payment Error:', error);
+						setErrorMsg(error.message || 'The payment gateway could not be opened.');
+					}
+				},
+
+				onError: (error) => {
+					console.error('Create Order Error:', error);
+					setErrorMsg('Order not created. Please try again.');
+				},
+			});
+
+			return;
+		}
+	};
+
+	return (
+		<>
+			<div className="min-h-screen bg-[white] py-4 sm:py-8 md:py-12 px-3 sm:px-4">
+				<div className="max-w-7xl mx-auto">
+					{/* Header */}
+					<motion.header
+						initial={{ opacity: 0, x: -20 }}
+						animate={{ opacity: 1, x: 0 }}
+						transition={{ duration: 0.5 }}
+						className="mb-4 sm:mb-8">
+						<Link
+							href="/"
+							className="group inline-flex items-center gap-2 text-slate-500 hover:text-[#2A4150] transition-colors mb-2 sm:mb-4 text-xs sm:text-sm font-semibold">
+							<ArrowLeft
+								size={16}
+								className="group-hover:-translate-x-1 transition-transform"
+							/>
+							Back to Shop
+						</Link>
+						<div className="flex items-center gap-3 sm:gap-4 flex-wrap">
+							<h1 className="text-xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
+								{activeTab === 'cart' ? 'Your Cart' : 'Your Wishlist'}{' '}
+								<span className="text-slate-400 font-normal">
+									(
+									{activeTab === 'cart'
+										? cartItems.length
+										: wishlistItems.length}
+									)
+								</span>
+							</h1>
+							<div className="flex items-center gap-2">
+								{cartItems.length > 0 && (
+									<motion.button
+										whileHover={{ scale: 1.05 }}
+										whileTap={{ scale: 0.95 }}
+										onClick={() => setActiveTab('cart')}
+										className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
+											activeTab === 'cart'
+												? 'bg-[#2A4150] text-white'
+												: 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+										}`}>
+										<ShoppingBag size={14} />
+										<span className="hidden sm:inline">Cart</span> (
+										{cartItems.length})
+									</motion.button>
+								)}
+								{wishlistItems.length > 0 && (
+									<motion.button
+										whileHover={{ scale: 1.05 }}
+										whileTap={{ scale: 0.95 }}
+										onClick={() => setActiveTab('wishlist')}
+										className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
+											activeTab === 'wishlist'
+												? 'bg-pink-500 text-white'
+												: 'bg-pink-50 text-pink-600 border border-pink-200 hover:bg-pink-100'
+										}`}>
+										<Heart
+											size={14}
+											className={activeTab === 'wishlist' ? 'fill-current' : ''}
+										/>
+										<span className="hidden sm:inline">Wishlist</span> (
+										{wishlistItems.length})
+									</motion.button>
+								)}
+							</div>
+						</div>
+					</motion.header>
+
+					<div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 md:gap-8">
+						{/* Left Column */}
+						<motion.div
+							className="lg:col-span-8 space-y-3 sm:space-y-4 md:space-y-6"
+							variants={staggerContainer}
+							initial="initial"
+							animate="animate">
+							{activeTab === 'wishlist' ? (
+								/* Wishlist Section */
+								<>
+									{wishlistItems.length === 0 ? (
+										<motion.div
+											variants={fadeInUp}
+											className="bg-white rounded-xl md:rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 text-center">
+											<Heart
+												size={48}
+												className="mx-auto text-slate-300 mb-4"
+											/>
+											<h3 className="text-lg font-bold text-slate-700 mb-2">
+												Your wishlist is empty
+											</h3>
+											<p className="text-sm text-slate-500 mb-4">
+												Save items you love for later
+											</p>
+											<button
+												onClick={() => setActiveTab('cart')}
+												className="px-4 py-2 bg-[#2A4150] text-white rounded-xl text-sm font-bold">
+												View Cart
+											</button>
+										</motion.div>
+									) : (
+										<motion.section
+											variants={fadeInUp}
+											className="bg-white rounded-xl md:rounded-2xl border border-slate-200 shadow-sm divide-y divide-slate-100">
+											<div className="p-3 sm:p-5 bg-gradient-to-r from-pink-50 to-rose-50 rounded-t-xl md:rounded-t-2xl border-b border-pink-100">
+												<div className="flex items-center gap-3">
+													<div className="w-10 h-10 rounded-2xl bg-pink-500 text-white flex items-center justify-center shadow-lg">
+														<Heart size={20} className="fill-current" />
+													</div>
+													<div>
+														<h3 className="text-base sm:text-lg font-black text-slate-900">
+															Saved Items
+														</h3>
+														<p className="text-xs text-slate-500 font-semibold">
+															{wishlistItems.length}{' '}
+															{wishlistItems.length === 1 ? 'item' : 'items'}{' '}
+															saved for later
+														</p>
+													</div>
+												</div>
+											</div>
+											<AnimatePresence mode="popLayout">
+												{wishlistItems.map((item, index) => (
+													<motion.div
+														key={item.id || item.product?.id}
+														initial={{ opacity: 0, x: -50 }}
+														animate={{ opacity: 1, x: 0 }}
+														exit={{ opacity: 0, x: 50 }}
+														transition={{ delay: index * 0.05 }}
+														layout>
+														<WishlistItem
+															item={item}
+															onMoveToCart={() =>
+																handleMoveToCartFromWishlist(item)
+															}
+															onRemove={() =>
+																removeWishlistItem.mutate(
+																	item.product?.id || item.productId,
+																)
+															}
+														/>
+													</motion.div>
+												))}
+											</AnimatePresence>
+										</motion.section>
+									)}
+									{wishlistItems.length > 0 && (
+										<motion.div
+											variants={fadeInUp}
+											className="bg-white p-3 sm:p-5 rounded-xl md:rounded-2xl border border-slate-200 shadow-sm">
+											<button
+												onClick={() => {
+													wishlistItems.forEach((item) =>
+														handleMoveToCartFromWishlist(item),
+													);
+													setActiveTab('cart');
+												}}
+												className="w-full py-3 bg-[#2A4150] text-white rounded-xl font-bold text-sm hover:opacity-90 transition-opacity">
+												Move All Items to Cart
+											</button>
+										</motion.div>
+									)}
+								</>
+							) : (
+								/* Cart Section */
+								<>
+									{cartItems.length > 0 ? (
+										<>
+											{/* Available Coupons - Only for authenticated users */}
+											{isAuthenticated && (
+												<motion.section
+													variants={fadeInUp}
+													className="bg-white p-3 sm:p-5 rounded-xl md:rounded-2xl border border-slate-200 shadow-sm">
+													<div className="flex items-center justify-between mb-3 sm:mb-4">
+														<div className="flex items-center gap-2 sm:gap-3">
+															<div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[#2A4150] text-white flex items-center justify-center shadow-lg">
+																<TicketPercent
+																	size={16}
+																	className="sm:size-5"
+																/>
+															</div>
+															<div>
+																<h3 className="text-sm sm:text-lg font-black text-slate-900">
+																	Available Coupons
+																</h3>
+																<p className="text-[10px] sm:text-xs text-slate-400 font-semibold">
+																	Apply & Save More
+																</p>
+															</div>
+														</div>
+													</div>
+													<div className="space-y-2 sm:space-y-3">
+														{availableCoupons.length === 0 ? (
+															<p className="text-xs sm:text-sm text-slate-400 text-center py-3 sm:py-4">
+																No coupons available at the moment
+															</p>
+														) : (
+															availableCoupons.map((couponItem) => (
+																<div
+																	key={couponItem.id}
+																	className="border border-dashed border-[#2A4150]/20 rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center justify-between gap-3 sm:gap-4 bg-[#2A4150]/[0.02]">
+																	<div className="min-w-0 flex-1">
+																		<div className="flex items-center gap-2 flex-wrap">
+																			<span className="font-black text-[#2A4150] text-xs sm:text-base truncate">
+																				{couponItem.code}
+																			</span>
+																			<span className="text-[9px] sm:text-[10px] bg-emerald-100 text-emerald-700 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full font-bold uppercase shrink-0">
+																				Active
+																			</span>
+																		</div>
+																		<p className="text-[11px] sm:text-sm text-slate-500 mt-0.5 sm:mt-1">
+																			{couponItem.discountType === 'percentage'
+																				? `${couponItem.discountValue}% OFF`
+																				: `₹${couponItem.discountValue} OFF`}
+																		</p>
+																		<p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 sm:mt-1">
+																			Min Order ₹{couponItem.minOrderAmount}
+																		</p>
+																	</div>
+																	<button
+																		onClick={() =>
+																			handleQuickApplyCoupon(couponItem.code)
+																		}
+																		className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl bg-[#2A4150] text-white text-[11px] sm:text-sm font-bold hover:opacity-90 transition shrink-0">
+																		APPLY
+																	</button>
+																</div>
+															))
+														)}
+													</div>
+												</motion.section>
+											)}
+
+											{/* Shipping Promo */}
+											<motion.section
+												variants={fadeInUp}
+												className="bg-white p-3 sm:p-5 rounded-xl md:rounded-2xl border border-slate-200 shadow-sm">
+												<div className="flex items-center gap-2 sm:gap-4 mb-2 sm:mb-3">
+													<motion.div
+														whileHover={{ scale: 1.05 }}
+														className={`p-2 rounded-xl ${shipping === 0 ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-[#2A4150]'}`}>
+														<Truck size={16} className="sm:w-5 sm:h-5" />
+													</motion.div>
+													<div>
+														<h4 className="font-bold text-slate-900 leading-none text-xs sm:text-base">
+															{shipping === 0
+																? 'Free Shipping Unlocked'
+																: 'Almost there!'}
+														</h4>
+														<p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1 uppercase font-black tracking-wider">
+															{shipping === 0
+																? 'Your order ships for free'
+																: `Add ₹${FREE_SHIPPING_MIN - subtotal} for free delivery`}
+														</p>
+													</div>
+												</div>
+											</motion.section>
+
+											{/* Cart Items */}
+											<motion.div
+												variants={fadeInUp}
+												className="bg-white rounded-xl md:rounded-2xl border border-slate-200 shadow-sm divide-y divide-slate-100">
+												<AnimatePresence mode="popLayout">
+													{cartItems.map((item, index) => (
+														<motion.div
+															key={item.id}
+															initial={{ opacity: 0, x: -50 }}
+															animate={{ opacity: 1, x: 0 }}
+															exit={{ opacity: 0, x: 50 }}
+															transition={{ delay: index * 0.05 }}
+															layout>
+															<CartItem
+																item={item}
+																onUpdate={(delta) => {
+																	const newQty = item.quantity + delta;
+																	const productId =
+																		item.product?.id || item.productId;
+																	const stock = item.product?.stock || 0;
+																	if (newQty > stock) {
+																		alert(`Only ${stock} items available`);
+																		return;
+																	}
+																	if (stock === 0) {
+																		alert('This product is out of stock');
+																		return;
+																	}
+																	updateCart.mutate({
+																		productId,
+																		quantity: newQty,
+																	});
+																}}
+																onRemove={() =>
+																	removeCartItem.mutate({
+																		productId:
+																			item.product?.id || item.productId,
+																	})
+																}
+																onMoveToWishlist={() =>
+																	handleMoveToWishlist(item)
+																}
+															/>
+														</motion.div>
+													))}
+												</AnimatePresence>
+											</motion.div>
+
+											{/* Address & Payment - Only for authenticated users */}
+											{isAuthenticated ? (
+												<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+													<motion.div variants={fadeInUp}>
+														<SelectionCard
+															title="Shipping To"
+															icon={<MapPin size={18} />}
+															isError={!selectedAddress}
+															link="/customer/address">
+															{selectedAddress ? (
+																<div className="text-xs sm:text-sm">
+																	<p className="font-bold text-slate-800">
+																		{selectedAddress.firstName}{' '}
+																		{selectedAddress.lastName}
+																	</p>
+																	<p className="text-slate-600">
+																		{selectedAddress.address}
+																	</p>
+																	<p className="text-slate-500">
+																		{selectedAddress.city},{' '}
+																		{selectedAddress.state} -{' '}
+																		{selectedAddress.pinCode}
+																	</p>
+																</div>
+															) : (
+																'Select an address to proceed'
+															)}
+														</SelectionCard>
+													</motion.div>
+													<motion.div variants={fadeInUp}>
+														<div className="bg-white p-3 sm:p-5 rounded-xl md:rounded-2xl border border-slate-200 shadow-sm">
+															<h3 className="text-xs sm:text-sm font-black text-slate-400 uppercase tracking-widest mb-2 sm:mb-4 flex items-center gap-2">
+																<CreditCard size={16} /> Payment
+															</h3>
+															<div className="flex gap-2 sm:gap-3">
+																{['ONLINE', 'COD'].map((method) => (
+																	<motion.button
+																		key={method}
+																		whileHover={{ scale: 1.02 }}
+																		whileTap={{ scale: 0.98 }}
+																		onClick={() => setPaymentMethod(method)}
+																		className={`flex-1 py-2 sm:py-3 rounded-lg sm:rounded-xl border-2 transition-all font-bold text-[11px] sm:text-sm ${
+																			paymentMethod === method
+																				? 'border-[#2A4150] bg-[#2A4150]/5 text-[#2A4150]'
+																				: 'border-slate-100 text-slate-400 hover:border-slate-200'
+																		}`}>
+																		{method === 'COD' ? 'COD' : 'Online'}
+																	</motion.button>
+																))}
+															</div>
+														</div>
+													</motion.div>
+												</div>
+											) : (
+												/* Login Prompt Card */
+												<motion.div
+													variants={fadeInUp}
+													className="bg-gradient-to-r from-[#2A4150] to-[#1E303C] p-4 sm:p-6 rounded-xl md:rounded-2xl text-white text-center">
+													<LogIn
+														size={28}
+														className="mx-auto mb-2 sm:mb-3 opacity-80"
+													/>
+													<h3 className="text-base sm:text-lg font-bold mb-1 sm:mb-2">
+														Ready to Checkout?
+													</h3>
+													<p className="text-xs sm:text-sm opacity-80 mb-3 sm:mb-4">
+														Sign in to complete your order, apply coupons, and
+														earn rewards!
+													</p>
+													<button
+														onClick={() => dispatch(openLogin())}
+														className="px-5 sm:px-6 py-2.5 sm:py-3 bg-white text-[#2A4150] rounded-xl font-bold text-xs sm:text-sm hover:bg-slate-100 transition-colors">
+														Sign In to Continue
+													</button>
+												</motion.div>
+											)}
+										</>
+									) : (
+										/* Empty Cart */
+										<motion.div
+											variants={fadeInUp}
+											className="bg-white rounded-xl md:rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 text-center">
+											<ShoppingBag
+												size={48}
+												className="mx-auto text-slate-300 mb-4"
+											/>
+											<h3 className="text-lg font-bold text-slate-700 mb-2">
+												Your cart is empty
+											</h3>
+											<p className="text-sm text-slate-500 mb-4">
+												{wishlistItems.length > 0
+													? `But you have ${wishlistItems.length} ${wishlistItems.length === 1 ? 'item' : 'items'} in your wishlist`
+													: 'Add some products to your cart!'}
+											</p>
+											{wishlistItems.length > 0 && (
+												<button
+													onClick={() => setActiveTab('wishlist')}
+													className="px-4 py-2 bg-pink-500 text-white rounded-xl text-sm font-bold">
+													View Wishlist
+												</button>
+											)}
+										</motion.div>
+									)}
+								</>
+							)}
+						</motion.div>
+
+						{/* Right Sidebar */}
+						{activeTab === 'cart' && cartItems.length > 0 && (
+							<motion.aside
+								className="lg:col-span-4 space-y-3 sm:space-y-4 md:space-y-6"
+								initial={{ opacity: 0, y: 20 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{ duration: 0.5, delay: 0.2 }}>
+								<div className="w-full bg-white p-4 sm:p-6 md:p-8 rounded-2xl md:rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/40 lg:sticky lg:top-36 transition-all duration-300">
+									<h2 className="text-base sm:text-xl font-black text-slate-900 tracking-tight mb-4 sm:mb-5 pb-3 sm:pb-4 border-b border-slate-100">
+										Order Summary
+									</h2>
+
+									{/* Rewards - Only for authenticated users */}
+									{isAuthenticated && (
+										<div className="mb-4 sm:mb-5 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-dashed border-[#2A4150]/20 bg-[#2A4150]/[0.02]">
+											<div className="flex items-start justify-between gap-2 sm:gap-4">
+												<div className="flex gap-2 sm:gap-3">
+													<Coins
+														size={18}
+														className={
+															useReward && availableRewardPoints >= 10
+																? 'text-emerald-600 mt-0.5 shrink-0'
+																: 'text-[#2A4150] mt-0.5 shrink-0'
+														}
+													/>
+													<div>
+														<h4 className="font-bold text-slate-800 text-xs sm:text-sm md:text-base">
+															Use Reward Points
+														</h4>
+														<p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 font-medium">
+															Available:{' '}
+															<span className="font-bold text-[#2A4150]">
+																{availableRewardPoints} pts
+															</span>
+														</p>
+														<p className="text-[9px] sm:text-[11px] text-slate-400 mt-1 sm:mt-1.5 font-medium leading-tight">
+															Min: 10 pts • Max: {maxRewardPoints} pts{' '}
+															<span className="sm:inline sm:text-slate-400/80">
+																(10% of order)
+															</span>
+														</p>
+													</div>
+												</div>
+												<input
+													type="checkbox"
+													checked={useReward}
+													disabled={availableRewardPoints < 10}
+													onChange={(e) => setUseReward(e.target.checked)}
+													className="w-4 h-4 rounded border-slate-300 text-[#2A4150] focus:ring-[#2A4150] cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 mt-1 shrink-0"
+												/>
+											</div>
+											{availableRewardPoints < 10 && (
+												<div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-slate-100 flex items-center gap-1.5 text-[10px] sm:text-xs text-rose-500 font-semibold">
+													<AlertCircle size={14} className="shrink-0" />
+													Minimum 10 reward points required.
+												</div>
+											)}
+											{useReward && availableRewardPoints >= 10 && (
+												<div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-slate-200/60 flex flex-wrap gap-2 justify-between items-center text-xs">
+													<div className="flex items-center gap-1.5 text-emerald-600 font-bold">
+														<CheckCircle2 size={14} className="shrink-0" />
+														<span>
+															Applied{' '}
+															{Math.min(availableRewardPoints, maxRewardPoints)}{' '}
+															points
+														</span>
+													</div>
+													<div className="font-bold text-slate-800">
+														Saved{' '}
+														<span className="text-emerald-600 font-extrabold">
+															₹{rewardDiscount}
+														</span>
+													</div>
+												</div>
+											)}
+										</div>
+									)}
+
+									{/* Price Breakdown */}
+									<div className="space-y-2 sm:space-y-4 mb-4 sm:mb-5">
+										<PriceRow label="Subtotal" value={subtotal} />
+										<PriceRow
+											label="Shipping"
+											value={shipping}
+											isFree={shipping === 0}
+										/>
+										{discount > 0 && (
+											<PriceRow
+												label="Coupon Discount"
+												value={discount}
+												isDiscount
+											/>
+										)}
+										{rewardDiscount > 0 && (
+											<PriceRow
+												label="Reward Discount"
+												value={rewardDiscount}
+												isDiscount
+											/>
+										)}
+										<motion.div
+											className="pt-3 sm:pt-4 border-t border-dashed border-slate-200 flex justify-between items-end gap-2"
+											initial={{ scale: 0.95 }}
+											animate={{ scale: 1 }}
+											transition={{ duration: 0.3 }}>
+											<div className="flex flex-col">
+												<span className="font-black text-slate-900 text-xs sm:text-sm md:text-base tracking-tight">
+													Total Amount
+												</span>
+												<span className="text-[8px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
+													Inclusive of all taxes
+												</span>
+											</div>
+											<motion.span
+												key={total}
+												initial={{ scale: 1.1 }}
+												animate={{ scale: 1 }}
+												transition={{ duration: 0.3 }}
+												className="text-lg sm:text-2xl md:text-3xl font-black text-[#2A4150] tracking-tighter whitespace-nowrap">
+												₹{total}
+											</motion.span>
+										</motion.div>
+									</div>
+
+									{/* Coupon Input - Only for authenticated users */}
+									{isAuthenticated && (
+										<div className="mb-4 sm:mb-5 pt-3 sm:pt-4 border-t border-slate-100">
+											<h3 className="text-[9px] sm:text-xs font-black text-slate-400 uppercase tracking-widest mb-2 sm:mb-2.5">
+												Apply Promo Code
+											</h3>
+											<div className="flex gap-2">
+												<input
+													type="text"
+													placeholder="Enter coupon code"
+													value={coupon}
+													onChange={(e) =>
+														setCoupon(e.target.value.toUpperCase())
+													}
+													className="flex-1 w-full min-w-0 border border-slate-200 bg-slate-50/50 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold uppercase placeholder:normal-case tracking-wider outline-none transition focus:bg-white focus:border-[#2A4150] focus:ring-1 focus:ring-[#2A4150]"
+												/>
+												<button
+													onClick={handleApplyCoupon}
+													disabled={couponLoading}
+													className="px-3 sm:px-5 py-2 sm:py-3 rounded-lg sm:rounded-xl bg-[#2A4150] text-white text-xs font-black tracking-wider hover:bg-[#1E303C] disabled:opacity-50 transition shrink-0">
+													{couponLoading ? '...' : 'APPLY'}
+												</button>
+											</div>
+											{appliedCoupon && (
+												<div className="mt-2 sm:mt-2.5 flex items-center gap-1.5 text-xs text-emerald-600 font-bold">
+													<CheckCircle2 size={14} className="shrink-0" />
+													Code active: {appliedCoupon}
+												</div>
+											)}
+											{couponError && (
+												<div className="mt-2 sm:mt-2.5 flex items-center gap-1.5 text-xs text-rose-500 font-bold">
+													<AlertCircle size={14} className="shrink-0" />
+													{couponError}
+												</div>
+											)}
+										</div>
+									)}
+
+									{/* Action Button */}
+									<div className="space-y-2 sm:space-y-3">
+										{errorMsg && (
+											<motion.div
+												initial={{ opacity: 0, y: -10 }}
+												animate={{ opacity: 1, y: 0 }}
+												className="text-rose-600 text-xs sm:text-sm font-bold flex items-center gap-2 p-2.5 sm:p-3 bg-rose-50 rounded-lg sm:rounded-xl border border-rose-100">
+												<AlertCircle size={14} className="shrink-0" />{' '}
+												{errorMsg}
+											</motion.div>
+										)}
+										<motion.div
+											whileHover={{ scale: 1.005 }}
+											whileTap={{ scale: 0.995 }}>
+											{isAuthenticated ? (
+												<Button
+													disabled={isPending}
+													onClick={handlePlaceOrder}
+													className="w-full py-3 sm:py-4 bg-[#2A4150] hover:bg-[#1E303C] text-white text-sm sm:text-base font-black uppercase tracking-widest rounded-xl transition shadow-lg shadow-[#2A4150]/10 flex items-center justify-center gap-2"
+													text={isPending ? 'Processing...' : 'Place Order'}
+													icon={<ChevronRight size={18} className="shrink-0" />}
+												/>
+											) : (
+												<Button
+													onClick={() => dispatch(openLogin())}
+													className="w-full py-3 sm:py-4 bg-[#2A4150] hover:bg-[#1E303C] text-white text-sm sm:text-base font-black uppercase tracking-widest rounded-xl transition shadow-lg shadow-[#2A4150]/10 flex items-center justify-center gap-2"
+													text="Sign In to Checkout"
+													icon={<LogIn size={18} className="shrink-0" />}
+												/>
+											)}
+										</motion.div>
+									</div>
+
+									{/* Trust Badges */}
+									<div className="mt-4 sm:mt-5 pt-3 sm:pt-4 border-t border-slate-100 flex justify-around items-center text-slate-400 opacity-60 gap-1">
+										<div className="flex flex-col items-center gap-1 hover:text-[#2A4150] transition-colors cursor-default select-none">
+											<ShieldCheck size={16} className="sm:size-5" />
+											<span className="text-[7px] sm:text-[9px] font-bold uppercase tracking-wider">
+												Secure
+											</span>
+										</div>
+										<div className="flex flex-col items-center gap-1 hover:text-[#2A4150] transition-colors cursor-default select-none">
+											<RotateCcw size={16} className="sm:size-5" />
+											<span className="text-[7px] sm:text-[9px] font-bold uppercase tracking-wider">
+												Returns
+											</span>
+										</div>
+										<div className="flex flex-col items-center gap-1 hover:text-[#2A4150] transition-colors cursor-default select-none">
+											<CreditCard size={16} className="sm:size-5" />
+											<span className="text-[7px] sm:text-[9px] font-bold uppercase tracking-wider">
+												Verified
+											</span>
+										</div>
+									</div>
+								</div>
+							</motion.aside>
+						)}
+					</div>
+
+					{activeTab === 'cart' && cartItems.length > 0 && <YouMightAlsoLike />}
+				</div>
+			</div>
+
+			<ConfirmationDialog
+  open={showSuccessDialog}
+  variant={paymentDialog.variant}
+  title={paymentDialog.title}
+  description={paymentDialog.description}
+  showCancelButton={false}
+  confirmText={paymentDialog.confirmText}
+  onConfirm={() => {
+    if (createdOrderId) {
+      router.push(`/customer/orders/${createdOrderId}`);
+    } else {
+      router.push("/customer/orders");
+    }
+  }}
+  onCancel={() => {
+    setShowSuccessDialog(false);
+    setCreatedOrderId(null);
+  }}
+/>
+		</>
+	);
 }
 
 // --- CartItem Component ---
 const CartItem = ({ item, onUpdate, onRemove, onMoveToWishlist }) => {
-  const product = item.product || {};
-  const productId = item.productId || product.id;
-  const imageUrl = product?.images?.[0]?.url || "/placeholder-image.jpg";
-  const name = product?.name || "Product";
-  const price = product?.price || 0;
-  const stock = product?.stock || 0;
-  const description = product?.description || "";
+	const product = item.product || {};
+	const productId = item.productId || product.id;
+	const imageUrl = product?.images?.[0]?.url || '/placeholder-image.jpg';
+	const name = product?.name || 'Product';
+	const price = product?.price || 0;
+	const stock = product?.stock || 0;
+	const description = product?.description || '';
 
-  return (
-    <motion.div
-      layout
-      className="p-3 sm:p-5 flex gap-3 sm:gap-4 group"
-      whileHover={{ backgroundColor: "rgba(0,0,0,0.01)" }}
-    >
-      <motion.div
-        className="w-16 h-16 sm:w-24 sm:h-24 bg-slate-50 rounded-xl md:rounded-2xl overflow-hidden border border-slate-100 shrink-0"
-        whileHover={{ scale: 1.05 }}
-        transition={{ duration: 0.2 }}
-      >
-        <img src={imageUrl} className="w-full h-full object-cover" alt={name} />
-      </motion.div>
+	return (
+		<motion.div
+			layout
+			className="p-3 sm:p-5 flex gap-3 sm:gap-4 group"
+			whileHover={{ backgroundColor: 'rgba(0,0,0,0.01)' }}>
+			<motion.div
+				className="w-16 h-16 sm:w-24 sm:h-24 bg-slate-50 rounded-xl md:rounded-2xl overflow-hidden border border-slate-100 shrink-0"
+				whileHover={{ scale: 1.05 }}
+				transition={{ duration: 0.2 }}>
+				<img src={imageUrl} className="w-full h-full object-cover" alt={name} />
+			</motion.div>
 
-      <div className="flex-1 min-w-0 flex flex-col gap-2 sm:gap-0 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex-1">
-          <div className="space-y-1">
-  <h3 className="font-bold text-slate-900 text-sm line-clamp-1">
-    {name}
-  </h3>
+			<div className="flex-1 min-w-0 flex flex-col gap-2 sm:gap-0 sm:flex-row sm:items-center sm:justify-between">
+				<div className="flex-1">
+					<div className="space-y-1">
+						<h3 className="font-bold text-slate-900 text-sm line-clamp-1">
+							{name}
+						</h3>
 
-  {description && (
-    <div
-      className="text-[10px] sm:text-xs text-slate-400 mt-1 leading-relaxed line-clamp-2"
-      style={{
-        wordBreak: "break-word",
-        overflowWrap: "anywhere",
-      }}
-      dangerouslySetInnerHTML={{
-        __html: description,
-      }}
-    />
-  )}
-</div>
-          <motion.span
-            className="font-black text-slate-900 text-sm block sm:hidden mt-1"
-            key={price * item.quantity}
-            initial={{ scale: 1.1 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 0.2 }}
-          >
-            ₹{price * item.quantity}
-          </motion.span>
-        </div>
+						{description && (
+							<div
+								className="text-[10px] sm:text-xs text-slate-400 mt-1 leading-relaxed line-clamp-2"
+								style={{
+									wordBreak: 'break-word',
+									overflowWrap: 'anywhere',
+								}}
+								dangerouslySetInnerHTML={{
+									__html: description,
+								}}
+							/>
+						)}
+					</div>
+					<motion.span
+						className="font-black text-slate-900 text-sm block sm:hidden mt-1"
+						key={price * item.quantity}
+						initial={{ scale: 1.1 }}
+						animate={{ scale: 1 }}
+						transition={{ duration: 0.2 }}>
+						₹{price * item.quantity}
+					</motion.span>
+				</div>
 
-        <div className="flex items-end justify-between sm:justify-end gap-2 sm:gap-3 pl-3 sm:pl-0">
-          <motion.span
-            className="font-black text-slate-900 text-sm sm:text-base hidden sm:block min-w-[70px] text-right"
-            key={price * item.quantity}
-            initial={{ scale: 1.1 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 0.2 }}
-          >
-            ₹{price * item.quantity}
-          </motion.span>
+				<div className="flex items-end justify-between sm:justify-end gap-2 sm:gap-3 pl-3 sm:pl-0">
+					<motion.span
+						className="font-black text-slate-900 text-sm sm:text-base hidden sm:block min-w-[70px] text-right"
+						key={price * item.quantity}
+						initial={{ scale: 1.1 }}
+						animate={{ scale: 1 }}
+						transition={{ duration: 0.2 }}>
+						₹{price * item.quantity}
+					</motion.span>
 
-          <div className="flex items-center gap-1 sm:gap-2 ml-10 sm:ml-0">
-            <motion.button
-              whileTap={{ scale: 0.9 }}
-              onClick={() => onUpdate(-1)}
-              disabled={item.quantity <= 1}
-              className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors flex items-center justify-center font-bold text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Minus size={12} className="sm:size-[14px]" />
-            </motion.button>
-            <span className="w-5 sm:w-6 text-center font-semibold text-slate-800 text-xs sm:text-base">{item.quantity}</span>
-            <motion.button
-              whileTap={{ scale: 0.9 }}
-              onClick={() => onUpdate(1)}
-              disabled={item.quantity >= stock}
-              className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors flex items-center justify-center font-bold text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Plus size={12} className="sm:size-[14px]" />
-            </motion.button>
-          </div>
+					<div className="flex items-center gap-1 sm:gap-2 ml-10 sm:ml-0">
+						<motion.button
+							whileTap={{ scale: 0.9 }}
+							onClick={() => onUpdate(-1)}
+							disabled={item.quantity <= 1}
+							className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors flex items-center justify-center font-bold text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed">
+							<Minus size={12} className="sm:size-[14px]" />
+						</motion.button>
+						<span className="w-5 sm:w-6 text-center font-semibold text-slate-800 text-xs sm:text-base">
+							{item.quantity}
+						</span>
+						<motion.button
+							whileTap={{ scale: 0.9 }}
+							onClick={() => onUpdate(1)}
+							disabled={item.quantity >= stock}
+							className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors flex items-center justify-center font-bold text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed">
+							<Plus size={12} className="sm:size-[14px]" />
+						</motion.button>
+					</div>
 
-          <div className="flex items-center gap-0.5 sm:gap-1">
-            <motion.button
-              whileTap={{ scale: 0.9 }}
-              whileHover={{ scale: 1.05 }}
-              onClick={onMoveToWishlist}
-              className="p-1 sm:p-2 text-pink-400 hover:text-pink-600 hover:bg-pink-50 rounded-lg transition-colors"
-              aria-label="Move to wishlist"
-              title="Save for later"
-            >
-              <Heart size={14} className="sm:w-[18px] sm:h-[18px]" />
-            </motion.button>
-            <motion.button
-              whileTap={{ scale: 0.9 }}
-              whileHover={{ scale: 1.05 }}
-              onClick={onRemove}
-              className="p-1 sm:p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-              aria-label="Remove item"
-            >
-              <Trash2 size={14} className="sm:w-[18px] sm:h-[18px]" />
-            </motion.button>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
+					<div className="flex items-center gap-0.5 sm:gap-1">
+						<motion.button
+							whileTap={{ scale: 0.9 }}
+							whileHover={{ scale: 1.05 }}
+							onClick={onMoveToWishlist}
+							className="p-1 sm:p-2 text-pink-400 hover:text-pink-600 hover:bg-pink-50 rounded-lg transition-colors"
+							aria-label="Move to wishlist"
+							title="Save for later">
+							<Heart size={14} className="sm:w-[18px] sm:h-[18px]" />
+						</motion.button>
+						<motion.button
+							whileTap={{ scale: 0.9 }}
+							whileHover={{ scale: 1.05 }}
+							onClick={onRemove}
+							className="p-1 sm:p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+							aria-label="Remove item">
+							<Trash2 size={14} className="sm:w-[18px] sm:h-[18px]" />
+						</motion.button>
+					</div>
+				</div>
+			</div>
+		</motion.div>
+	);
 };
 
 // --- WishlistItem Component ---
 const WishlistItem = ({ item, onMoveToCart, onRemove }) => {
-  const product = item.product || {};
-  const imageUrl = product?.images?.[0]?.url || "/placeholder-image.jpg";
-  const name = product?.name || "Product";
-  const price = product?.price || 0;
-  const stock = product?.stock || 0;
+	const product = item.product || {};
+	const imageUrl = product?.images?.[0]?.url || '/placeholder-image.jpg';
+	const name = product?.name || 'Product';
+	const price = product?.price || 0;
+	const stock = product?.stock || 0;
 
-  return (
-    <motion.div
-      layout
-      className="p-3 sm:p-5 flex gap-3 sm:gap-4 group"
-      whileHover={{ backgroundColor: "rgba(0,0,0,0.01)" }}
-    >
-      <motion.div
-        className="w-16 h-16 sm:w-24 sm:h-24 bg-slate-50 rounded-xl md:rounded-2xl overflow-hidden border border-slate-100 shrink-0"
-        whileHover={{ scale: 1.05 }}
-        transition={{ duration: 0.2 }}
-      >
-        <img src={imageUrl} className="w-full h-full object-cover" alt={name} />
-      </motion.div>
+	return (
+		<motion.div
+			layout
+			className="p-3 sm:p-5 flex gap-3 sm:gap-4 group"
+			whileHover={{ backgroundColor: 'rgba(0,0,0,0.01)' }}>
+			<motion.div
+				className="w-16 h-16 sm:w-24 sm:h-24 bg-slate-50 rounded-xl md:rounded-2xl overflow-hidden border border-slate-100 shrink-0"
+				whileHover={{ scale: 1.05 }}
+				transition={{ duration: 0.2 }}>
+				<img src={imageUrl} className="w-full h-full object-cover" alt={name} />
+			</motion.div>
 
-      <div className="flex-1 min-w-0 flex flex-col gap-2 sm:gap-0 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex-1">
-          <h3 className="font-bold text-slate-900 text-xs sm:text-base leading-5 line-clamp-2">{name}</h3>
-          <motion.span
-            className="font-black text-slate-900 text-xs sm:text-base"
-            key={price}
-            initial={{ scale: 1.1 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 0.2 }}
-          >
-            ₹{price}
-          </motion.span>
-          {stock === 0 && (
-            <span className="ml-1 sm:ml-2 text-[9px] sm:text-[10px] bg-red-100 text-red-600 px-1.5 sm:px-2 py-0.5 rounded-full font-bold">Out of Stock</span>
-          )}
-          {stock > 0 && stock <= 5 && (
-            <span className="ml-1 sm:ml-2 text-[9px] sm:text-[10px] bg-orange-100 text-orange-600 px-1.5 sm:px-2 py-0.5 rounded-full font-bold">Only {stock} left</span>
-          )}
-        </div>
+			<div className="flex-1 min-w-0 flex flex-col gap-2 sm:gap-0 sm:flex-row sm:items-center sm:justify-between">
+				<div className="flex-1">
+					<h3 className="font-bold text-slate-900 text-xs sm:text-base leading-5 line-clamp-2">
+						{name}
+					</h3>
+					<motion.span
+						className="font-black text-slate-900 text-xs sm:text-base"
+						key={price}
+						initial={{ scale: 1.1 }}
+						animate={{ scale: 1 }}
+						transition={{ duration: 0.2 }}>
+						₹{price}
+					</motion.span>
+					{stock === 0 && (
+						<span className="ml-1 sm:ml-2 text-[9px] sm:text-[10px] bg-red-100 text-red-600 px-1.5 sm:px-2 py-0.5 rounded-full font-bold">
+							Out of Stock
+						</span>
+					)}
+					{stock > 0 && stock <= 5 && (
+						<span className="ml-1 sm:ml-2 text-[9px] sm:text-[10px] bg-orange-100 text-orange-600 px-1.5 sm:px-2 py-0.5 rounded-full font-bold">
+							Only {stock} left
+						</span>
+					)}
+				</div>
 
-        <div className="flex items-center gap-2">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={onMoveToCart}
-            disabled={stock === 0}
-            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-bold transition-all flex items-center gap-1 ${
-              stock === 0 ? "bg-slate-100 text-slate-400 cursor-not-allowed" : "bg-[#2A4150] text-white hover:opacity-90"
-            }`}
-          >
-            <ShoppingCart size={12} className="sm:size-[14px]" />
-            Move to Cart
-          </motion.button>
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            whileHover={{ scale: 1.05 }}
-            onClick={onRemove}
-            className="p-1.5 sm:p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-            aria-label="Remove from wishlist"
-          >
-            <Trash2 size={14} className="sm:size-[16px]" />
-          </motion.button>
-        </div>
-      </div>
-    </motion.div>
-  );
+				<div className="flex items-center gap-2">
+					<motion.button
+						whileHover={{ scale: 1.02 }}
+						whileTap={{ scale: 0.98 }}
+						onClick={onMoveToCart}
+						disabled={stock === 0}
+						className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-bold transition-all flex items-center gap-1 ${
+							stock === 0
+								? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+								: 'bg-[#2A4150] text-white hover:opacity-90'
+						}`}>
+						<ShoppingCart size={12} className="sm:size-[14px]" />
+						Move to Cart
+					</motion.button>
+					<motion.button
+						whileTap={{ scale: 0.9 }}
+						whileHover={{ scale: 1.05 }}
+						onClick={onRemove}
+						className="p-1.5 sm:p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+						aria-label="Remove from wishlist">
+						<Trash2 size={14} className="sm:size-[16px]" />
+					</motion.button>
+				</div>
+			</div>
+		</motion.div>
+	);
 };
 
 // --- PriceRow Component ---
 const PriceRow = ({ label, value, isFree, isDiscount }) => (
-  <motion.div
-    className={`flex justify-between text-[11px] sm:text-sm font-bold ${isDiscount ? "text-emerald-600" : "text-slate-500"}`}
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    transition={{ duration: 0.3 }}
-  >
-    <span>{label}</span>
-    <motion.span className={isFree ? "text-emerald-600" : ""} whileHover={{ scale: 1.05 }}>
-      {isFree ? "FREE" : `${isDiscount ? "- " : ""}₹${value}`}
-    </motion.span>
-  </motion.div>
+	<motion.div
+		className={`flex justify-between text-[11px] sm:text-sm font-bold ${isDiscount ? 'text-emerald-600' : 'text-slate-500'}`}
+		initial={{ opacity: 0 }}
+		animate={{ opacity: 1 }}
+		transition={{ duration: 0.3 }}>
+		<span>{label}</span>
+		<motion.span
+			className={isFree ? 'text-emerald-600' : ''}
+			whileHover={{ scale: 1.05 }}>
+			{isFree ? 'FREE' : `${isDiscount ? '- ' : ''}₹${value}`}
+		</motion.span>
+	</motion.div>
 );
 
 // --- SelectionCard Component ---
 const SelectionCard = ({ title, icon, isError, children, link }) => (
-  <motion.div
-    className={`bg-white p-3 sm:p-5 rounded-xl md:rounded-2xl border shadow-sm transition-all h-full ${
-      isError ? "border-red-100 bg-red-50/20" : "border-slate-200"
-    }`}
-    whileHover={{ y: -2 }}
-    transition={{ duration: 0.2 }}
-  >
-    <div className="flex justify-between items-start mb-1.5 sm:mb-3">
-      <h3 className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5 sm:gap-2">
-        {icon} {title}
-      </h3>
-      <Link href={link} className="text-[9px] sm:text-[10px] font-black text-blue-600 uppercase border-b border-blue-600">
-        change
-      </Link>
-    </div>
-    <div className={`text-[11px] sm:text-sm ${isError ? "text-red-500 font-bold flex items-center gap-1" : "text-slate-600 font-medium"}`}>
-      {isError && <AlertCircle size={12} />} {children}
-    </div>
-  </motion.div>
+	<motion.div
+		className={`bg-white p-3 sm:p-5 rounded-xl md:rounded-2xl border shadow-sm transition-all h-full ${
+			isError ? 'border-red-100 bg-red-50/20' : 'border-slate-200'
+		}`}
+		whileHover={{ y: -2 }}
+		transition={{ duration: 0.2 }}>
+		<div className="flex justify-between items-start mb-1.5 sm:mb-3">
+			<h3 className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5 sm:gap-2">
+				{icon} {title}
+			</h3>
+			<Link
+				href={link}
+				className="text-[9px] sm:text-[10px] font-black text-blue-600 uppercase border-b border-blue-600">
+				change
+			</Link>
+		</div>
+		<div
+			className={`text-[11px] sm:text-sm ${isError ? 'text-red-500 font-bold flex items-center gap-1' : 'text-slate-600 font-medium'}`}>
+			{isError && <AlertCircle size={12} />} {children}
+		</div>
+	</motion.div>
 );
 
 // --- EmptyCartView Component ---
 const EmptyCartView = () => (
-  <motion.div
-    className="min-h-[80vh] flex flex-col items-center justify-center p-4 sm:p-6 text-center"
-    initial={{ opacity: 0, scale: 0.9 }}
-    animate={{ opacity: 1, scale: 1 }}
-    transition={{ duration: 0.5, type: "spring" }}
-  >
-    <motion.div
-      className="relative mb-4 sm:mb-8"
-      animate={{ rotate: [0, -5, 5, -5, 0] }}
-      transition={{ duration: 0.5, delay: 0.2 }}
-    >
-      <div className="bg-slate-100 p-6 sm:p-10 rounded-full">
-        <ShoppingBag className="w-10 h-10 sm:w-16 sm:h-16 text-slate-300" />
-      </div>
-    </motion.div>
-    <motion.h2
-      className="text-xl sm:text-3xl md:text-4xl font-black text-slate-900 mb-2 tracking-tighter"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.3 }}
-    >
-      YOUR CART IS EMPTY
-    </motion.h2>
-    <motion.p
-      className="text-slate-500 mb-4 sm:mb-8 max-w-xs font-medium text-xs sm:text-base"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.4 }}
-    >
-      Looks like you haven&apos;t decided yet. Our new collection is waiting!
-    </motion.p>
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.5 }}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-    >
-      <Link href="/">
-        <Button
-          className="px-6 sm:px-12 py-2.5 sm:py-4 rounded-full shadow-lg shadow-slate-200 text-xs sm:text-base"
-          text="Start Exploring"
-        />
-      </Link>
-    </motion.div>
-  </motion.div>
+	<motion.div
+		className="min-h-[80vh] flex flex-col items-center justify-center p-4 sm:p-6 text-center"
+		initial={{ opacity: 0, scale: 0.9 }}
+		animate={{ opacity: 1, scale: 1 }}
+		transition={{ duration: 0.5, type: 'spring' }}>
+		<motion.div
+			className="relative mb-4 sm:mb-8"
+			animate={{ rotate: [0, -5, 5, -5, 0] }}
+			transition={{ duration: 0.5, delay: 0.2 }}>
+			<div className="bg-slate-100 p-6 sm:p-10 rounded-full">
+				<ShoppingBag className="w-10 h-10 sm:w-16 sm:h-16 text-slate-300" />
+			</div>
+		</motion.div>
+		<motion.h2
+			className="text-xl sm:text-3xl md:text-4xl font-black text-slate-900 mb-2 tracking-tighter"
+			initial={{ opacity: 0, y: 20 }}
+			animate={{ opacity: 1, y: 0 }}
+			transition={{ delay: 0.3 }}>
+			YOUR CART IS EMPTY
+		</motion.h2>
+		<motion.p
+			className="text-slate-500 mb-4 sm:mb-8 max-w-xs font-medium text-xs sm:text-base"
+			initial={{ opacity: 0, y: 20 }}
+			animate={{ opacity: 1, y: 0 }}
+			transition={{ delay: 0.4 }}>
+			Looks like you haven&apos;t decided yet. Our new collection is waiting!
+		</motion.p>
+		<motion.div
+			initial={{ opacity: 0, y: 20 }}
+			animate={{ opacity: 1, y: 0 }}
+			transition={{ delay: 0.5 }}
+			whileHover={{ scale: 1.05 }}
+			whileTap={{ scale: 0.95 }}>
+			<Link href="/">
+				<Button
+					className="px-6 sm:px-12 py-2.5 sm:py-4 rounded-full shadow-lg shadow-slate-200 text-xs sm:text-base"
+					text="Start Exploring"
+				/>
+			</Link>
+		</motion.div>
+	</motion.div>
 );

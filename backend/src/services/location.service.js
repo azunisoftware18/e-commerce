@@ -7,7 +7,7 @@ export const fetchStates = async () => {
 
 // ✅ Get Cities
 export const fetchCities = async (stateName) => {
-  // State object find karo
+  // Find the state object.
   const state = State.getStatesOfCountry("IN").find(
     (s) => s.name.toLowerCase() === stateName.toLowerCase()
   );

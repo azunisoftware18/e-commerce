@@ -145,7 +145,7 @@ export default function AddCategoryForm({
     })}
   />
 )}
-        {/* Image Upload UI - Ab dono cases mein dikhega */}
+        {/* Image upload UI is displayed in both cases. */}
        {type !== "subcategory" && (
   <div className="space-y-2">
     <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">

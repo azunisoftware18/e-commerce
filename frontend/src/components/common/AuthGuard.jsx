@@ -8,8 +8,21 @@ import { openLogin } from "@/store/slices/authSlice";
 
 export default function AuthGuard({ children }) {
   const router = useRouter();
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { isAuthenticated, isAuthChecked } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
+
+  // Wait for AuthInitializer to restore the saved session before deciding
+  // whether this protected screen should be shown.
+  if (!isAuthChecked) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div
+          className="h-9 w-9 animate-spin rounded-full border-2 border-[#2A4150] border-t-transparent"
+          aria-label="Checking your session"
+        />
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return (

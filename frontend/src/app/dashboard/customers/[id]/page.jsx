@@ -103,7 +103,7 @@ export default function AdminCustomerView() {
           {/* RIGHT COLUMN: Business Data */}
           <div className="lg:col-span-8 space-y-8">
             
-            {/* STATS SECTION - Desktop par ek line mein */}
+            {/* Statistics section displayed in one row on desktop. */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               <StatCard 
                 title="Total Spent" 
@@ -149,7 +149,7 @@ export default function AdminCustomerView() {
               <div className="p-0">
                 {activeTab === "transactions" && (
                   <div className="overflow-x-auto min-h-75">
-                    {/* Yahan aap customer ka ledger data map karenge */}
+                    {/* Map the customer's ledger data here. */}
                     <LedgerTable data={customer?.transactions || []} />
                   </div>
                 )}

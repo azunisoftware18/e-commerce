@@ -36,7 +36,7 @@ export default function DashboardNavbar({ toggleSidebar }) {
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    window.addEventListener("scroll", handleScroll, true); // 'true' capture phase ke liye taaki inner scroll bhi detect ho
+    window.addEventListener("scroll", handleScroll, true); // Use capture phase so inner scrolling is detected too.
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);

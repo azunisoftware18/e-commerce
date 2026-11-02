@@ -16,12 +16,12 @@ export default function PublicLayout({ children }) {
     return () => clearTimeout(timer);
   }, []);
 
-  // Jab tak loader complete nahi hota, sirf loader dikhao
+  // Show only the loader until it has finished.
   if (!isLoaderDone) {
     return <EcommerceLoader />;
   }
 
-  // Loader complete hone ke baad hi layout render karo
+  // Render the layout only after the loader has completed.
   return (
     <div className="animate-fadeIn">
       <Header />

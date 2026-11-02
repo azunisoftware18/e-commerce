@@ -50,7 +50,7 @@ export const createConsultation = async (req, res) => {
         dietPlanId: dietPlanId || null,
       },
       include: {
-        dietPlan: true, // 🔥 relation data bhi milega
+        dietPlan: true, // Include the related diet plan data.
       },
     });
 

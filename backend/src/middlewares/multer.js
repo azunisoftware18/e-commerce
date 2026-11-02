@@ -31,7 +31,7 @@ const storage = multer.diskStorage({
     file.fieldname === "thumbnail" ||
     file.fieldname === "image"
   ) {
-    cb(null, thumbDir); // optional (agar thumbnail alag chahiye)
+    cb(null, thumbDir); // Optional: use a separate thumbnail directory.
   } else {
     return cb(new Error("Invalid field"), null);
   }

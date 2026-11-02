@@ -100,7 +100,7 @@
 
 .product-description {
   font-size: 16px;
-  line-height: 1.8; /* Padhne mein aasan banane ke liye */
+  line-height: 1.8; /* Improves readability. */
   color: #334155;    /* Slate-700 color */
   word-wrap: break-word;
 }
@@ -186,7 +186,7 @@
   border-top: 1px solid #e2e8f0;
 }
 
-/* Blockquote Style (Agar use karein) */
+/* Blockquote style (when used) */
 .product-description blockquote {
   border-left: 4px solid #cbd5e1;
   padding-left: 1rem;

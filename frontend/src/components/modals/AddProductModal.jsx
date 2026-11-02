@@ -32,7 +32,7 @@ export default function AddProductModal({ open, onClose, onSubmit, editData }) {
         <div className="overflow-y-auto p-8 custom-scrollbar">
           <AddProductForm
           key={editData?.id || "add"}
-            title="" // Title modal header mein hai
+            title="" // The modal header contains the title.
             submitText="Publish Product"
             onSuccess={onClose}
             onCancel={onClose}

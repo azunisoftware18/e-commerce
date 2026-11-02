@@ -42,7 +42,7 @@ const formattedRevenue = new Intl.NumberFormat("en-IN").format(
         </p>
       </header>
 
-      {/* Stats Grid - Tablet tak 1 card, Laptop/Desktop par 2 cards */}
+      {/* Stats grid: one card through tablet, two cards on laptop and desktop. */}
       <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6 w-full max-w-400">
         <StatCard title="Total Orders" value={totalOrders} icon={ShoppingBag} />
 
@@ -67,7 +67,7 @@ const formattedRevenue = new Intl.NumberFormat("en-IN").format(
           <h2 className="font-semibold text-[#2A4150]">Order History</h2>
         </div>
 
-        {/* Responsive Wrapper: Tablet aur Mobile par swipe karne ke liye */}
+        {/* Responsive wrapper that supports swiping on tablet and mobile. */}
         <div className="overflow-x-auto w-full scrollbar-hide">
           <div className="inline-block min-w-full align-middle">
             <OrdersTable data={orders} />

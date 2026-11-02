@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useUpdateProfile, useChangePassword } from "@/lib/mutations/useAuth";
 import { useMe } from "@/lib/queries/useUsers";
-import { useQueryClient } from "@tanstack/react-query"; // ✅ Query invalidation ke liye
+import { useQueryClient } from "@tanstack/react-query"; // Used to invalidate cached queries.
 import InputField from "@/components/ui/InputField";
 import Button from "@/components/ui/Button";
 import { Eye, EyeOff, User, ShieldCheck, Loader2 } from "lucide-react";
@@ -53,7 +53,7 @@ export default function AdminProfilePage() {
   const onUpdateProfile = async (data) => {
     try {
       await updateProfile.mutateAsync(data);
-      // ✅ Cache update: Taki poore app mein naya naam/email reflect ho
+      // Update the cache so the new name and email appear across the app.
       queryClient.invalidateQueries({ queryKey: ["me"] });
       alert("Profile updated successfully ");
       resetProfile(data); 

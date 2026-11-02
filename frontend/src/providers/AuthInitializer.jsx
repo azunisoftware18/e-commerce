@@ -14,7 +14,7 @@ export default function AuthInitializer({ children }) {
       dispatch(setUser(JSON.parse(user)));
     }
 
-    // ✅ YE LINE MOST IMPORTANT HAI
+    // Mark the initial authentication check as complete.
     dispatch(setAuthChecked());
 
   }, [dispatch]);

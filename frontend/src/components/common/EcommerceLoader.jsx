@@ -10,10 +10,10 @@ export default function EcommerceLoader() {
   const [pageLoaded, setPageLoaded] = useState(false);
 
   useEffect(() => {
-    // Minimum 3 seconds timer ⬇️ YAHAN CHANGE KIYA
+    // Keep the loader visible for at least three seconds.
     const minimumTimer = setTimeout(() => {
       setMinimumTimeReached(true);
-    }, 3000); // 5000 se badalkar 3000 (3 seconds)
+    }, 3000); // Reduced from 5,000 ms to 3,000 ms.
 
     // Progress bar animation
     const progressInterval = setInterval(() => {
@@ -35,10 +35,10 @@ export default function EcommerceLoader() {
       window.addEventListener("load", handlePageLoad);
     }
 
-    // Safety fallback - force hide after 6 seconds ⬇️ YAHAN CHANGE KIYA
+    // Safety fallback: force-hide the loader after six seconds.
     const fallbackTimer = setTimeout(() => {
       setIsLoading(false);
-    }, 6000); // 8000 se badalkar 6000 (6 seconds max)
+    }, 6000); // Reduced from 8,000 ms to a six-second maximum.
 
     return () => {
       clearInterval(progressInterval);

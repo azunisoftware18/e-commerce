@@ -12,14 +12,14 @@ import {
 
 const router = Router();
 
-// Add To Wishlist (Guest & Logged-in dono ke liye)
+// Add to wishlist (for guests and signed-in users)
 router.post(
   "/add-to-wishlist",
   optionalAuthMiddleware, // 👈 Changed from authMiddleware
   addToWishlist
 );
 
-// Get Wishlist (Guest & Logged-in dono ke liye)
+// Get wishlist (for guests and signed-in users)
 router.get(
   "/get-wishlist",
   optionalAuthMiddleware, // 👈 Changed from authMiddleware
@@ -33,14 +33,14 @@ router.post(
   mergeWishlist
 );
 
-// Remove Wishlist Item (Guest & Logged-in dono ke liye)
+// Remove a wishlist item (for guests and signed-in users)
 router.delete(
   "/remove-wishlist-item/:productId",
   optionalAuthMiddleware, // 👈 Changed from authMiddleware
   removeWishlistItem
 );
 
-// Move To Cart (Guest & Logged-in dono ke liye)
+// Move to cart (for guests and signed-in users)
 router.post(
   "/move-to-cart",
   optionalAuthMiddleware, // 👈 Changed from authMiddleware

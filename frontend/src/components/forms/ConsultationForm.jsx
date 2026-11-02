@@ -30,7 +30,7 @@ export default function ConsultationForm({
   };
 
   return (
-    /* Box padding badha kar p-8 sm:p-10 kiya gaya hai design ko breath karne ke liye */
+    /* Increased box padding to p-8 sm:p-10 for a more spacious design. */
     <div className="w-full max-w-3xl mx-auto bg-white p-8 sm:p-10 border border-slate-100 rounded-4xl shadow-xl overflow-hidden">
       {title && (
         <h1 className="text-3xl font-bold mb-8 text-[#2A4150] tracking-tight border-b border-slate-100 pb-4">
@@ -43,7 +43,7 @@ export default function ConsultationForm({
         className="space-y-6"
         id="checkout-form"
       >
-        {/* Name Row - Gap badha kar 6 kiya hai */}
+        {/* Name row with a gap of 6. */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <InputField
             label="First Name"
@@ -68,7 +68,7 @@ export default function ConsultationForm({
           />
         </div>
 
-        {/* Age & Weight Row - Isko grid me daal diya taaki desktop par vertical space bache */}
+        {/* Age and weight row uses a grid to save vertical space on desktop. */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <InputField
             label="Age"
@@ -96,7 +96,7 @@ export default function ConsultationForm({
           />
         </div>
 
-        {/* Phone - Clean Label aur Natural Placeholder */}
+        {/* Phone field with a clear label and natural placeholder. */}
         <InputField
           label="Phone Number"
           placeholder="Enter your phone number"

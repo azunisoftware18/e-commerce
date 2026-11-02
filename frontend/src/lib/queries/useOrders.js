@@ -12,6 +12,10 @@ export const useOrders = () => {
 
       return res?.data?.data || [];
     },
+    // An expired or missing login cookie cannot succeed on retry. Let the
+    // protected page return the customer to sign-in immediately instead.
+    retry: (failureCount, error) =>
+      error?.response?.status !== 401 && failureCount < 2,
   });
 };
 

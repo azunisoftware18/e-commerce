@@ -96,9 +96,9 @@ export default function CategoryPage({ params }) {
           {search
             ? `Search: ${search}`
             : safeSlug.replace(/-/g, " ")}{" "}
-          <span className="text-slate-400 font-light">
+          {/* <span className="text-slate-400 font-light">
             {search ? "Results" : "Collection"}
-          </span>
+          </span> */}
         </h1>
         
       </div>

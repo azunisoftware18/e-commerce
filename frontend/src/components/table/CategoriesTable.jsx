@@ -95,7 +95,7 @@ export default function CategoriesTable({
 
     const flattened = [];
     paginatedParents.forEach((parent) => {
-      // Parent add karo
+      // Add the parent category.
       flattened.push({ ...parent, isSub: false });
 
       if (expandedRows[parent.id] && parent.subCategories) {
@@ -103,7 +103,7 @@ export default function CategoriesTable({
           flattened.push({
             ...sub,
             isSub: true,
-            parentId: parent.id, // reference ke liye
+            parentId: parent.id, // Used as a reference.
           });
         });
       }

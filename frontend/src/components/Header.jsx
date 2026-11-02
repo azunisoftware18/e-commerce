@@ -265,7 +265,7 @@ const totalQuantity = cartItems.reduce(
 
                 {settings?.companyName && (
                   <div className="flex flex-col items-start sm:items-center antialiased -ml-2 sm:ml-0">
-                    {/* --- MOBILE VIEW ME COMPANY NAME THODA CHOTA KIYA GAYA HAI (text-[15px] sm:text-[18px]) --- */}
+                    {/* Mobile uses a smaller company name (text-[15px] sm:text-[18px]). */}
                     {/* <span className="relative inline-block text-[15px] sm:text-[18px] md:text-[22px] lg:text-[32px] font-serif leading-[0.9] whitespace-nowrap tracking-[0.02em] select-none capitalize">
                       <span className="text-[#2D5138] font-medium tracking-normal">
                         {words[0].toLowerCase()}
