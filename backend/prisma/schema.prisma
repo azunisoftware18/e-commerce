@@ -118,6 +118,10 @@ model Order {
   createdby          String
   shippingId         String
   trackingId         String?
+  shiprocketReference  String? @unique
+  shiprocketOrderId    String? @unique
+  shiprocketShipmentId String?
+  shiprocketStatus     String?
   courierName        String?
   creator            User                @relation("CreatedOrders", fields: [createdby], references: [id], map: "Order_createdby_fkey")
   customer           User                @relation("CustomerOrders", fields: [customerid], references: [id], map: "Order_customerid_fkey")

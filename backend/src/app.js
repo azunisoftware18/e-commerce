@@ -42,6 +42,7 @@ import wishlistRoutes from "./routes/wishlist.routes.js";
 import rewardRoutes from "./routes/reward.routes.js";
 import auditRoutes from "./routes/audit.routes.js";
 import newsletterRoutes from "./routes/newsletter.routes.js";
+import shiprocketRoutes from "./routes/shiprocket.routes.js";
 
 // routes declaration
 app.use("/api/v1/auth", userRouter);
@@ -63,12 +64,22 @@ app.use("/api/v1/wishlist", wishlistRoutes);
 app.use("/api/v1/rewards", rewardRoutes);
 app.use("/api/v1/audit", auditRoutes);
 app.use("/api/v1/newsletter", newsletterRoutes);
+app.use("/api/v1/shiprocket", shiprocketRoutes);
 
 app.use((err, req, res, next) => {
   console.error("ERROR 💥", err);
-  res.status(500).json({
+  const statusCode =
+    Number.isInteger(err?.status) && err.status >= 400 && err.status < 600
+      ? err.status
+      : 500;
+  const message =
+    typeof err === "string"
+      ? err
+      : err?.message || "Error occurred in the server.";
+
+  res.status(statusCode).json({
     success: false,
-    message: err.message || "Error occurred in the server.",
+    message,
   });
 });
 

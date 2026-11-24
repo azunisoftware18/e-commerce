@@ -18,6 +18,24 @@ export const useCreateOrder = () => {
 };
 
 // ==============================
+// ✅ CREATE SHIPROCKET ORDER
+// ==============================
+export const useCreateShiprocketOrder = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (orderId) => {
+      const response = await api.post(`/shiprocket/orders/create/${orderId}`);
+      return response.data;
+    },
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+    },
+  });
+};
+
+// ==============================
 // ✅ UPDATE ORDER
 // ==============================
 export const useUpdateOrder = () => {

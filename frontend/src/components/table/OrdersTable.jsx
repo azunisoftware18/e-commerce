@@ -2,7 +2,10 @@
 
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { TableShell, TableHead, TableBody, TablePagination } from "./core";
-import { useUpdateOrder } from "@/lib/mutations/useOrders";
+import {
+  useCreateShiprocketOrder,
+  useUpdateOrder,
+} from "@/lib/mutations/useOrders";
 import toast from "react-hot-toast";
 import ConfirmationDialog from "../common/ConfirmationDialog";
 import {
@@ -11,6 +14,7 @@ import {
   Plus,
   Download,
   Loader2,
+  CheckCircle2,
   CheckSquare,
   Square,
   X,
@@ -32,6 +36,7 @@ export default function OrdersTable({ data = [] }) {
   const [selectedPages, setSelectedPages] = useState([]);
   const [exportMode, setExportMode] = useState("filtered"); // "filtered" | "current" | "selected"
   const { mutate: updateOrder } = useUpdateOrder();
+  const shiprocketMutation = useCreateShiprocketOrder();
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [actionType, setActionType] = useState("");
@@ -227,6 +232,63 @@ export default function OrdersTable({ data = [] }) {
           )}
         </button>
       ),
+    },
+    {
+      label: "Shipment",
+      accessor: "shiprocketOrderId",
+      render: (shiprocketOrderId, row) => {
+        const isCreating =
+          shiprocketMutation.isPending &&
+          shiprocketMutation.variables === row.id;
+
+        if (shiprocketOrderId) {
+          return (
+            <div className="flex flex-col items-start gap-1">
+              <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700">
+                <CheckCircle2 className="h-4 w-4" />
+                {row.shiprocketStatus || "Order Created"}
+              </span>
+              <span className="text-xs text-slate-500">
+                Shiprocket ID: {shiprocketOrderId}
+              </span>
+              {row.shiprocketShipmentId && (
+                <span className="text-xs text-slate-500">
+                  Shipment ID: {row.shiprocketShipmentId}
+                </span>
+              )}
+            </div>
+          );
+        }
+
+        return (
+          <Button
+            text={isCreating ? "Creating..." : "Create Shipment"}
+            icon={
+              isCreating ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Package className="h-4 w-4" />
+              )
+            }
+            onClick={() =>
+              shiprocketMutation.mutate(row.id, {
+                onSuccess: (response) =>
+                  toast.success(
+                    response?.message || "Shiprocket order created",
+                  ),
+                onError: (error) =>
+                  toast.error(
+                    error.response?.data?.message ||
+                      "Failed to create Shiprocket order",
+                  ),
+              })
+            }
+            disabled={shiprocketMutation.isPending}
+            size="sm"
+            className="whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-60"
+          />
+        );
+      },
     },
     {
       label: "Courier Name",

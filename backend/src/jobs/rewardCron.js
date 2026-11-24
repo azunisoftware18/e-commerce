@@ -2,7 +2,7 @@ import cron from "node-cron";
 import prisma from "../db/db.js";
 
 cron.schedule("* * * * *", async () => {
-  console.log("Checking reward points...");
+
 
   const oneMinuteAgo = new Date(Date.now() - 60 * 1000); 
 //   const oneMinuteAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);

@@ -26,27 +26,27 @@ export default function HeroSlider({
   if (!images.length) return null;
 
   return (
-    <div className="relative w-full h-[60vh] md:h-[85vh] overflow-hidden bg-slate-900 group">
+    <div className="relative w-full h-auto md:h-[85vh] overflow-hidden bg-slate-900 group">
       {/* Slides */}
       {images.map((item, index) => (
         <div
           key={index}
-          className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
+          className={`${
             index === current
-              ? "opacity-100 scale-100 z-10"
-              : "opacity-0 scale-105 z-0"
-          }`}
+              ? "relative md:absolute md:inset-0 opacity-100 scale-100 z-10"
+              : "absolute inset-0 opacity-0 scale-105 z-0"
+          } transition-all duration-1000 ease-in-out`}
         >
-          <div className="relative w-full h-full">
+          <div className="relative w-full h-auto md:h-full">
             {/* FIXED: Changed object-fill to object-cover to prevent image stretching */}
             <img
               src={item.src}
               alt={item.title}
-              className="w-full h-full object-cover object-center "
+              className="w-full h-auto object-contain md:h-full md:object-cover md:object-center"
             />
 
             {/* Professional Gradient Overlay */}
-            <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-center px-6 md:px-20 lg:px-32">
+            {/* <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-center px-6 md:px-20 lg:px-32">
               <div
                 className={`transition-all duration-1000 delay-300 transform ${
                   index === current
@@ -76,8 +76,8 @@ export default function HeroSlider({
                 >
                   Shop Now
                 </Link> */}
-              </div>
-            </div>
+              {/* </div> */}
+            {/* </div> */} 
           </div>
         </div>
       ))}

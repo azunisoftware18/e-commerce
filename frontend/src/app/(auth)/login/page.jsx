@@ -10,7 +10,7 @@ import { closeLogin, setUser } from "@/store/slices/authSlice";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useLogin, useForgotPassword } from "@/lib/mutations/useAuth";
-import { useQueryClient } from "@tanstack/react-query"; // 👈 Import for cart invalidation
+import { useQueryClient } from "@tanstack/react-query"; // Import for cart invalidation
 
 export default function Login({ title, onSuccess, isModal = false }) {
   const { mutate: loginMutate, isLoading } = useLogin();
